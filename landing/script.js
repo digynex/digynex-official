@@ -95,7 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = {
       name: e.target[0].value,
       email: e.target[1].value,
-      requirement: e.target[2].value,
+      phone: e.target[2].value,
+      requirement: e.target[3].value,
       product: document.getElementById("modalTitle").innerText,
       timestamp: new Date().toISOString(),
     };
@@ -103,24 +104,36 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // 1. Temporary Save to LocalStorage (So user can see it works!)
-    const existingLeads = JSON.parse(
-      localStorage.getItem("digynexLeads") || "[]",
-    );
-    existingLeads.push(formData);
-    localStorage.setItem("digynexLeads", JSON.stringify(existingLeads));
-    console.log("Lead Captured Locally:", formData);
+    // 1. Submit to Supabase REST API (Direct)
+    const SUPABASE_URL = 'https://ticmdqeyeiycznfzxqrx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpY21kcWV5ZWl5Y3puZnp4cXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTMzNzYsImV4cCI6MjA4NTk2OTM3Nn0.rDnmzU407z9BmIFhvFlQghXmthoYKHvlrBVyrd33i0I';
 
-    // 2. Integration Placeholder (n8n Webhook)
-    /*
-    const WEBHOOK_URL = 'PASTE_YOUR_N8N_WEBHOOK_URL_HERE';
-    fetch(WEBHOOK_URL, {
+    fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
-      body: JSON.stringify(formData)
-    });
-    */
-
-    setTimeout(() => {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone, 
+        notes: formData.requirement,
+        source: 'Website - ' + formData.product,
+        status: 'New'
+      })
+    })
+    .then(() => {
+      // 2. Also Notify n8n for Automation
+      return fetch('https://n8n.digynex.se/webhook/lead-ingestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    })
+    .then(() => {
       alert(
         "Success! Your request has been logged. Our Team will reach out to you at " +
           formData.email +
@@ -130,7 +143,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.disabled = false;
       closeLeadModal();
       e.target.reset();
-    }, 1500);
+    })
+    .catch((err) => {
+      console.error('Submission error:', err);
+      alert('Something went wrong. Please try again later.');
+      btn.innerText = originalText;
+      btn.disabled = false;
+    });
   };
 
   // Nexus Flow Automation Trigger
