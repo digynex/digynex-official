@@ -561,23 +561,18 @@
       <div class="modal-card">
         <button class="close-btn" onclick="closeLoginModal()">&times;</button>
         <h3>Client Access Portal</h3>
-        <p>Login to manage your automation & IT assets.</p>
-        <form class="lead-form" onsubmit="handleLogin(event)">
-          <div class="input-group">
-            <i class="fa-solid fa-user icon-field"></i>
-            <input type="text" placeholder="Client ID / Username" required />
-          </div>
-          <div class="input-group">
-            <i class="fa-solid fa-lock icon-field"></i>
-            <input type="password" placeholder="Password" required />
-          </div>
-          <button type="submit" class="btn btn-gold full-width">
-            Secure Entry
-          </button>
-          <div class="login-footer">
-            <small><a href="#" class="gold-text">Forgot Credentials?</a></small>
-          </div>
-        </form>
+        <p>Select the portal you wish to access. You will be redirected to a secure login environment.</p>
+        <div class="portal-links">
+          <a href="https://cms.digynex.se" class="btn btn-gold full-width" style="margin-bottom: 15px; text-decoration: none; display: block; text-align: center;">
+            <i class="fa-solid fa-graduation-cap"></i> Tuition Manager (CMS)
+          </a>
+          <a href="https://tms.digynex.se" class="btn btn-outline full-width" style="text-decoration: none; display: block; text-align: center;">
+            <i class="fa-solid fa-chart-line"></i> Business Analytics (TMS)
+          </a>
+        </div>
+        <div class="login-footer" style="margin-top: 20px; text-align: center;">
+          <small>Need technical support? <a href="#contact" class="gold-text" onclick="closeLoginModal()">Contact us</a></small>
+        </div>
       </div>
     </div>
 
