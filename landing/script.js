@@ -115,17 +115,19 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify(formData),
     })
     .then(() => {
-      if (typeof window.closeLeadModal === "function") window.closeLeadModal();
       alert("Success! Your request has been logged. Our Team will reach out to you within 24 hours.");
     })
     .catch((err) => {
       console.error("Submission error:", err);
-      if (typeof window.closeLeadModal === "function") window.closeLeadModal();
       alert("Success! Your request has been logged. Our Team will reach out to you within 24 hours.");
     })
     .finally(() => {
+      // PROPER CLEANUP: This always runs even if n8n fails
       btn.innerText = originalText;
       btn.disabled = false;
+      if (typeof closeLeadModal === "function") {
+        closeLeadModal();
+      }
       e.target.reset();
     });
   };
