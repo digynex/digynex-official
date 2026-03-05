@@ -587,6 +587,30 @@
       </div>
     </div>
 
+    <!-- AI Chat Widget -->
+    <div class="ai-chat-widget">
+      <div id="chatWindow" class="chat-window">
+        <div class="chat-header">
+          <span class="status-dot"></span>
+          <h4>DigyNex Strategy Expert</h4>
+        </div>
+        <div id="chatBody" class="chat-body">
+          <div class="chat-msg bot">
+            අයියේ/අක්කේ, මම DigyNex AI සහකාරිය. ඔයාගේ බිස්නස් එක ඩිජිටල් කරන්න මට මොන වගේ උදව්වක්ද කරන්න පුළුවන්? 😊
+          </div>
+        </div>
+        <div class="chat-footer">
+          <input type="text" id="chatInput" placeholder="Write a message..." onkeypress="handleChatEnter(event)">
+          <button class="send-btn" onclick="sendChatMessage()">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+      <button class="chat-trigger-btn" onclick="toggleChat()">
+        <img src="ai-avatar.png" alt="AI Avatar">
+      </button>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>

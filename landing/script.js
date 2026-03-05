@@ -247,4 +247,78 @@ document.addEventListener("DOMContentLoaded", () => {
       closeLoginModal();
     }
   });
+
+  // --- AI CHAT WIDGET LOGIC ---
+  const chatWindow = document.getElementById("chatWindow");
+  const chatBody = document.getElementById("chatBody");
+  const chatInput = document.getElementById("chatInput");
+  let chatSessionId = "web-" + Math.random().toString(36).substring(7);
+
+  window.toggleChat = function() {
+    chatWindow.classList.toggle("active");
+  };
+
+  window.handleChatEnter = function(e) {
+    if (e.key === "Enter") {
+      sendChatMessage();
+    }
+  };
+
+  window.sendChatMessage = function() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // Add User Message
+    addMessage(text, "user");
+    chatInput.value = "";
+
+    // Show Typing
+    const typingId = addTypingIndicator();
+
+    // Send to n8n Webhook
+    fetch("https://n8n.digynex.se/webhook/web-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        sessionId: chatSessionId,
+        source: "website"
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      removeTypingIndicator(typingId);
+      const reply = data.output || "අයියේ, මට ඒක හරියට තේරුණේ නැහැ. පොඩ්ඩක් ආයෙත් කියන්න පුළුවන්ද?";
+      addMessage(reply, "bot");
+    })
+    .catch(err => {
+      removeTypingIndicator(typingId);
+      addMessage("Server connection error. Please try again.", "bot");
+      console.error(err);
+    });
+  };
+
+  function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = `chat-msg ${sender}`;
+    div.innerText = text;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function addTypingIndicator() {
+    const id = "typing-" + Date.now();
+    const div = document.createElement("div");
+    div.id = id;
+    div.className = "typing";
+    div.innerHTML = "<span></span><span></span><span></span>";
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
 });
