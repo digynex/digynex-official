@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show Typing
     const typingId = addTypingIndicator();
 
-    // Send to n8n Webhook
+    // Send to n8n Webhook - Final Production Endpoint
     fetch("https://n8n.digynex.se/webhook/f639f695-c06f-4bfa-8fcb-e971392f7966", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -307,15 +307,36 @@ document.addEventListener("DOMContentLoaded", () => {
         language: langSelect ? langSelect.value : "en"
       })
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(async res => {
       removeTypingIndicator(typingId);
-      const reply = data.output || "I'm sorry, I couldn't process that. Please try again.";
+      if (!res.ok) {
+        console.error("n8n Server Error:", res.status);
+        addMessage("Server busy. Please try again soon.", "bot");
+        return;
+      }
+      const responseText = await res.text();
+      if (!responseText) {
+        console.error("n8n returned empty response. CHECK YOUR IF NODE ROUTING!");
+        addMessage("n8n issue: Empty response. Check your workflow routing.", "bot");
+        return;
+      }
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("JSON Parse Error. Raw response:", responseText);
+        // Fallback: Use raw text if it's not JSON
+        addMessage(responseText || "I'm sorry, I couldn't process that.", "bot");
+        return;
+      }
+
+      // Check all common keys
+      const reply = data.reply || data.output || data.message || "I'm sorry, I couldn't process that.";
       addMessage(reply, "bot");
     })
     .catch(err => {
-      console.error("Chat Webhook Error:", err);
-      if (typeof removeTypingIndicator === 'function') removeTypingIndicator(typingId);
+      console.error("DEBUG: Webhook Call Failed:", err);
+      removeTypingIndicator(typingId);
       addMessage("Connection error. Our experts are standing by while we sync with the server.", "bot");
     });
   };
