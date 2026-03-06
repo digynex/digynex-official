@@ -1227,13 +1227,21 @@ html {
 
 .lang-selector select {
   width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8f9fa; /* Light background for maximum contrast */
+  border: 2px solid var(--liquid-gold);
+  color: #1a1a1a; /* Dark text */
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  appearance: none; /* Clean look */
+  -webkit-appearance: none;
+}
+
+.lang-selector select option {
+  background: white;
+  color: #1a1a1a;
 }
 
 /* Quick Actions */

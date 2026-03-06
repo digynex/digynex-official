@@ -266,11 +266,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const msgBlock = document.querySelector(".welcome-msg p");
     
     if (lang === "si") {
-      msgBlock.innerHTML = "DigyNex Ecosystem එකට සාදරයෙන් පිළිගන්නවා! 🇸🇪 අද මට ඔයාට කොහොමද උදව් කරන්න පුළුවන්?";
+      msgBlock.innerText = "DigyNex Ecosystem එකට සාදරයෙන් පිළිගන්නවා! 🇸🇪 අද මට ඔයාට කොහොමද උදව් කරන්න පුළුවන්?";
     } else if (lang === "sv") {
-      msgBlock.innerHTML = "Välkommen till DigyNex Ecosystem! 🇸🇪 Hur kan jag hjälpa dig idag?";
+      msgBlock.innerText = "Välkommen till DigyNex Ecosystem! 🇸🇪 Hur kan jag hjälpa dig idag?";
     } else {
-      msgBlock.innerHTML = "Welcome to DigyNex Ecosystem! 🇸🇪 How can I assist you today?";
+      msgBlock.innerText = "Welcome to DigyNex Ecosystem! 🇸🇪 How can I assist you today?";
     }
   };
 
@@ -314,9 +314,9 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage(reply, "bot");
     })
     .catch(err => {
-      removeTypingIndicator(typingId);
-      addMessage("Connection error. Our experts are standing by.", "bot");
-      console.error(err);
+      console.error("Chat Webhook Error:", err);
+      if (typeof removeTypingIndicator === 'function') removeTypingIndicator(typingId);
+      addMessage("Connection error. Our experts are standing by while we sync with the server.", "bot");
     });
   };
 
