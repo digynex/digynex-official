@@ -288,15 +288,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.sendChatMessage = function() {
     const text = chatInput.value.trim();
     if (!text) return;
-
-    // Add User Message
+    
     addMessage(text, "user");
     chatInput.value = "";
-
-    // Show Typing
+    
     const typingId = addTypingIndicator();
-
-    // Send to n8n Webhook - Final Production Endpoint
+    
+    // Send to n8n Webhook - PRODUCTION
     fetch("https://n8n.digynex.se/webhook/f639f695-c06f-4bfa-8fcb-e971392f7966", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -308,34 +306,49 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     })
     .then(async res => {
+      console.log("Response status:", res.status);
+      
       removeTypingIndicator(typingId);
       if (!res.ok) {
-        console.error("n8n Server Error:", res.status);
-        addMessage("Server busy. Please try again soon.", "bot");
-        return;
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      const responseText = await res.text();
-      if (!responseText) {
-        console.error("n8n returned empty response. CHECK YOUR IF NODE ROUTING!");
-        addMessage("n8n issue: Empty response. Check your workflow routing.", "bot");
-        return;
-      }
-      let data;
+      
+      const rawText = await res.text();
+      console.log("Raw response:", rawText);
+      
+      let reply = null;
+      
+      // Try to parse as JSON first
       try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error("JSON Parse Error. Raw response:", responseText);
-        // Fallback: Use raw text if it's not JSON
-        addMessage(responseText || "I'm sorry, I couldn't process that.", "bot");
-        return;
+        const data = JSON.parse(rawText);
+        console.log("Parsed JSON:", data);
+        
+        // Extract reply from JSON response
+        if (data.reply) {
+          reply = data.reply;
+        } else if (data.message) {
+          reply = data.message;
+        } else if (data.output) {
+          reply = data.output;
+        } else if (data.text) {
+          reply = data.text;
+        }
+      } catch (jsonError) {
+        // If not valid JSON, treat as plain text response
+        console.log("Not JSON format, treating as plain text");
+        reply = rawText;
       }
-
-      // Check all common keys
-      const reply = data.reply || data.output || data.message || "I'm sorry, I couldn't process that.";
+      
+      // If still no reply, use default
+      if (!reply) {
+        reply = "I'm sorry, I couldn't process that. Please try again.";
+      }
+      
       addMessage(reply, "bot");
     })
     .catch(err => {
-      console.error("DEBUG: Webhook Call Failed:", err);
+      console.error("Chat error:", err);
+      console.error("Full error:", err.message);
       removeTypingIndicator(typingId);
       addMessage("Connection error. Our experts are standing by while we sync with the server.", "bot");
     });
