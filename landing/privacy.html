@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=7.5" />
     <style>
       .legal-content { padding: 120px 0 80px; min-height: 80vh; }
       .glass-card-legal { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px; color: #ccc; line-height: 1.8; }
@@ -96,8 +96,15 @@
     <footer class="main-footer">
       <div class="container footer-content">
         <div class="footer-brand">
-          <div class="logo"><span class="gold-text">Digy</span>Nex</div>
-          <p>Global Leaders in IT Transformation.</p>
+          <img src="logo.svg" alt="DigyNex Logo" class="footer-main-logo">
+          <p class="tagline">Global Leaders in IT Transformation.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Solutions</h4>
+          <a href="index.html#products">Tuition Manager</a>
+          <a href="index.html#products">FB Nexus</a>
+          <a href="index.html#services">Custom Software</a>
+          <a href="portfolio/index.html">Portfolio</a>
         </div>
         <div class="footer-links">
           <h4>Company</h4>
@@ -110,14 +117,27 @@
         <div class="footer-contact">
           <h4>Connect</h4>
           <div class="social-icons">
-            <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#"><i class="fa-brands fa-linkedin"></i></a>
-            <a href="#"><i class="fa-brands fa-github"></i></a>
+            <a href="https://facebook.com/digynex.se" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="https://linkedin.com/in/amilaperera" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://github.com/digynex" target="_blank"><i class="fa-brands fa-github"></i></a>
           </div>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 DigyNex Systems. Official Domain | <span class="gold-text">digynex.se</span></p>
+        <div class="footer-branding-mini" style="margin-bottom: 20px;">
+          <img src="logo.svg" alt="DigyNex" style="height: 60px; opacity: 0.85;">
+        </div>
+        <p>
+          &copy; 2026 DigyNex Systems. Official Domain |
+          <span class="gold-text">digynex.se</span>
+        </p>
+        <div class="developer-credit" style="margin-top: 15px; opacity: 0.5; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px;">
+           Ecosystem Architected by <a href="portfolio/index.html" class="gold-text" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
+             DigyNex <span style="font-size: 8px; border: 1px solid; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; padding-top: 1px;">TM</span>
+           </a>
+           <span style="opacity: 0.3;">|</span>
+           <span>Powered by DigyNex AI</span>
+        </div>
       </div>
     </footer>
   </body>

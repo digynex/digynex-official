@@ -62,58 +62,84 @@ h3,
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000;
-  background: rgba(10, 15, 28, 0.8);
-  backdrop-filter: blur(15px);
+  height: 85px; /* World-class height for a glass navbar */
+  z-index: 2000;
+  background: rgba(10, 15, 28, 0.85);
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
-  padding: 20px 0;
+  display: flex;
+  align-items: center;
 }
 
 .nav-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative; /* Anchor for absolute elements */
 }
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 120px !important; /* Forced gap to prevent touching */
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 24px;
+  position: relative;
+  padding-left: 195px !important; /* Pushed further to the right */
+  margin-right: 155px !important; /* Pulled closer to the Home link */
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -1px;
 }
 
-.nav-logo-mini-spin {
-  height: 40px;
-  width: 40px;
-  transform-style: preserve-3d;
-  animation: logo-spin 8s linear infinite;
-  filter: drop-shadow(0 0 15px rgba(191, 149, 63, 0.5));
-}
-
-.nav-logo-svg {
-  position: fixed;
-  top: -20px; /* Lowered for better visibility vs. previous -45px */
-  left: 0.5rem;
-  width: 200px;
-  height: 200px;
-  transform-style: preserve-3d;
-  animation: logo-spin 12s linear infinite;
-  filter: drop-shadow(0 0 50px rgba(191, 149, 63, 0.8));
-  z-index: 99999; /* Boosted z-index to super-layer */
+.nav-logo-3d {
+  position: absolute !important;
+  top: 50% !important;
+  left: -60px !important;
+  width: 200px !important;
+  height: 200px !important;
+  transform: translateY(-50%);
+  perspective: 1000px; /* Essential for 3D effect */
+  z-index: 2001;
   pointer-events: none;
-  opacity: 1 !important;
-  display: block !important;
 }
 
-@keyframes logo-spin {
+.logo-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: logo-spin-3d 10s linear infinite !important;
+}
+
+.logo-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden; /* Only show the face that is forward */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-face.front {
+  transform: translateZ(2px); /* Tiny depth to prevent flickering */
+}
+
+.logo-face.back {
+  transform: rotateY(180deg) translateZ(2px); /* Flip and add depth */
+}
+
+.logo-face img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 50px rgba(191, 149, 63, 0.4));
+}
+
+@keyframes logo-spin-3d {
   from { transform: rotateY(0deg); }
   to { transform: rotateY(360deg); }
 }
@@ -140,8 +166,7 @@ h3,
 
 .nav-actions {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 15px;
 }
 
 /* --- BUTTONS --- */
@@ -510,14 +535,44 @@ h3,
 }
 
 .footer-content {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 50px;
+  margin-bottom: 50px;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px !important; /* Tightest gap as SVG has its own internal space */
+  margin: 0;
+  padding: 0;
+}
+
+.footer-brand .footer-main-logo {
+  width: 260px;
+  height: auto;
+  display: block;
+  margin-top: -60px !important; /* Lowered the whole group for balance */
+  margin-bottom: -90px !important; /* Kept the tight internal branding gap */
+  margin-left: -15px;
+}
+
+.footer-brand .tagline {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--white);
+  line-height: 1.5;
+  white-space: nowrap;
+  opacity: 0.85;
 }
 
 .footer-links h4,
 .footer-contact h4 {
+  margin-top: 0 !important; /* Ensuring flat baseline */
   margin-bottom: 18px;
   font-size: 16px;
   font-weight: 700;
@@ -570,11 +625,11 @@ h3,
 
 .footer-bottom {
   text-align: center;
-  padding-top: 20px;
-  border-top: 1px solid var(--grey-dim);
+  padding-top: 25px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 13px;
-  color: var(--grey-light);
-  opacity: 1;
+  color: var(--grey-light); /* Much better visibility */
+  opacity: 0.6;
 }
 
 /* --- ANIMATIONS --- */

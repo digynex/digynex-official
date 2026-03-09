@@ -28,14 +28,19 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="style.css?v=2.0" />
+    <link rel="stylesheet" href="style.css?v=7.5" />
   </head>
   <body>
-    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg">
     <!-- Premium Navigation -->
     <nav class="glass-nav">
       <div class="container nav-content">
         <div class="logo">
+          <div class="nav-logo-3d">
+            <div class="logo-inner">
+              <img src="logo.svg" alt="DigyNex Logo" class="logo-face front">
+              <img src="logo.svg" alt="DigyNex Logo" class="logo-face back">
+            </div>
+          </div>
           <span class="brand-name">Digy<span class="gold-text">Nex</span></span>
         </div>
         <div class="nav-right">
@@ -43,7 +48,7 @@
             <li><a href="#home">Home</a></li>
             <li><a href="#products">Products</a></li>
             <li><a href="#services">Services</a></li>
-            <li><a href="about.html">About</a></li>
+            <li><a href="#about">About</a></li>
           </ul>
           <div class="nav-actions">
             <a href="#contact" class="btn btn-outline">Contact Us</a>
@@ -471,11 +476,11 @@
             </div>
 
             <div class="contact-methods-hub">
-              <a href="tel:46790522874" class="hub-item">
-                <i class="fa-solid fa-phone"></i>
+              <a href="https://wa.me/46790522874" class="hub-item" target="_blank">
+                <i class="fa-brands fa-whatsapp"></i>
                 <div class="hub-text">
-                  <small>Call Direct</small>
-                  <span>+46 79 052 28 74</span>
+                  <small>Direct Message</small>
+                  <span>WhatsApp Only</span>
                 </div>
               </a>
               <a href="mailto:info@digynex.se" class="hub-item">
@@ -513,16 +518,15 @@
     <footer class="main-footer">
       <div class="container footer-content">
         <div class="footer-brand">
-          <div class="logo">
-            <img src="logo.svg" alt="DigyNex Logo" style="height: 70px; display: block; margin-bottom: 15px;">
-          </div>
-          <p>Global Leaders in IT Transformation.</p>
+          <img src="logo.svg" alt="DigyNex Logo" class="footer-main-logo">
+          <p class="tagline">Global Leaders in IT Transformation.</p>
         </div>
         <div class="footer-links">
           <h4>Solutions</h4>
-          <a href="#">Tuition Manager</a>
-          <a href="#">FB Nexus</a>
-          <a href="#">Custom Software</a>
+          <a href="https://tms.digynex.se" target="_blank">Tuition Manager</a>
+          <a href="https://fbnexus.digynex.se" target="_blank">FB Nexus</a>
+          <a href="#services">Custom Software</a>
+          <a href="portfolio/index.html">Portfolio</a>
         </div>
         <div class="footer-links">
           <h4>Company</h4>
@@ -536,22 +540,24 @@
           <h4>Connect</h4>
           <div class="social-icons">
             <a href="https://facebook.com/digynex.se" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="https://www.linkedin.com/in/digynex-amila" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://linkedin.com/in/amilaperera" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
             <a href="https://github.com/digynex" target="_blank"><i class="fa-brands fa-github"></i></a>
           </div>
         </div>
       </div>
       <div class="footer-bottom">
-        <div class="footer-branding-mini" style="margin-bottom: 10px;">
-          <img src="logo.svg" alt="DigyNex" style="height: 35px; opacity: 1;">
+        <div class="footer-branding-mini" style="margin-bottom: 20px;">
+          <img src="logo.svg" alt="DigyNex" style="height: 60px; opacity: 0.85;">
         </div>
         <p>
           &copy; 2026 DigyNex Systems. Official Domain |
           <span class="gold-text">digynex.se</span>
         </p>
-        <div class="developer-credit" style="margin-top: 15px; opacity: 0.9; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px;">
-           Ecosystem Architected by <a href="https://amila.digynex.se" class="gold-text" style="text-decoration: none;" target="_blank">Amila</a>
-           <span style="opacity: 0.5;">|</span>
+        <div class="developer-credit" style="margin-top: 15px; opacity: 0.5; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px;">
+           Ecosystem Architected by <a href="portfolio/index.html" class="gold-text" style="text-decoration: none; display: flex; align-items: center; gap: 4px;">
+             DigyNex <span style="font-size: 8px; border: 1px solid; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; padding-top: 1px;">TM</span>
+           </a>
+           <span style="opacity: 0.3;">|</span>
            <span>Powered by DigyNex AI</span>
         </div>
       </div>
