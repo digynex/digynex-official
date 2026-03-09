@@ -56,9 +56,9 @@ Specialist in Digital Architecture, AI Systems, and Enterprise Solutions. With 1
 <br clear="left"/>
 <br/>
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/amilaperera)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/digynex-amila)
 [![GitHub](https://img.shields.io/badge/GitHub-digynex-lightgrey?style=flat-square&logo=github)](https://github.com/digynex)
-[![Facebook](https://img.shields.io/badge/Facebook-DigyNex-1877F2?style=flat-square&logo=facebook)](https://facebook.com/digynex)
+[![Facebook](https://img.shields.io/badge/Facebook-DigyNex-1877F2?style=flat-square&logo=facebook)](https://facebook.com/digynex.se)
 
 ---
 

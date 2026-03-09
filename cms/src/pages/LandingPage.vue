@@ -504,9 +504,9 @@
         <div class="footer-contact">
           <h4>Connect</h4>
           <div class="social-icons">
-            <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#"><i class="fa-brands fa-linkedin"></i></a>
-            <a href="#"><i class="fa-brands fa-github"></i></a>
+            <a href="https://facebook.com/digynex.se" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="https://www.linkedin.com/in/digynex-amila" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://github.com/digynex" target="_blank"><i class="fa-brands fa-github"></i></a>
           </div>
         </div>
       </div>
