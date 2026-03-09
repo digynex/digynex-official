@@ -71,6 +71,30 @@
   letter-spacing: -1px;
 }
 
+.nav-logo-svg {
+  position: fixed;
+  top: -45px;
+  left: 0.5rem;
+  width: 200px;
+  height: 200px;
+  transform-style: preserve-3d;
+  animation: logo-spin 12s linear infinite;
+  filter: drop-shadow(0 0 55px rgba(212, 175, 55, 0.7));
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
 .official-page .nav-links {
   display: flex;
   list-style: none;

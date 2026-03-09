@@ -1,5 +1,6 @@
 <template>
   <q-page class="official-page">
+    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg" />
     <!-- Premium Navigation -->
     <nav class="glass-nav" :class="{ 'nav-scrolled': scrolled }">
       <div class="container nav-content">
@@ -448,11 +449,11 @@
             </div>
 
             <div class="contact-methods-hub">
-              <a href="tel:+46769703311" class="hub-item">
+              <a href="tel:46790522874" class="hub-item">
                 <i class="fa-solid fa-phone"></i>
                 <div class="hub-text">
                   <small>Call Direct</small>
-                  <span>+46 76 970 33 11</span>
+                  <span>+46 79 052 28 74</span>
                 </div>
               </a>
               <a href="mailto:info@digynex.se" class="hub-item">
@@ -514,6 +515,9 @@
           &copy; 2026 DigyNex Systems. Official Domain |
           <span class="gold-text">digynex.se</span>
         </p>
+        <div class="developer-credit" style="margin-top: 15px; opacity: 0.5; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;">
+           Engineered by <a href="/portfolio/index.html" class="gold-text" style="text-decoration: none;">Amila</a>
+        </div>
       </div>
     </footer>
 
@@ -767,7 +771,7 @@ const downloadVCard = () => {
     'VERSION:3.0\n' +
     'FN:DigyNex IT Support\n' +
     'ORG:DigyNex Systems\n' +
-    'TEL;TYPE=WORK,VOICE:+46769703311\n' +
+    'TEL;TYPE=WORK,VOICE:46790522874\n' +
     'EMAIL;TYPE=WORK,INTERNET:info@digynex.se\n' +
     'URL:https://digynex.se\n' +
     'END:VCARD'

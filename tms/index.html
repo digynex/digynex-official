@@ -62,7 +62,7 @@
       <div id="chatWindow" class="chat-window">
         <div class="chat-header">
           <div class="header-info">
-            <img src="ai-avatar.png" alt="Bot Avatar" class="header-avatar">
+            <img src="ai-avatar.webp" alt="Bot Avatar" class="header-avatar">
             <div class="header-text">
               <h4 style="margin:0; font-size:16px;">DigyNex TMS Buddy</h4>
               <p style="margin:0; font-size:11px;"><span class="status-dot"></span> Online</p>
@@ -90,10 +90,12 @@
           <input type="text" id="chatInput" placeholder="Type..." onkeypress="handleChatEnter(event)">
           <button class="send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
-        <div class="chat-branding">Powered by DigyNex AI Agent ⚡</div>
+        <div class="chat-branding">
+          Powered by <img src="logo.svg" alt="DigyNex" style="height: 12px; vertical-align: middle; margin-right: 4px; opacity: 0.8;"> DigyNex AI Agent ⚡
+        </div>
       </div>
       <button class="chat-trigger-btn" onclick="toggleChat()">
-        <img src="ai-avatar.png" alt="AI Avatar">
+        <img src="ai-avatar.webp" alt="AI Avatar">
       </button>
     </div>
 

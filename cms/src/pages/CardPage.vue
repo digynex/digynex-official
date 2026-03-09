@@ -1,5 +1,6 @@
 <template>
   <q-page class="card-page">
+    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg" />
     <div class="card">
       <div class="lang-switch">
         <button class="lang-btn" :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
@@ -56,10 +57,10 @@
         </div>
       </div>
 
-      <a href="tel:+46769703311" class="btn">
+      <a href="tel:46790522874" class="btn">
         <i class="fa-solid fa-phone icon-gold"></i> Call Me
       </a>
-      <a href="https://wa.me/46769703311" class="btn">
+      <a href="https://wa.me/46790522874" class="btn">
         <i class="fa-brands fa-whatsapp icon-whatsapp"></i> WhatsApp
       </a>
       <a href="mailto:info@digynex.se" class="btn">
@@ -91,7 +92,7 @@ const lang = ref('en')
 
 const downloadVCard = () => {
   const v =
-    'BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:+46769703311\nEMAIL:info@digynex.se\nURL:https://digynex.se\nEND:VCARD'
+    'BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:46790522874\nEMAIL:info@digynex.se\nURL:https://digynex.se\nEND:VCARD'
   const b = new Blob([v], { type: 'text/vcard' })
   const url = URL.createObjectURL(b)
   const a = document.createElement('a')
@@ -112,6 +113,28 @@ const downloadVCard = () => {
   background: #cfcfcf;
   font-family: Montserrat, sans-serif;
   padding: 20px 10px;
+}
+
+.nav-logo-svg {
+  position: fixed;
+  top: -55px;
+  left: 0.5rem;
+  width: 200px;
+  height: 200px;
+  transform-style: preserve-3d;
+  animation: logo-spin 12s linear infinite;
+  filter: drop-shadow(0 0 55px rgba(212, 175, 55, 0.7));
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
 }
 
 .card {
