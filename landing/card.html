@@ -39,6 +39,28 @@
         padding: 20px 10px;
       }
 
+      .nav-logo-svg {
+        position: fixed;
+        top: -55px;
+        left: 0.5rem;
+        width: 200px;
+        height: 200px;
+        transform-style: preserve-3d;
+        animation: logo-spin 12s linear infinite;
+        filter: drop-shadow(0 0 55px rgba(212, 175, 55, 0.7));
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      @keyframes logo-spin {
+        from {
+          transform: rotateY(0deg);
+        }
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+
       .card {
         position: relative;
         max-width: 400px;
@@ -81,6 +103,7 @@
         font-weight: 800;
         background: var(--gold-grad);
         -webkit-background-clip: text;
+        background-clip: text;
         color: transparent;
       }
 
@@ -257,6 +280,7 @@
   </head>
 
   <body>
+    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg">
     <div class="card">
       <div class="lang-switch">
         <button class="lang-btn active" onclick="setLang('en')">EN</button>
@@ -309,10 +333,10 @@
         </div>
       </div>
 
-      <a href="tel:+46769703311" class="btn">
+      <a href="tel:46790522874" class="btn">
         <i class="fa-solid fa-phone icon-gold"></i> Call Me
       </a>
-      <a href="https://wa.me/46769703311" class="btn">
+      <a href="https://wa.me/46790522874" class="btn">
         <i class="fa-brands fa-whatsapp icon-whatsapp"></i> WhatsApp
       </a>
       <a href="mailto:info@digynex.se" class="btn">
@@ -340,7 +364,15 @@
         <div class="qr-text">SCAN TO VISIT</div>
       </div>
 
-      <div class="footer">digynex.se | Teknik utan krångel</div>
+      <div class="footer-bottom">
+        <p>
+          &copy; 2026 DigyNex Systems. Official Domain |
+          <span class="gold-text">digynex.se</span>
+        </p>
+        <div class="developer-credit" style="margin-top: 10px; opacity: 0.6; font-size: 11px; letter-spacing: 1px;">
+           Digital Ecosystem Architecture by <a href="../portfolio/index.html" class="gold-text" style="text-decoration: none;">Amila Portfolio</a>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -364,7 +396,7 @@
 
       function downloadVCard() {
         var v =
-          "BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:+46769703311\nEMAIL:info@digynex.se\nEND:VCARD";
+          "BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:46790522874\nEMAIL:info@digynex.se\nEND:VCARD";
         var b = new Blob([v], { type: "text/vcard" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(b);

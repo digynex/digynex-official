@@ -4,11 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DigyNex | Architecting the Digital Future</title>
-    <link rel="icon" type="image/png" href="Logo.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <meta
       name="description"
       content="DigyNex is a global IT ecosystem specializing in tuition management, social automation, and enterprise solutions."
     />
+    
+    <!-- Open Graph for Facebook/LinkedIn -->
+    <meta property="og:title" content="DigyNex | Architecting the Digital Future">
+    <meta property="og:description" content="Global IT ecosystem specializing in tuition management, social automation, and enterprise solutions.">
+    <meta property="og:image" content="https://digynex.se/logo.svg">
+    <meta property="og:url" content="https://digynex.se">
+    <meta property="og:type" content="website">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,14 +28,16 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2.0" />
   </head>
   <body>
+    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg">
     <!-- Premium Navigation -->
     <nav class="glass-nav">
       <div class="container nav-content">
         <div class="logo">
-          <img src="Logo.png" alt="DigyNex Logo" style="height: 40px; display: block; filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.4));">
+          <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-mini-spin">
+          <span class="brand-name">Digy<span class="gold-text">Nex</span></span>
         </div>
         <ul class="nav-links">
           <li><a href="#home">Home</a></li>
@@ -88,7 +97,7 @@
               <div class="ui-cluster">
                 <div class="glass-element core-ui">
                   <img
-                    src="ai-hero.png"
+                    src="ai-hero.webp"
                     alt="DigyNex AI Assistant"
                     class="ui-img"
                   />
@@ -461,11 +470,11 @@
             </div>
 
             <div class="contact-methods-hub">
-              <a href="tel:+46769703311" class="hub-item">
+              <a href="tel:46790522874" class="hub-item">
                 <i class="fa-solid fa-phone"></i>
                 <div class="hub-text">
                   <small>Call Direct</small>
-                  <span>+46 76 970 33 11</span>
+                  <span>+46 79 052 28 74</span>
                 </div>
               </a>
               <a href="mailto:info@digynex.se" class="hub-item">
@@ -504,7 +513,7 @@
       <div class="container footer-content">
         <div class="footer-brand">
           <div class="logo">
-            <img src="Logo.png" alt="DigyNex Logo" style="height: 35px; display: block; margin-bottom: 15px;">
+            <img src="logo.svg" alt="DigyNex Logo" style="height: 45px; display: block; margin-bottom: 15px;">
           </div>
           <p>Global Leaders in IT Transformation.</p>
         </div>
@@ -532,10 +541,18 @@
         </div>
       </div>
       <div class="footer-bottom">
+        <div class="footer-branding-mini" style="margin-bottom: 10px;">
+          <img src="logo.svg" alt="DigyNex" style="height: 20px; opacity: 0.7;">
+        </div>
         <p>
           &copy; 2026 DigyNex Systems. Official Domain |
           <span class="gold-text">digynex.se</span>
         </p>
+        <div class="developer-credit" style="margin-top: 15px; opacity: 0.5; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px;">
+           Ecosystem Architected by <a href="portfolio/index.html" class="gold-text" style="text-decoration: none;">Amila</a>
+           <span style="opacity: 0.3;">|</span>
+           <span>Powered by DigyNex AI</span>
+        </div>
       </div>
     </footer>
     <!-- Modal System -->
@@ -598,7 +615,7 @@
         <!-- Header Section -->
         <div class="chat-header">
           <div class="header-info">
-            <img src="ai-avatar.png" alt="Bot Avatar" class="header-avatar">
+            <img src="ai-avatar.webp" alt="Bot Avatar" class="header-avatar">
             <div class="header-text">
               <h4>DigyNex Strategy Expert</h4>
               <p><span class="status-dot"></span> Replies in under 1 min</p>
@@ -637,16 +654,16 @@
           </button>
         </div>
         <div class="chat-branding">
-          Powered by DigyNex AI Agents ⚡
+          Powered by <img src="logo.svg" alt="DigyNex" style="height: 14px; vertical-align: middle; margin-right: 5px; opacity: 0.8;"> DigyNex AI Agents ⚡
         </div>
       </div>
 
       <!-- Main Trigger Button -->
       <button class="chat-trigger-btn" onclick="toggleChat()">
-        <img src="ai-avatar.png" alt="AI Avatar">
+        <img src="ai-avatar.webp" alt="AI Avatar">
       </button>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2.0"></script>
   </body>
 </html>

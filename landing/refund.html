@@ -38,10 +38,11 @@
         margin-bottom: 15px;
       }
       .gold-text {
-        color: #d4af37;
-        background: linear-gradient(45deg, #d4af37, #f4e09d);
+        background: linear-gradient(45deg, #d4af37, #f4e09d); /* Assuming --gold-gradient is this value */
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        font-weight: 700;
       }
       h2, h3 {
         color: #fff;
@@ -56,6 +57,7 @@
     </style>
   </head>
   <body>
+    <img src="logo.svg" alt="DigyNex Logo" class="nav-logo-svg">
     <!-- Navigation -->
     <nav class="glass-nav">
       <div class="container nav-content">

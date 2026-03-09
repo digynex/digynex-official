@@ -269,10 +269,10 @@ stay secure, and use technology with confidence — without technical stress.
     <div class="service-item"><i class="fa-solid fa-video service-icon"></i> CCTV & Smart Home – installation & support</div>
 </div>
 
-<a href="tel:+46769703311" class="btn">
+<a href="tel:46790522874" class="btn">
     <i class="fa-solid fa-phone icon-gold"></i> Call Me
 </a>
-<a href="https://wa.me/46769703311" class="btn">
+<a href="https://wa.me/46790522874" class="btn">
     <i class="fa-brands fa-whatsapp icon-whatsapp"></i> WhatsApp
 </a>
 <a href="mailto:info@digynex.se" class="btn">
@@ -313,7 +313,7 @@ function setLang(lang){
 }
 
 function downloadVCard(){
-    var v="BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:+46769703311\nEMAIL:info@digynex.se\nEND:VCARD";
+    var v="BEGIN:VCARD\nVERSION:3.0\nFN:DigyNex IT Support\nTEL:46790522874\nEMAIL:info@digynex.se\nEND:VCARD";
     var b=new Blob([v],{type:"text/vcard"});
     var a=document.createElement("a");
     a.href=URL.createObjectURL(b);

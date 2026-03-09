@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "VERSION:3.0\n" +
       "FN:DigyNex IT Support\n" +
       "ORG:DigyNex Systems\n" +
-      "TEL;TYPE=WORK,VOICE:+46769703311\n" +
+      "TEL;TYPE=WORK,VOICE:46790522874\n" +
       "EMAIL;TYPE=WORK,INTERNET:info@digynex.se\n" +
       "URL:https://digynex.se\n" +
       "END:VCARD";

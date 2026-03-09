@@ -71,14 +71,46 @@ h3,
 
 .nav-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center links now that logo is moved out */
   align-items: center;
+  position: relative;
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -1px;
+}
+
+.nav-logo-mini-spin {
+  height: 40px;
+  width: 40px;
+  transform-style: preserve-3d;
+  animation: logo-spin 8s linear infinite;
+  filter: drop-shadow(0 0 15px rgba(191, 149, 63, 0.5));
+}
+
+.nav-logo-svg {
+  position: fixed;
+  top: -20px; /* Lowered for better visibility vs. previous -45px */
+  left: 0.5rem;
+  width: 200px;
+  height: 200px;
+  transform-style: preserve-3d;
+  animation: logo-spin 12s linear infinite;
+  filter: drop-shadow(0 0 50px rgba(191, 149, 63, 0.8));
+  z-index: 99999; /* Boosted z-index to super-layer */
+  pointer-events: none;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+@keyframes logo-spin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
 }
 
 .nav-links {
@@ -102,6 +134,8 @@ h3,
 }
 
 .nav-actions {
+  position: absolute;
+  right: 0;
   display: flex;
   gap: 15px;
 }
