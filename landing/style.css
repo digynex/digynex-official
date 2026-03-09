@@ -71,7 +71,7 @@ h3,
 
 .nav-content {
   display: flex;
-  justify-content: center; /* Center links now that logo is moved out */
+  justify-content: space-between;
   align-items: center;
   position: relative;
 }
@@ -568,8 +568,9 @@ h3,
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid var(--grey-dim);
-  font-size: 12px;
-  color: var(--grey-dim);
+  font-size: 13px;
+  color: var(--grey-light);
+  opacity: 1;
 }
 
 /* --- ANIMATIONS --- */
