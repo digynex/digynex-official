@@ -466,19 +466,24 @@ const fetchContacts = async () => {
 const handleNexusAiResponse = (content) => {
   generatingAi.value = true
   
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s for strategy
+  
   // Connect to the same powerful n8n AI Engine used in the public widgets
   fetch("https://n8n.digynex.se/webhook/f639f695-c06f-4bfa-8fcb-e971392f7966", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
     body: JSON.stringify({
       message: content,
-      sessionId: 'nexus-orchestrator-' + $q.localStorage.getItem('user_id'),
+      sessionId: 'nexus-orchestrator-' + ($q.localStorage.getItem('user_id') || 'unknown'),
       source: "cms-nexus-core",
       language: "en"
     })
   })
   .then(res => res.text())
   .then(txt => {
+    clearTimeout(timeoutId);
     let reply = "";
     try {
       const data = JSON.parse(txt);
@@ -496,11 +501,12 @@ const handleNexusAiResponse = (content) => {
     generatingAi.value = false
   })
   .catch(err => {
+    clearTimeout(timeoutId);
     console.error('Nexus AI Error:', err);
     messages.value.push({
       id: Date.now(),
       sent: false,
-      text: "Connection to Nexus Core failed. Check orchestrator status.",
+      text: "Nexus Orchestration interrupted. This usually means n8n workflow routing failed. Check internal logs.",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     })
     generatingAi.value = false
