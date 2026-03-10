@@ -139,7 +139,9 @@
         .then(res => res.text()).then(txt => { 
           clearTimeout(timeoutId);
           try {
-          addMessage(data.output || data.message || "Processed!", "bot");
+            const data = JSON.parse(txt);
+            const finalMsg = data.output || data.message || data.reply || txt;
+            addMessage(finalMsg, "bot");
           } catch(e) {
             addMessage(txt || "Sync detected. Please verify via WhatsApp: <a href='https://digynex.se/whatsapp/' target='_blank' style='color: #bf953f; text-decoration: underline;'>Official Support Portal</a>", "bot");
           }

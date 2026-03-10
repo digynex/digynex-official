@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "ORG:DigyNex Systems\n" +
       "TEL;TYPE=WORK,VOICE:46790522874\n" +
       "EMAIL;TYPE=WORK,INTERNET:info@digynex.se\n" +
-      "URL:https://digynex.se\n" +
+      "URL:https://digynex.se/whatsapp/\n" +
       "END:VCARD";
 
     const blob = new Blob([vCardData], { type: "text/vcard" });
@@ -292,6 +292,8 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessage(text, "user");
     chatInput.value = "";
     
+    const typingId = addTypingIndicator();
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
     
@@ -344,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
       
       // If still no reply, use default
       if (!reply) {
-        reply = "Strategic sync detected. For faster assistance, please WhatsApp us: <a href='https://wa.me/46790522874' target='_blank' style='color: #fbbf24; text-decoration: underline;'>wa.me/46790522874</a>";
+        reply = "Strategic sync detected. For faster assistance, please WhatsApp us: <a href='https://digynex.se/whatsapp/' target='_blank' style='color: #fbbf24; text-decoration: underline;'>Official Support Portal</a>";
       }
       
       addMessage(reply, "bot");
@@ -352,8 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(err => {
       clearTimeout(timeoutId);
       console.error("Chat error:", err);
-      removeTypingIndicator(typingId);
-      addMessage("Sync error. Please connect directly via WhatsApp: <a href='https://wa.me/46790522874' target='_blank' style='color: #fbbf24; text-decoration: underline;'>wa.me/46790522874</a>", "bot");
+      if (typeof typingId !== "undefined") removeTypingIndicator(typingId);
+      addMessage("Sync error. Please connect directly via WhatsApp: <a href='https://digynex.se/whatsapp/' target='_blank' style='color: #fbbf24; text-decoration: underline;'>Official Support Portal</a>", "bot");
     });
   };
 
