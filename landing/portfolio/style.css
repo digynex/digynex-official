@@ -176,11 +176,11 @@ h1, h2, h3 {
 /* True 3D Rotating Logo (Original DigyNex Spec) */
 .nav-logo-3d-wrap {
   position: fixed;
-  top: 20px;
-  left: 2rem;
-  width: 120px;
-  height: 120px;
-  perspective: 1200px;
+  top: 10px;
+  left: 1.5rem;
+  width: 180px;
+  height: 180px;
+  perspective: 2000px;
   z-index: 2000;
   pointer-events: none;
 }
@@ -324,9 +324,11 @@ h1, h2, h3 {
   font-weight: 700 !important;
   text-shadow: 0 0 15px rgba(255, 255, 255, 0.5) !important;
   white-space: nowrap !important;
-  display: block !important;
-  font-size: 1.1rem !important;
-  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.95rem !important;
+  line-height: normal !important;
+  width: max-content !important;
 }
 
 .gold-dot {
