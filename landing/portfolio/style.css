@@ -150,45 +150,35 @@ h1, h2, h3 {
   top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  width: fit-content;
+  width: auto;
+  min-width: max-content;
   background: rgba(17, 24, 39, 0.6);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: 100px;
-  padding: 0.5rem 2rem;
+  padding: 0.6rem 2.5rem;
   z-index: 1000;
-  white-space: nowrap;
 }
 
 .nav-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  gap: 3.5rem;
+  gap: 3rem;
 }
 
 .logo {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-  color: var(--text-main);
-  text-decoration: none;
 }
-
-.logo span {
-  color: var(--primary-gold);
-}
-
 /* True 3D Rotating Logo (Original DigyNex Spec) */
 .nav-logo-3d-wrap {
   position: fixed;
-  top: 5px;
-  left: 0;
-  width: 140px;
-  height: 140px;
+  top: 15px;
+  left: 1.5rem;
+  width: 130px;
+  height: 130px;
   perspective: 1200px;
   z-index: 99999;
   pointer-events: none;
@@ -288,7 +278,7 @@ h1, h2, h3 {
 
 /* Hero Section */
 .hero-section {
-  padding-top: 20vh;
+  padding-top: 30vh;
   padding-bottom: 5vh;
   position: relative;
   min-height: 100vh;
@@ -333,7 +323,9 @@ h1, h2, h3 {
   text-transform: uppercase;
   font-weight: 700;
   text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
   display: inline-block;
+  font-size: 1rem;
 }
 
 .gold-dot {
