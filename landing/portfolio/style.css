@@ -627,4 +627,66 @@ input, textarea {
   .contact-card .row { grid-template-columns: 1fr; }
   .tech-arsenal-grid { grid-template-columns: repeat(2, 1fr); }
   .container, .container-wide { padding: 0 1.5rem; }
+
+  /* Navigation Mobile */
+  .glass-nav {
+    padding: 0.5rem 1.5rem;
+    width: 90%;
+    top: 1rem;
+  }
+  
+  .nav-links {
+    display: none; /* Hide links on mobile for now to prevent overflow */
+  }
+
+  .logo span {
+    font-size: 0.8rem !important;
+  }
+
+  .nav-logo-3d-wrap {
+    width: 80px;
+    height: 80px;
+    top: 5px;
+    left: 5px;
+  }
+
+  /* Metadata Mobile */
+  .metadata-overlay {
+    font-size: 0.6rem;
+    position: relative;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    text-align: left !important;
+    padding: 1rem 0;
+    opacity: 0.4;
+  }
+
+  .top-left, .top-right {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+  }
+
+  /* Hero Mobile */
+  .hero-section {
+    padding-top: 20vh;
+    text-align: center;
+  }
+
+  .hero-content h1 {
+    font-size: 2.8rem !important;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .section-header h2 {
+    font-size: 2.5rem;
+  }
 }
