@@ -476,12 +476,15 @@ const handleNexusAiResponse = (content) => {
     signal: controller.signal,
     body: JSON.stringify({
       message: content,
-      sessionId: 'nexus-orchestrator-' + ($q.localStorage.getItem('user_id') || 'unknown'),
+      sessionId: 'nexus-orchestrator-cms-' + ($q.localStorage.getItem('user_id') || 'unknown'),
       source: "cms-nexus-core",
       language: "en"
     })
   })
-  .then(res => res.text())
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.text();
+  })
   .then(txt => {
     clearTimeout(timeoutId);
     let reply = "";
@@ -489,7 +492,7 @@ const handleNexusAiResponse = (content) => {
       const data = JSON.parse(txt);
       reply = data.output || data.message || txt;
     } catch {
-      reply = txt || "Strategic core response received but unparseable.";
+      reply = txt || "Strategic core response received.";
     }
     
     messages.value.push({
@@ -498,7 +501,6 @@ const handleNexusAiResponse = (content) => {
       text: reply,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     })
-    generatingAi.value = false
   })
   .catch(err => {
     clearTimeout(timeoutId);
@@ -509,6 +511,8 @@ const handleNexusAiResponse = (content) => {
       text: "Nexus sync error. Please contact us via WhatsApp: <a href='https://wa.me/46790522874' target='_blank' style='color: #10b981; text-decoration: underline;'>wa.me/46790522874</a>",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     })
+  })
+  .finally(() => {
     generatingAi.value = false
   })
 }
