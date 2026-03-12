@@ -6,13 +6,29 @@
         <h1 class="text-h5 text-weight-bold q-my-none text-white">Students</h1>
         <p class="text-grey-5 q-mt-xs q-mb-none">Manage student enrollments and details.</p>
       </div>
-      <div class="q-gutter-x-sm">
-        <q-btn outline icon="filter_list" label="Filter" no-caps />
+      <div class="row q-gutter-x-sm no-wrap items-center">
+        <!-- Persistent Quick Search -->
+        <q-input
+          outlined
+          v-model="searchQuery"
+          placeholder="Search students..."
+          dense
+          bg-color="white"
+          class="q-mr-sm"
+          @keyup.enter="fetchStudents"
+        >
+          <template v-slot:append>
+            <q-icon name="search" color="grey-5" />
+          </template>
+        </q-input>
+
+        <q-btn outline icon="filter_list" label="Advanced Filter" no-caps @click="showFilters = !showFilters" :color="hasActiveFilters ? 'primary' : ''" />
+        
         <q-btn
           unelevated
           icon="add"
           color="primary"
-          label="New Student"
+          label="New"
           no-caps
           @click="openAddDialog"
         />
@@ -20,7 +36,8 @@
           unelevated
           color="secondary"
           icon="upload_file"
-          label="Import CSV"
+          label="Import"
+          hide-label-sm
           no-caps
           @click="openImportDialog"
         />
@@ -34,6 +51,41 @@
         />
       </div>
     </div>
+
+    <!-- Advanced Filter Bar -->
+    <q-slide-transition>
+      <div v-show="showFilters" class="q-mb-lg">
+        <q-card class="no-shadow border-gray bg-transparent q-pa-md">
+          <div class="row q-col-gutter-md items-center">
+            <div class="col-12 col-md-3">
+              <q-select
+                outlined
+                v-model="filterGrade"
+                :options="['All Grades', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']"
+                label="Filter by Grade"
+                dense
+                bg-color="white"
+                @update:model-value="fetchStudents"
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <q-select
+                outlined
+                v-model="filterStatus"
+                :options="['All Status', 'Active', 'Inactive']"
+                label="Status"
+                dense
+                bg-color="white"
+                @update:model-value="fetchStudents"
+              />
+            </div>
+            <div class="col-12 col-md-2">
+              <q-btn flat color="grey-5" label="Clear Filters" no-caps @click="resetFilters" />
+            </div>
+          </div>
+        </q-card>
+      </div>
+    </q-slide-transition>
 
     <!-- Stats Row -->
     <div class="row q-col-gutter-md q-mb-lg">
@@ -62,7 +114,7 @@
               <q-avatar size="32px" class="q-mr-sm" color="blue-1" text-color="primary">
                 {{ props.row.name.charAt(0) }}
               </q-avatar>
-              <div>
+              <div :class="{ 'blur-text': authStore.isDemo }">
                 <div class="text-weight-bold">{{ props.row.name }}</div>
                 <div class="text-caption text-grey-5">{{ props.row.email }}</div>
               </div>
@@ -243,59 +295,164 @@
       </q-card>
     </q-dialog>
     <!-- ID Card Generation Dialog -->
-    <q-dialog v-model="idCardDialog">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">Student ID Card</div>
+    <q-dialog v-model="idCardDialog" class="id-card-dialog-container">
+      <q-card style="min-width: 440px; border-radius: 16px;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">Student ID Card</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="flex flex-center q-py-lg bg-grey-2">
+        <q-card-section class="q-py-md">
+          <div class="text-caption text-grey-7 q-mb-sm">Choose ID Template:</div>
+          <div class="row q-gutter-sm">
+            <q-btn
+              v-for="tpl in idTemplates"
+              :key="tpl.value"
+              unelevated
+              :color="selectedTemplate === tpl.value ? 'primary' : 'grey-2'"
+              :text-color="selectedTemplate === tpl.value ? 'white' : 'grey-8'"
+              :label="tpl.label"
+              no-caps
+              dense
+              class="q-px-md"
+              @click="selectedTemplate = tpl.value"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="flex flex-center q-py-lg bg-grey-1 id-card-print-section">
           <!-- ID CARD PRINT AREA -->
           <div id="print-area" class="print-area">
-            <div class="id-card-container shadow-2">
-              <div class="id-left">
-                <img
-                  src="https://cdn.quasar.dev/img/boy-avatar.png"
-                  class="student-photo"
-                  alt="Student"
-                />
-                <div class="text-weight-bold text-center" style="font-size: 12px; line-height: 1.2">
-                  {{ selectedStudentForID?.name }}
-                </div>
-                <div class="text-center q-mt-xs" style="font-size: 10px; opacity: 0.8">
-                  {{ selectedStudentForID?.grade }}
-                </div>
-              </div>
-              <div class="id-right">
-                <div>
-                  <div class="text-h6 text-primary text-weight-bold" style="line-height: 1">
-                    DIGYNEX
+            <div :class="['id-card-container shadow-10', `id-tpl-${selectedTemplate}`]">
+              <!-- TEMPLATE 1: STANDARD -->
+              <template v-if="selectedTemplate === 'standard'">
+                <div class="id-left">
+                  <div class="photo-container">
+                    <img
+                      v-if="selectedStudentForID?.photo_url"
+                      :src="selectedStudentForID.photo_url"
+                      class="student-photo"
+                    />
+                    <div v-else class="photo-fallback flex flex-center">
+                      {{ selectedStudentForID?.name.charAt(0) }}
+                    </div>
                   </div>
-                  <div class="text-caption text-grey-8" style="font-size: 10px">
-                    Institute of Higher Education
+                  <div class="text-weight-bold text-center student-name">
+                    {{ selectedStudentForID?.name }}
                   </div>
-                  <q-separator class="q-my-sm" />
-                  <div class="text-caption text-grey-6" style="font-size: 10px">ID Number</div>
-                  <div class="text-subtitle2 text-dark">{{ selectedStudentForID?.id }}</div>
-                  <div class="text-caption text-grey-6 q-mt-xs" style="font-size: 10px">
-                    Contact
-                  </div>
-                  <div class="text-caption text-dark text-weight-medium">
-                    {{ selectedStudentForID?.phone }}
+                  <div class="text-center student-grade">
+                    {{ selectedStudentForID?.grade }}
                   </div>
                 </div>
-                <!-- QR Code -->
-                <div class="flex justify-end">
-                  <qrcode-vue :value="String(selectedStudentForID?.id)" :size="60" level="H" />
+                <div class="id-right">
+                  <div class="institute-info">
+                    <div class="text-h6 text-primary text-weight-bolder" style="line-height: 1">DIGYNEX</div>
+                    <div class="text-caption text-grey-8" style="font-size: 8px; letter-spacing: 1px;">EDUCATION ECOSYSTEM</div>
+                  </div>
+                  <div class="student-details q-mt-md">
+                    <div class="detail-item">
+                      <div class="label">ID NUMBER</div>
+                      <div class="value">{{ String(selectedStudentForID?.id).padStart(5, '0') }}</div>
+                    </div>
+                    <div class="detail-item q-mt-xs">
+                      <div class="label">PARENT CONTACT</div>
+                      <div class="value">{{ selectedStudentForID?.phone }}</div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end q-mt-auto">
+                    <qrcode-vue 
+                      :value="`STUDENT_ID:${selectedStudentForID?.id}\nNAME:${selectedStudentForID?.name}\nGRADE:${selectedStudentForID?.grade}`" 
+                      :size="75" 
+                      level="H" 
+                    />
+                  </div>
                 </div>
-              </div>
+              </template>
+
+              <!-- TEMPLATE 2: UNIVERSITY (Premium Dark) -->
+              <template v-else-if="selectedTemplate === 'university'">
+                <div class="id-full-dark">
+                  <div class="id-header">
+                    <div class="header-logo">DIGYNEX</div>
+                    <div class="header-tag">MASTER PORTAL</div>
+                  </div>
+                  <div class="row items-center q-px-lg q-mt-md">
+                    <div class="col-4">
+                      <div class="photo-container-uni">
+                         <img
+                          v-if="selectedStudentForID?.photo_url"
+                          :src="selectedStudentForID.photo_url"
+                          class="student-photo"
+                        />
+                        <div v-else class="photo-fallback-uni flex flex-center">
+                          {{ selectedStudentForID?.name.charAt(0) }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-8 q-pl-md">
+                      <div class="text-h6 text-white text-weight-bold student-name-uni">{{ selectedStudentForID?.name }}</div>
+                      <div class="text-caption text-blue-2">{{ selectedStudentForID?.grade }}</div>
+                    </div>
+                  </div>
+                  <div class="row items-end q-px-lg q-mt-md justify-between">
+                    <div>
+                      <div class="text-caption text-grey-4" style="font-size: 8px">ID REF</div>
+                      <div class="text-white text-weight-bold">#{{ String(selectedStudentForID?.id).padStart(5, '0') }}</div>
+                    </div>
+                    <div class="qr-bg-white">
+                      <qrcode-vue 
+                        :value="`STUDENT_ID:${selectedStudentForID?.id}\nNAME:${selectedStudentForID?.name}\nGRADE:${selectedStudentForID?.grade}`" 
+                        :size="60" 
+                        level="H" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- TEMPLATE 3: SIMPLE (Minimalist) -->
+              <template v-else>
+                <div class="id-simple">
+                  <div class="simple-stripe"></div>
+                  <div class="row full-height">
+                    <div class="col-4 flex flex-center">
+                      <div class="photo-container-simple">
+                        <img
+                          v-if="selectedStudentForID?.photo_url"
+                          :src="selectedStudentForID.photo_url"
+                          class="student-photo"
+                        />
+                        <div v-else class="photo-fallback-simple flex flex-center">
+                          {{ selectedStudentForID?.name.charAt(0) }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-5 q-pa-md flex column justify-center">
+                      <div class="text-subtitle1 text-weight-bold text-dark">{{ selectedStudentForID?.name }}</div>
+                      <div class="text-caption text-grey-7">{{ selectedStudentForID?.grade }}</div>
+                      <div class="text-caption text-primary text-weight-bold q-mt-sm">DIGYNEX LMS</div>
+                    </div>
+                    <div class="col-3 q-pa-md flex flex-center">
+                      <qrcode-vue 
+                        :value="`STUDENT_ID:${selectedStudentForID?.id}\nNAME:${selectedStudentForID?.name}\nGRADE:${selectedStudentForID?.grade}`" 
+                        :size="80" 
+                        level="H" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="text-primary q-pa-md">
-          <q-btn flat label="Close" color="grey" v-close-popup />
-          <q-btn unelevated label="Print Card" icon="print" color="primary" @click="printIDCard" />
+        <q-separator />
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancel" color="grey" v-close-popup no-caps />
+          <q-btn unelevated icon="share" color="secondary" label="WhatsApp" class="q-px-md" no-caps @click="shareOnWhatsApp" />
+          <q-btn unelevated icon="print" color="primary" label="Print ID Card" class="q-px-md" no-caps @click="printIDCard" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -309,11 +466,13 @@ import { supabase } from 'boot/supabase'
 import { useAuthStore } from 'stores/auth'
 import { useRouter, useRoute } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
+import { useSettingsStore } from 'stores/settings'
 
 const $q = useQuasar()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const settingsStore = useSettingsStore()
 
 const editDialog = ref(false)
 const importDialog = ref(false)
@@ -325,6 +484,35 @@ const loading = ref(false)
 const importFile = ref(null)
 const parsedStudents = ref([])
 const selectedStudentForID = ref(null)
+const selectedTemplate = ref('standard')
+
+// --- ADVANCED FILTERS ---
+const showFilters = ref(false)
+const searchQuery = ref(route.query.q || '')
+const filterGrade = ref('All Grades')
+const filterStatus = ref('All Status')
+
+const hasActiveFilters = computed(() => {
+  return filterGrade.value !== 'All Grades' || filterStatus.value !== 'All Status' || searchQuery.value !== ''
+})
+
+const resetFilters = () => {
+  filterGrade.value = 'All Grades'
+  filterStatus.value = 'All Status'
+  searchQuery.value = ''
+  fetchStudents()
+}
+const idTemplates = [
+  { label: 'Standard', value: 'standard' },
+  { label: 'University', value: 'university' },
+  { label: 'Simple', value: 'simple' },
+]
+
+const shareOnWhatsApp = () => {
+  $q.notify({ type: 'info', message: 'Generating Image for WhatsApp sharing...' })
+  // In a real scenario, we'd use html-to-image or similar and send to n8n
+}
+
 const planType = computed(() => authStore.profile?.plan_type || 'free')
 
 const openIdCard = (student) => {
@@ -332,8 +520,20 @@ const openIdCard = (student) => {
   idCardDialog.value = true
 }
 
-const printIDCard = () => {
-  window.print()
+const printIDCard = async () => {
+  if (window.electronAPI) {
+    try {
+      await window.electronAPI.silentPrint({
+        deviceName: settingsStore.printerName,
+        printBackground: true
+      })
+    } catch (err) {
+      console.error('Silent print failed:', err)
+      window.print()
+    }
+  } else {
+    window.print()
+  }
 }
 
 const columns = [
@@ -347,6 +547,17 @@ const columns = [
 const rows = ref([])
 
 const fetchStudents = async () => {
+  if (authStore.isDemo) {
+    rows.value = [
+      { id: 1, name: 'Lakshami Perera', email: 'lakshami@demo.com', phone: '077-1234567', grade: 'Grade 10', status: 'Active' },
+      { id: 2, name: 'Saman Silva', email: 'saman@demo.com', phone: '071-7654321', grade: 'Grade 11', status: 'Active' },
+      { id: 3, name: 'Kavindi de Silva', email: 'kavindi@demo.com', phone: '070-8899001', grade: 'Grade 10', status: 'Inactive' },
+      { id: 4, name: 'Amila Rajapaksa', email: 'amila@demo.com', phone: '075-1122334', grade: 'Grade 12', status: 'Active' },
+      { id: 5, name: 'Ruwan Dissnayake', email: 'ruwan@demo.com', phone: '076-4455667', grade: 'Grade 9', status: 'Active' }
+    ]
+    return
+  }
+
   if (!authStore.userOrgId) return
 
   loading.value = true
@@ -357,9 +568,18 @@ const fetchStudents = async () => {
       .order('created_at', { ascending: false })
 
     // Search Filter
-    const searchQuery = route.query.q
-    if (searchQuery) {
-      query = query.ilike('name', `%${searchQuery}%`)
+    if (searchQuery.value) {
+      query = query.ilike('name', `%${searchQuery.value}%`)
+    }
+
+    // Grade Filter
+    if (filterGrade.value !== 'All Grades') {
+      query = query.eq('grade', filterGrade.value)
+    }
+
+    // Status Filter
+    if (filterStatus.value !== 'All Status') {
+      query = query.eq('status', filterStatus.value)
     }
 
     const { data, error } = await query
@@ -388,6 +608,10 @@ watch(
 )
 
 const openAddDialog = () => {
+  if (authStore.isDemo) {
+    showRegisterPrompt('add new students')
+    return
+  }
   // Check Limit
   if (planType.value === 'free' && rows.value.length >= 10) {
     $q.dialog({
@@ -421,6 +645,10 @@ const openAddDialog = () => {
 }
 
 const editStudent = (row) => {
+  if (authStore.isDemo) {
+    showRegisterPrompt('edit student details')
+    return
+  }
   editingRow.value = { ...row }
   isEditMode.value = true
   editDialog.value = true
@@ -457,6 +685,10 @@ const saveStudent = async () => {
 }
 
 const deleteStudent = (id) => {
+  if (authStore.isDemo) {
+    showRegisterPrompt('delete students')
+    return
+  }
   $q.dialog({
     title: 'Confirm Deletion',
     message: 'Are you sure you want to remove this student? This action cannot be undone.',
@@ -478,6 +710,10 @@ const deleteStudent = (id) => {
 
 // --- BULK IMPORT LOGIC ---
 const openImportDialog = () => {
+  if (authStore.isDemo) {
+    showRegisterPrompt('import student data')
+    return
+  }
   importFile.value = null
   parsedStudents.value = []
   importDialog.value = true
@@ -567,6 +803,10 @@ const removeImportItem = (index) => {
 }
 
 const exportStudents = () => {
+  if (authStore.isDemo) {
+    showRegisterPrompt('export student lists')
+    return
+  }
   const content = [
     'Name,Email,Phone,Grade,Status',
     ...rows.value.map(
@@ -579,82 +819,192 @@ const exportStudents = () => {
     $q.notify({ type: 'negative', message: 'Browser denied file download...' })
   }
 }
+const showRegisterPrompt = (feature) => {
+  $q.dialog({
+    title: 'Demo Mode Limitation',
+    message: `To ${feature}, please register for a full account. It's free to get started!`,
+    ok: { label: 'Register Now', color: 'secondary' },
+    cancel: { flat: true, label: 'Later' }
+  }).onOk(() => {
+    router.push('/register')
+  })
+}
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .border-gray {
-  border: 1px solid rgba(255, 255, 255, 0.1); // Light border for dark mode
+  border: 1px solid rgba(255, 255, 255, 0.1); 
 }
 body.body--light .border-gray {
-  border: 1px solid #eaecf0; // Dark border for light mode
+  border: 1px solid #eaecf0;
+}
+body.body--light .border-left-red {
+  border-left: 4px solid #ef4444;
 }
 
-/* ID Card Styles */
+.blur-text {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+}
+/* ID Card Tool - Premium Styles */
 .id-card-container {
-  width: 350px;
-  height: 220px;
+  width: 450px;
+  height: 260px;
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
   position: relative;
-  border: 1px solid #ddd;
   display: flex;
-  flex-direction: row;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
-.id-left {
-  width: 35%;
-  background-color: var(--q-primary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  padding: 10px;
+.id-card-container::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.05) 50%, transparent 55%);
+  transform: rotate(30deg);
+  pointer-events: none;
 }
 
-.id-right {
-  width: 65%;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+/* Template 1: Standard */
+.id-tpl-standard .id-left {
+  width: 40%;
+  background: #1976d2 !important;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  color: white; padding: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
+.id-tpl-standard .photo-container {
+  width: 110px; height: 110px; border-radius: 50%; border: 4px solid white;
+  background: rgba(255,255,255,0.2); overflow: hidden; margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.id-tpl-standard .student-photo {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.id-tpl-standard .photo-fallback {
+  width: 100%; height: 100%; font-size: 42px; font-weight: bold;
+  background: rgba(0,0,0,0.1);
+}
+.id-tpl-standard .student-name { font-size: 16px; font-weight: 800; line-height: 1.2; text-transform: uppercase; }
+.id-tpl-standard .student-grade { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+.id-tpl-standard .id-right { width: 60%; padding: 25px; display: flex; flex-direction: column; background: white; }
+.id-tpl-standard .detail-item .label { font-size: 9px; color: #757575; font-weight: 800; letter-spacing: 0.5px; }
+.id-tpl-standard .detail-item .value { font-size: 14px; font-weight: 700; color: #1a1a1a; }
 
-.student-photo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid white;
-  background: #eee;
-  margin-bottom: 10px;
-  object-fit: cover;
+/* Template 2: University */
+.id-tpl-university { background: #0a0f1c !important; -webkit-print-color-adjust: exact; }
+.id-tpl-university .id-full-dark { width: 100%; height: 100%; position: relative; }
+.id-tpl-university .id-header {
+  height: 55px;
+  background: #1e293b !important;
+  background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%) !important;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 25px;
 }
+.id-tpl-university .header-logo { color: #f8fafc; font-weight: 900; letter-spacing: 3px; font-size: 18px; }
+.id-tpl-university .header-tag { font-size: 10px; color: #3b82f6; font-weight: bold; }
+.id-tpl-university .photo-container-uni {
+  width: 90px; height: 90px; border-radius: 14px; border: 3px solid #3b82f6; overflow: hidden;
+}
+.id-tpl-university .photo-fallback-uni { width: 100%; height: 100%; background: #1e293b; color: white; font-size: 32px; }
+.id-tpl-university .qr-bg-white { background: white; padding: 6px; border-radius: 8px; }
+
+/* Template 3: Simple */
+.id-tpl-simple .simple-stripe {
+  position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: #1976d2 !important; -webkit-print-color-adjust: exact;
+}
+.id-tpl-simple .photo-container-simple {
+  width: 100px; height: 100px; border-radius: 10px; background: #f0f4f8; overflow: hidden;
+}
+.id-tpl-simple .photo-fallback-simple { width: 100%; height: 100%; color: #1976d2; font-size: 36px; }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .print-area,
-  .print-area * {
-    visibility: visible;
-  }
-  .print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
+  /* 🛑 NUCLEAR OPTION: Hide EVERYTHING */
+  #q-app, 
+  .q-layout, 
+  .q-header, 
+  .q-footer, 
+  .q-drawer, 
+  .q-page-container,
+  .q-dialog__backdrop,
+  .q-notifications,
+  .q-card-actions,
+  .id-card-dialog-container .q-card-section:not(.id-card-print-section),
+  .q-btn,
+  header, 
+  aside,
+  footer,
+  [class*="chat"], [class*="bubble"], [class*="widget"] {
+    display: none !important;
+    opacity: 0 !important;
   }
 
-  /* Ensure background colors print */
-  .id-left {
-    background-color: #1976d2 !important; /* Force Primary Color */
-    -webkit-print-color-adjust: exact;
+  body, html {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* 🎯 ISOLATE ONLY THE PRINT SECTION */
+  .id-card-dialog-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .id-card-dialog-container .q-dialog__inner {
+    padding: 0 !important;
+    display: block !important;
+    background: white !important;
+  }
+
+  .id-card-dialog-container .q-card {
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .id-card-print-section {
+    background: white !important;
+    padding: 20mm 0 !important; /* Center on page for many printers */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    visibility: visible !important;
+  }
+
+  #print-area {
+    display: block !important;
+    visibility: visible !important;
+    margin: 0 auto !important;
+    width: 450px !important;
+    background: white !important;
+  }
+
+  /* Ensure card itself is clean */
+  .id-card-container {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .id-left, .id-right, .id-full-dark, .id-simple, .row {
+    display: flex !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 </style>

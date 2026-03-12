@@ -103,12 +103,23 @@
           </div>
         </div>
 
-        <!-- Recent Payouts Table -->
+        <!-- Payout Analytics & Recent History -->
         <div class="row q-col-gutter-md">
-          <div class="col-12">
+          <div class="col-12 col-md-8">
+            <q-card class="no-shadow border-gray bg-transparent q-pa-md">
+              <div class="text-h6 q-mb-md">Monthly Payout Trends</div>
+              <apexchart
+                type="area"
+                height="300"
+                :options="chartOptions"
+                :series="chartSeries"
+              ></apexchart>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-4">
             <q-card class="no-shadow border-gray">
               <q-card-section>
-                <div class="text-h6">Recent Payout History</div>
+                <div class="text-h6">Recent Payouts</div>
               </q-card-section>
               <q-table
                 :rows="payoutHistory"
@@ -393,6 +404,11 @@ import { useQuasar } from 'quasar'
 import { useCurrencyStore } from 'stores/currency'
 import { supabase } from 'boot/supabase'
 import { useAuthStore } from 'stores/auth'
+import VueApexCharts from 'vue3-apexcharts'
+import { useN8nStore } from 'stores/n8n'
+
+const Apexchart = VueApexCharts
+const n8nStore = useN8nStore()
 
 const $q = useQuasar()
 const currencyStore = useCurrencyStore()
@@ -454,52 +470,98 @@ onMounted(async () => {
     await authStore.initialize()
   }
   await fetchTutors()
+  await fetchPaymentOverview()
 })
+
 
 watch(() => authStore.userOrgId, async () => {
   await fetchTutors()
+  await fetchPaymentOverview()
 })
 
 // --- PAYMENTS & DASHBOARD LOGIC ---
 const paymentConfirmDialog = ref(false)
 const selectedPayment = ref(null)
+const tutorPayments = ref([])
+const payoutHistory = ref([])
 
-// Mock Data for Payments
-const tutorPayments = ref([
-  {
-    id: 101,
-    tutorId: 1,
-    tutorName: 'Mr. Sarath Mel',
-    totalClasses: 12,
-    totalStudents: 45,
-    totalCollected: 150000,
-    commissionRate: 60,
-    payableAmount: 90000, // 60% of 150000
-    status: 'Pending',
-  },
-  {
-    id: 102,
-    tutorId: 2,
-    tutorName: 'Ms. Deepika Gunawardena',
-    totalClasses: 8,
-    totalStudents: 30,
-    totalCollected: 80000,
-    commissionRate: 70,
-    payableAmount: 56000,
-    status: 'Paid',
-  },
-  {
-    id: 103,
-    tutorId: 3,
-    tutorName: 'Mr. Rohan Jayasuriya',
-    totalClasses: 0,
-    totalStudents: 0,
-    totalCollected: 0,
-    commissionRate: 50,
-    payableAmount: 0,
-    status: 'Paid', // No payment needed
-  },
-])
+const fetchPaymentOverview = async () => {
+  if (!authStore.userOrgId) return
+  
+  loading.value = true
+  try {
+    // 1. Get current month range
+    const now = new Date()
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const periodMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+    // 2. Fetch all tutors for org
+    const { data: tutors } = await supabase
+      .from('tutors')
+      .select('id, name, commission')
+      .eq('org_id', authStore.userOrgId)
+
+    // 3. Fetch all classes for org
+    const { data: classes } = await supabase
+      .from('classes')
+      .select('id, tutor_id')
+      .eq('org_id', authStore.userOrgId)
+
+    // 4. Fetch all payments for this month
+    const { data: payments } = await supabase
+      .from('payments')
+      .select('class_id, amount')
+      .eq('org_id', authStore.userOrgId)
+      .gte('payment_date', firstDay)
+
+    // 5. Fetch recent payouts
+    const { data: payouts } = await supabase
+      .from('tutor_payouts')
+      .select('*')
+      .eq('org_id', authStore.userOrgId)
+      .order('payout_date', { ascending: false })
+      .limit(10)
+
+    payoutHistory.value = payouts.map(p => ({
+      ...p,
+      tutor: tutors.find(t => t.id === p.tutor_id)?.name || 'Unknown Tutor'
+    }))
+
+    // 6. Calculate per-tutor stats
+    const processedPayments = tutors.map(tutor => {
+      // Find classes for this tutor
+      const tutorClasses = classes.filter(c => c.tutor_id === tutor.id).map(c => c.id)
+      
+      // Sum payments for these classes
+      const tutorPaymentsList = payments.filter(p => tutorClasses.includes(p.class_id))
+      const totalCollected = tutorPaymentsList.reduce((sum, p) => sum + Number(p.amount), 0)
+      const totalClasses = new Set(tutorPaymentsList.map(p => p.class_id)).size
+      
+      const commissionRate = tutor.commission || 60
+      const payableAmount = (totalCollected * commissionRate) / 100
+
+      // Check if already paid this month
+      const isPaid = payouts.some(p => p.tutor_id === tutor.id && p.period_month === periodMonth)
+
+      return {
+        id: tutor.id,
+        tutorId: tutor.id,
+        tutorName: tutor.name,
+        totalClasses,
+        totalCollected,
+        commissionRate,
+        payableAmount,
+        status: isPaid ? 'Paid' : 'Pending'
+      }
+    })
+
+    tutorPayments.value = processedPayments
+  } catch (error) {
+    console.error('Error fetching layout:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 const paymentColumns = [
   { name: 'tutorName', label: 'Tutor', field: 'tutorName', align: 'left', sortable: true },
@@ -528,25 +590,8 @@ const paymentColumns = [
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const payoutHistory = ref([
-  {
-    id: 1,
-    date: '2026-01-28',
-    tutor: 'Ms. Deepika Gunawardena',
-    amount: 52000,
-    status: 'Completed',
-  },
-  {
-    id: 2,
-    date: '2026-01-25',
-    tutor: 'Mr. Sarath Mel',
-    amount: 88500,
-    status: 'Completed',
-  },
-])
-
 const payoutHistoryColumns = [
-  { name: 'date', label: 'Date', field: 'date', align: 'left' },
+  { name: 'payout_date', label: 'Date', field: 'payout_date', align: 'left' },
   { name: 'tutor', label: 'Tutor', field: 'tutor', align: 'left' },
   {
     name: 'amount',
@@ -570,8 +615,30 @@ const totalPaidMonth = computed(() =>
     .filter((p) => p.status === 'Paid')
     .reduce((sum, p) => sum + p.payableAmount, 0),
 )
+// Chart Logic
+const chartOptions = {
+  chart: { toolbar: { show: false }, background: 'transparent' },
+  stroke: { curve: 'smooth', width: 2 },
+  colors: ['#3b82f6'],
+  fill: {
+    type: 'gradient',
+    gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 }
+  },
+  xaxis: { 
+    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+    labels: { style: { colors: '#9e9e9e' } }
+  },
+  yaxis: { labels: { style: { colors: '#9e9e9e' } } },
+  grid: { borderColor: 'rgba(255,255,255,0.05)' },
+  theme: { mode: 'dark' }
+}
+
+const chartSeries = computed(() => [{
+  name: 'Total Payouts',
+  data: [45000, 52000, 38000, 65000, 48000, 72000, totalPaidMonth.value || 0]
+}])
+
 const topPerformer = computed(() => {
-  // Sort by Total Collected
   const sorted = [...tutorPayments.value].sort((a, b) => b.totalCollected - a.totalCollected)
   return sorted[0] || {}
 })
@@ -581,26 +648,37 @@ const processPayment = (payment) => {
   paymentConfirmDialog.value = true
 }
 
-const confirmPayment = () => {
+const confirmPayment = async () => {
   if (selectedPayment.value) {
-    // Find in logic and update
-    const idx = tutorPayments.value.findIndex((p) => p.id === selectedPayment.value.id)
-    if (idx !== -1) {
-      tutorPayments.value[idx].status = 'Paid'
+    const now = new Date()
+    const periodMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-      // Add to history
-      payoutHistory.value.unshift({
-        id: Date.now(),
-        date: new Date().toISOString().split('T')[0],
-        tutor: selectedPayment.value.tutorName,
+    try {
+      const { error } = await supabase.from('tutor_payouts').insert({
+        tutor_id: selectedPayment.value.tutorId,
         amount: selectedPayment.value.payableAmount,
-        status: 'Completed',
+        period_month: periodMonth,
+        org_id: authStore.userOrgId
       })
+
+      if (error) throw error
 
       $q.notify({
         type: 'positive',
         message: `Payment of ${currencyStore.format(selectedPayment.value.payableAmount)} recorded!`,
       })
+      
+      // Trigger n8n Digital Invoice Dispatch
+      await n8nStore.triggerPayoutInvoice({
+        tutor_name: selectedPayment.value.tutorName,
+        amount: selectedPayment.value.payableAmount,
+        period_month: periodMonth,
+        org_id: authStore.userOrgId
+      })
+
+      await fetchPaymentOverview()
+    } catch (error) {
+      $q.notify({ type: 'negative', message: 'Error processing payout: ' + error.message })
     }
   }
 }

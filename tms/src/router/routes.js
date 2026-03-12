@@ -107,6 +107,16 @@ const routes = [
     component: () => import('pages/ResetPasswordPage.vue'),
   },
   {
+    path: '/homework',
+    component: () => import('layouts/DashboardLayout.vue'),
+    children: [{ path: '', component: () => import('pages/HomeworkPage.vue') }],
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/parent-portal',
+    component: () => import('pages/ParentPortalPage.vue'),
+  },
+  {
     path: '/super-admin',
     component: () => import('layouts/DashboardLayout.vue'),
     children: [{ path: '', component: () => import('pages/SuperAdminPage.vue') }],

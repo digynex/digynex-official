@@ -44,6 +44,7 @@
             />
             <q-tab name="audit" icon="history" label="Audit Logs" class="justify-start q-pl-md" />
             <q-tab name="team" icon="groups" label="Team Members" class="justify-start q-pl-md" />
+            <q-tab name="devices" icon="print" label="Devices & Hardware" class="justify-start q-pl-md" />
           </q-tabs>
         </q-card>
       </div>
@@ -407,6 +408,73 @@
               <div class="text-h6 text-grey-7 q-mt-md">Team Management coming soon</div>
             </q-card>
           </q-tab-panel>
+
+          <!-- Devices & Hardware -->
+          <q-tab-panel name="devices" class="q-pa-none">
+            <q-card class="no-shadow border-gray q-mb-md">
+              <q-card-section>
+                <div class="text-h6 text-weight-bold q-mb-sm">Thermal Printer Settings</div>
+                <p class="text-grey-7">Specify the system name of your thermal printer for silent printing.</p>
+                <div class="row q-col-gutter-md items-center">
+                  <div class="col-12 col-md-6">
+                    <q-select 
+                      v-if="isElectron"
+                      outlined 
+                      v-model="deviceSettings.printerName" 
+                      :options="printerOptions"
+                      label="Select Thermal Printer" 
+                      dense 
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="print" />
+                      </template>
+                    </q-select>
+                    <q-input 
+                      v-else
+                      outlined 
+                      v-model="deviceSettings.printerName" 
+                      label="Printer System Name (e.g. POS-80)" 
+                      placeholder="Enter printer name exactly as in Windows"
+                      dense 
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="print" />
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="text-caption text-grey-6">
+                      {{ isElectron ? 'Select your primary printer for silent receipt printing.' : 'In Browser, please specify your printer name. List available in Desktop App.' }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card class="no-shadow border-gray">
+              <q-card-section>
+                <div class="text-h6 text-weight-bold q-mb-sm">Scanning Preferences</div>
+                <div class="row items-center justify-between q-py-sm">
+                  <div>
+                    <div class="text-subtitle2">Enable Camera Scanning</div>
+                    <div class="text-caption text-grey-6">
+                      Use laptop/mobile camera to scan QR codes for attendance.
+                    </div>
+                  </div>
+                  <q-toggle v-model="deviceSettings.useCameraScan" color="primary" />
+                </div>
+              </q-card-section>
+              <q-card-actions align="right" class="q-pa-md">
+                <q-btn
+                  unelevated
+                  color="primary"
+                  label="Update Device Settings"
+                  no-caps
+                  @click="saveDeviceSettings"
+                />
+              </q-card-actions>
+            </q-card>
+          </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
@@ -418,13 +486,34 @@ import { ref, onMounted } from 'vue'
 import { supabase } from 'boot/supabase'
 import { exportFile, useQuasar } from 'quasar'
 import { useCurrencyStore } from 'stores/currency'
+import { useSettingsStore } from 'stores/settings'
 
 const $q = useQuasar()
 const currencyStore = useCurrencyStore()
+const settingsStore = useSettingsStore()
 const exporting = ref('')
 const saving = ref(false)
 
 const tab = ref('general')
+
+const isElectron = ref(window && window.process && window.process.type)
+const printerOptions = ref([])
+
+const deviceSettings = ref({
+  printerName: settingsStore.printerName,
+  useCameraScan: settingsStore.useCameraScan
+})
+
+const fetchPrinters = async () => {
+  if (isElectron.value && window.myAPI && window.myAPI.getPrinters) {
+    try {
+      const printers = await window.myAPI.getPrinters()
+      printerOptions.value = printers.map(p => p.name)
+    } catch (e) {
+      console.error('Failed to fetch printers', e)
+    }
+  }
+}
 
 const general = ref({
   name: '',
@@ -435,7 +524,18 @@ const general = ref({
   compactSidebar: false,
 })
 
+const saveDeviceSettings = () => {
+  settingsStore.setPrinterName(deviceSettings.value.printerName)
+  settingsStore.setCameraScanMode(deviceSettings.value.useCameraScan)
+  $q.notify({
+    type: 'positive',
+    message: 'Hardware preferences saved!',
+    position: 'top'
+  })
+}
+
 onMounted(async () => {
+  await fetchPrinters()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) {
     general.value.email = user.email

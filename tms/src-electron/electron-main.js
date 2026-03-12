@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -50,7 +50,31 @@ async function createWindow () {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+
+  // Handle get printers list
+  ipcMain.handle('get-printers', async () => {
+    return await mainWindow.webContents.getPrintersAsync()
+  })
+
+  // Handle silent print request
+  ipcMain.handle('silent-print', async (event, options) => {
+    try {
+      await mainWindow.webContents.print({
+        silent: true,
+        deviceName: options.deviceName || '',
+        printBackground: true,
+        margins: { marginType: 'none' },
+        pageSize: { width: 80000, height: 297000 }, // 80mm width
+        ...options
+      })
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  })
+})
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

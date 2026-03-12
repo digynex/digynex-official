@@ -111,7 +111,32 @@
           </div>
         </div>
 
-        <!-- Performance Analytics Chart -->
+        <!-- AI Predictive Alerts & Insights (New Section) -->
+        <div class="text-h6 text-weight-bold q-mt-xl q-mb-md text-white row items-center">
+          <q-icon name="psychology" color="secondary" class="q-mr-sm" />
+          AI Student Insights
+        </div>
+        <div class="row q-col-gutter-lg q-mb-xl">
+          <div class="col-12 col-md-6" v-for="alert in aiAlerts" :key="alert.name">
+            <q-card class="bg-dark-card border-glass border-radius-lg hover-card border-left-red">
+              <q-card-section class="q-pa-md">
+                <div class="row no-wrap items-center">
+                  <q-avatar size="40px" class="bg-red-9 text-white q-mr-md">
+                    {{ alert.name.charAt(0) }}
+                  </q-avatar>
+                  <div class="flex-grow-1">
+                    <div class="text-weight-bold text-white">{{ alert.name }}</div>
+                    <div class="text-caption text-red-4 font-bold">{{ alert.reason }}</div>
+                  </div>
+                  <q-btn flat round dense icon="chevron_right" color="grey-5" to="/students" />
+                </div>
+                <div class="q-mt-sm text-caption text-grey-5">
+                  {{ alert.insight }}
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
         <q-card class="no-shadow border-radius-lg q-mb-lg overflow-hidden">
           <q-card-section class="q-pa-lg">
             <div class="row items-center justify-between q-mb-md">
@@ -188,19 +213,19 @@
             >
               <template v-slot:body-cell-name="props">
                 <q-td :props="props">
-                  <div class="row items-center no-wrap">
-                    <q-avatar
-                      size="36px"
-                      class="bg-gold-gradient text-white q-mr-md font-bold text-subtitle2"
-                    >
-                      {{ props.row.name.charAt(0) }}
-                    </q-avatar>
-                    <div>
-                      <div class="text-weight-bold">{{ props.row.name }}</div>
-                      <div class="text-caption text-grey-5 text-mono">{{ props.row.id }}</div>
+                    <div class="row items-center no-wrap">
+                      <q-avatar
+                        size="36px"
+                        class="bg-gold-gradient text-white q-mr-md font-bold text-subtitle2"
+                      >
+                        {{ props.row.name.charAt(0) }}
+                      </q-avatar>
+                      <div :class="{ 'blur-text': authStore.isDemo }">
+                        <div class="text-weight-bold">{{ props.row.name }}</div>
+                        <div class="text-caption text-grey-5 text-mono">{{ props.row.id }}</div>
+                      </div>
                     </div>
-                  </div>
-                </q-td>
+                  </q-td>
               </template>
               <template v-slot:body-cell-status="props">
                 <q-td :props="props">
@@ -410,8 +435,42 @@ watch(() => authStore.userOrgId, (newOrgId) => {
   userOrgId.value = newOrgId
   fetchDashboardData()
 })
+const aiAlerts = ref([
+  { 
+    name: 'Lakshami Perera', 
+    reason: 'Marks Declining (15%)', 
+    insight: 'Average marks dropped from 85 to 70 over the last 3 sessions. Action suggested.' 
+  },
+  { 
+    name: 'Saman Silva', 
+    reason: 'Absenteeism Alert', 
+    insight: 'Missed 3 consecutive classes. Parent has not been notified yet.' 
+  }
+])
 
 const fetchDashboardData = async () => {
+  if (authStore.isDemo) {
+    statsData.value = {
+      totalStudents: 482,
+      totalTutors: 12,
+      monthlyRevenue: 124500,
+      newInquiries: 15,
+      totalLeads: 120,
+      dailyPosts: 3
+    }
+    
+    recentStudents.value = [
+      { id: '#ST-001', name: 'Student Name (Blur)', subject: 'Grade 10 Maths', date: 'Mar 12', status: 'Paid' },
+      { id: '#ST-002', name: 'Student Name (Blur)', subject: 'Grade 11 Physics', date: 'Mar 11', status: 'Pending' },
+      { id: '#ST-003', name: 'Student Name (Blur)', subject: 'Grade 10 Maths', date: 'Mar 10', status: 'Paid' },
+      { id: '#ST-004', name: 'Student Name (Blur)', subject: 'Grade 12 Chemistry', date: 'Mar 10', status: 'Paid' }
+    ]
+    
+    // Mock Chart Data
+    processChartData([], []) 
+    return
+  }
+
   if (!userOrgId.value) return
   loading.value = true
 
@@ -465,6 +524,24 @@ const fetchDashboardData = async () => {
     statsData.value.totalLeads = leadCount || 0
     statsData.value.newInquiries = leadCount || 0
 
+    // 6. Fetch Chart Data (Historical Revenue/Expenses)
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    
+    const { data: incomeData } = await supabase
+      .from('payments')
+      .select('amount, payment_date')
+      .eq('org_id', userOrgId.value)
+      .gte('payment_date', sixMonthsAgo.toISOString())
+
+    const { data: expenseData } = await supabase
+      .from('expenses')
+      .select('amount, expense_date')
+      .eq('org_id', userOrgId.value)
+      .gte('expense_date', sixMonthsAgo.toISOString())
+
+    processChartData(incomeData, expenseData)
+
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
   } finally {
@@ -481,6 +558,35 @@ const currentPeriod = computed(() => {
   const ampm = hour >= 12 ? 'PM' : 'AM'
   return `${ampm} Today`
 })
+
+const processChartData = (income, expenses) => {
+  const months = []
+  const incomeValues = []
+  const expenseValues = []
+  
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date()
+    d.setMonth(d.getMonth() - i)
+    const monthName = d.toLocaleString('default', { month: 'short' })
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    
+    months.push(monthName)
+    
+    const mIncome = income?.filter(p => p.payment_date.startsWith(monthKey))
+      .reduce((sum, p) => sum + p.amount, 0) || 0
+    incomeValues.push(mIncome)
+    
+    const mExpense = expenses?.filter(e => e.expense_date.startsWith(monthKey))
+      .reduce((sum, e) => sum + e.amount, 0) || 0
+    expenseValues.push(mExpense)
+  }
+  
+  revenueOptions.value.xaxis.categories = months
+  revenueSeries.value = [
+    { name: 'Income', data: incomeValues },
+    { name: 'Expenses', data: expenseValues }
+  ]
+}
 
 const formattedTime12 = computed(() => {
   let hours = now.value.getHours()
@@ -710,6 +816,16 @@ const enrollmentOptions = ref({
 
 .border-secondary-left {
   border-left: 4px solid #10b981;
+}
+
+.border-left-red {
+  border-left: 4px solid #ef4444;
+}
+
+.blur-text {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
 }
 
 /* Premium Dark/Gold Styles */

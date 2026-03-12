@@ -148,6 +148,13 @@
       </q-toolbar>
     </q-header>
 
+    <!-- Demo Mode Banner -->
+    <div v-if="authStore.isDemo" class="bg-gold-gradient text-white q-py-xs text-center text-weight-bold shadow-5 z-top relative-position" style="font-size: 12px; letter-spacing: 1px;">
+      <q-icon name="info" class="q-mr-sm" />
+      YOU ARE IN DEMO MODE. SENSITIVE ACTIONS ARE DISABLED. 
+      <q-btn flat dense label="REGISTER NOW" color="white" class="q-ml-md text-underline" to="/register" size="sm" />
+    </div>
+
     <!-- Sidebar (Drawer) -->
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="260">
       <div class="q-pa-none q-mb-none flex flex-center relative-position" style="min-height: 130px;">
@@ -406,6 +413,7 @@ const allManagementLinks = [
   { title: 'Attendance', icon: 'rule', link: '/attendance' },
   { title: 'Payments', icon: 'payments', link: '/payments' },
   { title: 'Exams', icon: 'assignment', link: '/exams' },
+  { title: 'Homework', icon: 'menu_book', link: '/homework' },
   { title: 'Reports', icon: 'bar_chart', link: '/reports' },
   { title: 'Billing & Plan', icon: 'credit_card', link: '/subscription' },
   {

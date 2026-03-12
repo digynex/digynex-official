@@ -7,12 +7,13 @@ export const useAuthStore = defineStore('auth', {
     profile: null,
     loading: false,
     selectedOrgId: null,
+    isDemo: false,
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.user,
-    isSuperAdmin: (state) => state.profile?.role === 'super_admin',
-    userOrgId: (state) => state.selectedOrgId || state.profile?.org_id,
+    isAuthenticated: (state) => !!state.user || state.isDemo,
+    isSuperAdmin: (state) => state.profile?.role === 'super_admin' && !state.isDemo,
+    userOrgId: (state) => state.isDemo ? 'demo-org-id' : (state.selectedOrgId || state.profile?.org_id),
   },
 
   actions: {
@@ -45,15 +46,23 @@ export const useAuthStore = defineStore('auth', {
       const { data: { session } } = await supabase.auth.getSession()
       this.user = session?.user || null
       if (this.user) {
+        this.isDemo = false // Logged in user overrides demo
         await this.fetchProfile()
       }
       this.loading = false
+    },
+
+    enterDemoMode() {
+      this.user = null
+      this.profile = { name: 'Guest Explorer', role: 'admin' }
+      this.isDemo = true
     },
 
     async logout() {
       await supabase.auth.signOut()
       this.user = null
       this.profile = null
+      this.isDemo = false
     }
   }
 })

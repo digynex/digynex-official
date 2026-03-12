@@ -104,6 +104,23 @@
                 >Sign Up</router-link
               >
             </div>
+
+            <q-separator dark class="q-my-lg opacity-20" />
+
+            <div class="demo-section">
+              <div class="text-caption text-grey-5 q-mb-md">Want to explore first?</div>
+              <q-btn
+                outline
+                color="secondary"
+                class="full-width text-weight-bold q-py-sm border-dashed"
+                @click="startDemo"
+              >
+                <div class="column items-center">
+                  <span>Try Live Demo</span>
+                  <span class="text-caption text-weight-thin" style="font-size: 10px">(No Login Required)</span>
+                </div>
+              </q-btn>
+            </div>
           </div>
         </div>
       </q-page>
@@ -172,6 +189,25 @@ const handleLogin = async () => {
     loading.value = false
   }
 }
+
+const startDemo = () => {
+  $q.loading.show({
+    message: 'Initializing Secure Demo Environment...',
+    backgroundColor: 'dark'
+  })
+  
+  setTimeout(() => {
+    authStore.enterDemoMode()
+    $q.loading.hide()
+    router.push('/dashboard')
+    $q.notify({
+      type: 'info',
+      message: 'Welcome to Demo Mode! Feel free to explore.',
+      icon: 'explore',
+      position: 'top'
+    })
+  }, 1500)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -230,5 +266,9 @@ const handleLogin = async () => {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
   }
+}
+.border-dashed {
+  border-style: dashed !important;
+  border-width: 2px !important;
 }
 </style>
