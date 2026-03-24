@@ -110,10 +110,21 @@
 ```
 
 **n8n හි කරන්න ඕන ටික:**
-1. `Webhook` node (Method: POST).
-2. අදාල Student ගේ තොරතුරු Supabase එකෙන් හොයාගන්න node එකක්.
-3. අදහස් කරන විදිහට (උදා: Slack එකට හෝ WhatsApp Admin ගෲප් එකට) Message එකක් යවන්න.
-4. `Respond to Webhook` දාන්න.
+1. `Webhook` node (Method: POST). මෙහි **"Respond"** කියන එක **"Immediately"** ලෙස වෙනස් කරන්න.
+2. `Supabase (Get many rows)` node එක දාන්න.
+   * **Credential:** මෙහිදී Supabase එකේ `service_role` (secret) key එක දාපු Credential එකක් භාවිතා කරන්න (එවිට RLS තියෙන tables වල data ගන්න පුලුවන්).
+   * **Filter:** `id` = `{{ Number($json.body.student_id) }}` (මෙය number එකට cast කරගන්න).
+3. `Telegram` node එකක් දාන්න. **Text** එකට පහතක code එක දාන්න:
+```text
+🚨 *New Parent Feedback Alert*
+
+*Student ID:* {{ $('Webhook').item.json.body.student_id }}
+
+*Feedback:* 
+"{{ $('Webhook').item.json.body.message }}"
+
+*Received At:* {{ $('Webhook').item.json.body.timestamp }}
+```
 
 ---
 
@@ -134,9 +145,49 @@
 ```
 
 **n8n හි කරන්න ඕන ටික:**
-1. `Webhook` node (Method: POST).
-2. PDF සැකසීමේ Tool එකක් හෝ Email Send node එකක් භාවිතා කරලා, අදාල විස්තර එක්ක Email එක යැවීම.
-3. `Respond to Webhook` දාන්න.
+1. `Webhook` node (Method: POST). **Respond** එක **"Immediately"** ලෙස වෙනස් කරගන්න.
+2. `Gmail` (Send a message) node එකක් දාන්න. (Google Cloud හි **Gmail API** එක Enable කරފައި තිබිය යුතුය, සහ මෙතන භාවිතා කරන Credential එක Gmail එකක් විය යුතුය - Google Sheets ඒවට Access නැත).
+3. **Gmail Node Config:**
+   * **To:** `{{ $json.body.tutor_email }}` (අගට වරහන් ආදිය නැතිව තියෙන්න ඕනේ).
+   * **Subject:** `Payout Invoice - {{ $json.body.period }} DigyNex`
+   * **Email Type:** `HTML`
+   * **Message:** පහත HTML එක ඒ විදිහටම Paste කරන්න:
+```html
+<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="color: #2F3C7E; margin: 0; font-size: 24px;">DigyNex Payout Confirmation</h2>
+  </div>
+  <p style="font-size: 16px;">Dear <strong>{{ $json.body.tutor_name }}</strong>,</p>
+  <p style="font-size: 15px; line-height: 1.6; color: #555;">
+    This email is to confirm that your payout for the period of <strong>{{ $json.body.period }}</strong> has been successfully processed and transferred to your designated account.
+  </p>
+  <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #FBEAEB;">
+    <h3 style="margin-top: 0; margin-bottom: 15px; color: #2F3C7E; text-align: center; font-size: 18px;">Payment Details</h3>
+    <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;"><strong>Amount Paid:</strong></td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #2F3C7E; font-size: 19px;"><strong>LKR {{ $json.body.amount }}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;"><strong>Tutor Name:</strong></td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #333;">{{ $json.body.tutor_name }}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;"><strong>Payment Period:</strong></td>
+        <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #333;">{{ $json.body.period }}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 0; color: #666;"><strong>Organization ID:</strong></td>
+        <td style="padding: 10px 0; text-align: right; color: #333;">{{ $json.body.org_id }}</td>
+      </tr>
+    </table>
+  </div>
+  <div style="margin-top: 35px; font-size: 13px; color: #888; border-top: 1px solid #eee; padding-top: 15px; text-align: center;">
+    <p style="margin: 0;">Thank You,</p>
+    <p style="margin: 5px 0 0 0; color: #555;"><strong>DigyNex Management Team</strong></p>
+  </div>
+</div>
+```
 
 ---
 **සුභ පැතුම්!** දැන් ඉදිරියට Frontend සහ Backend දෙකම එකපාර නියමෙට වැඩ කරනවා ඇති. ඕනෑම අවස්ථාවක අලුත් දෙයක් එකතු කරන්න ඔනේ නම් මේ Document එක අනුගමනය කරන්න. 🚀
