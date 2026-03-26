@@ -7,7 +7,7 @@
         <div class="flex justify-between items-end mb-2">
           <div>
             <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Q1 Enterprise Growth Target</h3>
-            <p class="text-[10px] font-bold text-slate-400 tracking-wider">LKR 4.1M completed against LKR 5.0M Goal</p>
+            <p class="text-[10px] font-bold text-slate-400 tracking-wider">{{ brandingStore.currency }} 4.1M completed against {{ brandingStore.currency }} 5.0M Goal</p>
           </div>
           <div class="text-right">
             <span class="text-2xl font-black text-slate-800 tabular-nums">{{ Math.floor(progress) }}%</span>
@@ -23,7 +23,7 @@
       <div class="shrink-0 flex text-left md:text-right gap-6 md:border-l border-slate-200 md:pl-6 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 mt-4 md:mt-0">
          <div>
            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Remaining</p>
-           <p class="text-sm font-black text-amber-600">LKR 900K</p>
+           <p class="text-sm font-black text-amber-600">{{ brandingStore.currency }} 900K</p>
          </div>
          <div>
            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Time Limit</p>
@@ -35,6 +35,7 @@
 
 <script setup>
 import { Target, Clock } from 'lucide-vue-next'
+import { brandingStore } from '../../services/brandingService'
 
 defineProps({
   progress: {

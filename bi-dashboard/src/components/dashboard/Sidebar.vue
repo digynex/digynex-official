@@ -1,18 +1,18 @@
 <template>
   <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-sm z-20 flex-shrink-0">
       <div class="h-16 flex items-center px-6 border-b border-slate-100">
-        <router-link to="/" class="flex items-center gap-2 text-slate-900 font-bold text-xl tracking-tight hover:opacity-80 transition-opacity">
+        <router-link to="/" class="flex items-center gap-2 text-slate-900 font-extrabold text-xl tracking-tight hover:opacity-80 transition-opacity">
           <div class="p-1.5 bg-primary rounded-lg shadow-sm">
             <Layers class="w-5 h-5 text-white" />
           </div>
-          DigyNex<span class="text-primary font-light">360</span>
+          {{ brandingStore.productName }}<span class="text-primary font-light">{{ brandingStore.productSuffix }}</span>
         </router-link>
       </div>
       
       <div class="px-4 py-6 flex-1 overflow-y-auto custom-scrollbar">
         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">Intelligence</p>
         <nav class="space-y-1 mb-8">
-          <router-link to="/dashboard" class="flex items-center gap-3 px-3 py-2.5 bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 group">
+          <router-link to="/dashboard" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-all group" active-class="bg-slate-900 text-white hover:bg-slate-800">
             <LayoutDashboard class="w-4 h-4 group-hover:scale-110 transition-transform" /> Executive Board
           </router-link>
           
@@ -56,6 +56,7 @@
 
 <script setup>
 import { Layers, LayoutDashboard, TrendingUp, Brain, Briefcase, Wallet, Settings, ChevronRight } from 'lucide-vue-next'
+import { brandingStore } from '../../services/brandingService'
 
 defineEmits(['toggleMenu', 'triggerToast'])
 </script>

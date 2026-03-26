@@ -26,6 +26,7 @@
 <script setup>
 import { Database } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
+import { brandingStore } from '../../services/brandingService'
 
 const props = defineProps({
   chartData: {
@@ -136,7 +137,7 @@ const chartOptions = computed(() => {
     },
     tooltip: {
       theme: 'light',
-      y: { formatter: (val) => val.toFixed(2) + " Million LKR" }
+      y: { formatter: (val) => val.toFixed(2) + " Million " + brandingStore.currency }
     }
   }
 })

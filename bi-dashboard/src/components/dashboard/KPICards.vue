@@ -2,7 +2,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
       
       <!-- REVENUE (Hero Card) -->
-      <div @click="$emit('triggerToast', 'Drilling into Unified Revenue Stream: Enterprise Subscriptions & Batch Fees')" class="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-700 shadow-xl shadow-slate-900/10 text-white relative overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-1 cursor-pointer active:scale-[0.99]">
+      <div @click="$emit('drillDown', 'Unified Revenue Stream')" class="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-700 shadow-xl shadow-slate-900/10 text-white relative overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-1 cursor-pointer active:scale-[0.99]">
         <div class="absolute -top-10 -right-10 p-8 opacity-5 transform rotate-12 group-hover:rotate-0 transition-transform duration-700"><DollarSign class="w-56 h-56"/></div>
         
         <div class="relative z-10 flex flex-col h-full justify-between">
@@ -10,7 +10,7 @@
             <div>
               <h3 class="text-slate-400 font-bold tracking-widest text-[11px] mb-2 uppercase">Total Realized Revenue</h3>
               <div class="flex items-baseline gap-3">
-                <h2 class="text-4xl sm:text-5xl font-black tracking-tight text-white m-0 leading-none">LKR {{ Number(kpis.revenue || 0).toFixed(1) }}M</h2>
+                <h2 class="text-4xl sm:text-5xl font-black tracking-tight text-white m-0 leading-none">{{ brandingStore.currency }} {{ Number(kpis.revenue || 0).toFixed(1) }}M</h2>
                 <span class="text-xs font-black text-emerald-400 px-2 py-1 bg-emerald-400/10 rounded-md border border-emerald-400/20 shadow-inner flex items-center gap-1">
                   <TrendingUp class="w-3 h-3"/> +14.2% MoM
                 </span>
@@ -21,14 +21,14 @@
           <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-sm border-t border-slate-700/50 pt-5">
             <div class="flex flex-col">
               <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-0.5">AI Target Forecast (Next M)</span>
-              <span class="font-black text-lg text-purple-300 drop-shadow-sm leading-none tabular-nums">LKR 4.8M</span>
+              <span class="font-black text-lg text-purple-300 drop-shadow-sm leading-none tabular-nums">{{ brandingStore.currency }} 4.8M</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- NET PROFIT -->
-      <div @click="$emit('triggerToast', 'Opening P&L Context: Margin Analysis & Efficiency Ratios')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 cursor-pointer active:scale-[0.98]">
+      <div @click="$emit('drillDown', 'P&L Context')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 cursor-pointer active:scale-[0.98]">
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Net Profit</h3>
@@ -48,7 +48,7 @@
       <!-- CASH FLOW & EXPENSES VERTICAL STACK -->
       <div class="flex flex-col gap-4 h-full">
         <!-- Free Cash Flow -->
-        <div @click="$emit('triggerToast', 'Liquidity Radar: 30-Day Cash Cycle Insight')" class="bg-white px-5 py-4 rounded-2xl border border-emerald-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
+        <div @click="$emit('drillDown', 'Liquidity Radar')" class="bg-white px-5 py-4 rounded-2xl border border-emerald-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
            <div class="absolute inset-y-0 left-0 w-1 bg-emerald-400"></div>
           <div class="flex items-center justify-between mb-1.5">
             <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Free Cash Flow</h3>
@@ -61,7 +61,7 @@
         </div>
         
         <!-- Operating Expenses -->
-        <div @click="$emit('triggerToast', 'Expense Auditor: Infrastructure, Marketing & Payroll split')" class="bg-white px-5 py-4 rounded-2xl border border-red-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
+        <div @click="$emit('drillDown', 'Expense Auditor')" class="bg-white px-5 py-4 rounded-2xl border border-red-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
            <div class="absolute inset-y-0 left-0 w-1 bg-red-400"></div>
           <div class="flex items-center justify-between mb-1.5">
             <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Op. Expenses</h3>
@@ -79,6 +79,7 @@
 
 <script setup>
 import { DollarSign, TrendingUp, LineChart, Activity, Wallet, ArrowUpRight, TrendingDown } from 'lucide-vue-next'
+import { brandingStore } from '../../services/brandingService'
 
 defineProps({
   kpis: {
@@ -86,5 +87,5 @@ defineProps({
     required: true
   }
 })
-defineEmits(['triggerToast'])
+defineEmits(['triggerToast', 'drillDown'])
 </script>

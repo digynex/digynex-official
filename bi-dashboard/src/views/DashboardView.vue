@@ -25,7 +25,7 @@
         </div>
 
         <div v-else>
-          <KPICards :kpis="dashboardData.kpis" @triggerToast="triggerToast" />
+          <KPICards :kpis="dashboardData.kpis" @triggerToast="triggerToast" @drillDown="handleNodeClick" />
 
           <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
             <MainChart :chartData="dashboardData.charts" @nodeClicked="handleNodeClick" @triggerToast="triggerToast" />
