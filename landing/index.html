@@ -47,6 +47,7 @@
           <ul class="nav-links">
             <li><a href="#home">Home</a></li>
             <li><a href="#products">Products</a></li>
+            <li><a href="#pricing">Pricing</a></li>
             <li><a href="#services">Services</a></li>
             <li><a href="#about">About</a></li>
           </ul>
@@ -420,14 +421,24 @@
         </div>
       </section>
 
-      <!-- Pricing Section (Business OS Tiers) -->
+      <!-- Pricing Section (Supreme SaaS Model) -->
       <section id="pricing" class="pricing">
         <div class="container">
           <div class="section-header">
-            <span class="badge">Global Scalability</span>
-            <h2>One Platform. <span class="gold-text">Three Tiers.</span></h2>
-            <p>Predictable pricing for exponential growth.</p>
+            <span class="badge">SAAS PRICING</span>
+            <h2>Simple Pricing. <span class="gold-text">Decision Intelligence.</span></h2>
+            <p>Pay only for what you use. Scale seamlessly as your business grows.</p>
             
+            <!-- Billing Toggle -->
+            <div class="billing-toggle mt-10">
+              <span class="toggle-label active" id="monthly-label">Monthly</span>
+              <label class="switch">
+                <input type="checkbox" id="billing-switch">
+                <span class="slider round"></span>
+              </label>
+              <span class="toggle-label" id="yearly-label">Yearly <span class="discount-pill">Save 20%</span></span>
+            </div>
+
             <!-- Market Status Indicator -->
             <div id="market-status" class="market-indicator shadow-lg">
               <i class="fa-solid fa-earth-americas"></i>
@@ -436,21 +447,23 @@
           </div>
 
           <div class="pricing-grid">
-            <!-- Starter Tier -->
+            <!-- Starter Plan -->
             <div class="pricing-card glass-card shadow-2xl">
               <div class="p-header">
                 <span class="p-tier uppercase tracking-widest">Starter</span>
                 <div class="p-price">
-                  <span class="currency" id="starter-currency">LKR</span>
-                  <span class="amount" id="starter-price">2,500</span>
-                  <small>/mo</small>
+                  <span class="currency" id="starter-currency">$</span>
+                  <span class="amount" id="starter-price">29</span>
+                  <small class="billing-period">/mo</small>
                 </div>
-                <p class="p-desc">Essential tools for individual operators.</p>
+                <p class="p-desc">For small businesses starting their automation journey.</p>
+                <div class="setup-fee">One-time Setup: <span id="starter-setup">$99</span></div>
               </div>
               <ul class="p-features">
-                <li><i class="fa-solid fa-circle-check"></i> Up to 100 Core Records</li>
+                <li><i class="fa-solid fa-circle-check"></i> Up to 100 <span class="profile-tooltip" data-tooltip="Key entities like customers, students, or products.">Active Profiles <i class="fa-solid fa-circle-info"></i></span></li>
                 <li><i class="fa-solid fa-circle-check"></i> Standard BI Dashboard</li>
-                <li><i class="fa-solid fa-circle-check"></i> Automated Billing Core</li>
+                <li><i class="fa-solid fa-circle-check"></i> Revenue & Expense Tracking</li>
+                <li><i class="fa-solid fa-circle-check"></i> Smart CSV Data Import</li>
                 <li><i class="fa-solid fa-circle-check"></i> QR Operation Support</li>
               </ul>
               <div class="p-footer">
@@ -458,55 +471,155 @@
               </div>
             </div>
 
-            <!-- Business Tier -->
+            <!-- Growth Plan (Featured) -->
             <div class="pricing-card glass-card featured shadow-gold">
               <div class="featured-badge">MOST POPULAR</div>
               <div class="p-header">
-                <span class="p-tier uppercase tracking-widest text-gold font-bold">Business</span>
+                <span class="p-tier uppercase tracking-widest text-gold font-bold">Growth</span>
                 <div class="p-price">
-                  <span class="currency" id="business-currency">LKR</span>
-                  <span class="amount" id="business-price">12,000</span>
-                  <small class="text-white">/mo</small>
+                  <span class="currency" id="growth-currency">$</span>
+                  <span class="amount" id="growth-price">79</span>
+                  <small class="billing-period">/mo</small>
                 </div>
-                <p class="p-desc">Advanced intelligence for scaling teams.</p>
+                <p class="p-desc">Most popular – Expand with AI-powered forecasting.</p>
+                <div class="setup-fee text-gold">One-time Setup: <span id="growth-setup">$199</span></div>
               </div>
               <ul class="p-features">
-                <li><i class="fa-solid fa-circle-check gold-text"></i> Up to 500 Active Records</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Up to 500 <span class="profile-tooltip" data-tooltip="Key entities like customers, students, or products.">Active Profiles <i class="fa-solid fa-circle-info"></i></span></li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> AI Decision Forecasting</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Anomaly Detection Alerts</li>
                 <li><i class="fa-solid fa-circle-check gold-text"></i> Advanced Analytics Suite</li>
-                <li><i class="fa-solid fa-circle-check gold-text"></i> n8n Automation Engine</li>
-                <li><i class="fa-solid fa-circle-check gold-text"></i> Custom Deal Pipelines</li>
-                <li><i class="fa-solid fa-circle-check gold-text"></i> Priority Support Hub</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Automated n8n Workflows</li>
               </ul>
               <div class="p-footer">
-                <button onclick="openLeadModal('Business Plan')" class="btn btn-gold full-width">Activate Business</button>
+                <button onclick="openLeadModal('Growth Plan')" class="btn btn-gold full-width">Get Started</button>
               </div>
             </div>
 
-            <!-- Enterprise Tier -->
+            <!-- Scale Plan -->
             <div class="pricing-card glass-card shadow-2xl border-white-10">
               <div class="p-header">
-                <span class="p-tier uppercase tracking-widest">Enterprise</span>
+                <span class="p-tier uppercase tracking-widest">Scale</span>
                 <div class="p-price">
-                  <span class="currency" id="enterprise-currency">LKR</span>
-                  <span class="amount" id="enterprise-price">18,000</span>
-                  <small>/mo</small>
+                  <span class="currency" id="scale-currency">$</span>
+                  <span class="amount" id="scale-price">149</span>
+                  <small class="billing-period">/mo</small>
                 </div>
-                <p class="p-desc">High-performance OS for global scale.</p>
+                <p class="p-desc">Enterprise-grade OS for high-volume operations.</p>
+                <div class="setup-fee">One-time Setup: <span id="scale-setup">$499</span></div>
               </div>
               <ul class="p-features">
-                <li><i class="fa-solid fa-circle-check"></i> Uncapped Records (800+)</li>
-                <li><i class="fa-solid fa-circle-check"></i> AI Decision Forecasting</li>
-                <li><i class="fa-solid fa-circle-check"></i> Full White-Label Option</li>
-                <li><i class="fa-solid fa-circle-check"></i> Dedicated API Orchestration</li>
-                <li><i class="fa-solid fa-circle-check"></i> Multi-Org Architecture</li>
+                <li><i class="fa-solid fa-circle-check"></i> Up to 2,000 <span class="profile-tooltip" data-tooltip="Key entities like customers, students, or products.">Active Profiles <i class="fa-solid fa-circle-info"></i></span></li>
+                <li><i class="fa-solid fa-circle-check"></i> Multi-User Permissions</li>
+                <li><i class="fa-solid fa-circle-check"></i> Custom KPI Tracking</li>
+                <li><i class="fa-solid fa-circle-check"></i> Dedicated Priority Support</li>
+                <li><i class="fa-solid fa-circle-check"></i> Full White-Label Suite</li>
               </ul>
               <div class="p-footer">
-                <button onclick="openLeadModal('Enterprise Plan')" class="btn btn-outline full-width">Inquire for Scale</button>
+                <button onclick="openLeadModal('Scale Plan')" class="btn btn-outline full-width">Upgrade Now</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enterprise High-End Block -->
+          <div class="enterprise-block mt-20 glass-card">
+            <div class="ent-content text-center">
+              <h3>Enterprise Solution <span class="gold-text">Custom Built</span></h3>
+              <p>Unlimited profiles, dedicated API infrastructure, and specialized AI models.</p>
+              <div class="ent-badges mt-6">
+                <span class="badge"><i class="fa-solid fa-infinity"></i> Unlimited Profiles</span>
+                <span class="badge"><i class="fa-solid fa-shield-halved"></i> 24/7 Dedicated Support</span>
+                <span class="badge"><i class="fa-solid fa-code-branch"></i> Custom API Integrations</span>
+              </div>
+              <button onclick="openLeadModal('Enterprise Custom')" class="btn btn-gold px-12 mt-10">Inquire for Scale</button>
+            </div>
+          </div>
+
+          <!-- Feature Comparison Matrix -->
+          <div class="comparison-matrix mt-32">
+            <h3 class="text-center mb-10">Feature <span class="gold-text">Comparison</span></h3>
+            <div class="matrix-wrapper glass-card shadow-2xl">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Capabilites</th>
+                    <th>Starter</th>
+                    <th>Growth</th>
+                    <th>Scale</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Active Profile Limit</td>
+                    <td>100</td>
+                    <td>500</td>
+                    <td>2,000</td>
+                  </tr>
+                  <tr>
+                    <td>BI Dashboards</td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                  </tr>
+                  <tr>
+                    <td>AI Decisions</td>
+                    <td><i class="fa-solid fa-xmark text-grey"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                  </tr>
+                  <tr>
+                    <td>Automated Workflow</td>
+                    <td><i class="fa-solid fa-xmark text-grey"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                  </tr>
+                  <tr>
+                    <td>Multi-Org Access</td>
+                    <td><i class="fa-solid fa-xmark text-grey"></i></td>
+                    <td><i class="fa-solid fa-xmark text-grey"></i></td>
+                    <td><i class="fa-solid fa-check text-green"></i></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- FAQ Accordion -->
+          <div class="faq-container mt-32">
+            <h3 class="text-center mb-10">Frequently Asked <span class="gold-text">Questions</span></h3>
+            <div class="faq-accordion">
+              <div class="faq-item glass-card">
+                <div class="faq-header" onclick="toggleFAQ(this)">
+                  <span>What are Active Profiles?</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-body">
+                  Active Profiles are the core entities you manage within your system, such as Customers, Products, Students, or Patients. Our pricing scales dynamically based on these active entities.
+                </div>
+              </div>
+              <div class="faq-item glass-card">
+                <div class="faq-header" onclick="toggleFAQ(this)">
+                  <span>Can I change plans later?</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-body">
+                  Yes, you can upgrade or downgrade your subscription at any time. Changes are applied instantly and billing is prorated to your next cycle.
+                </div>
+              </div>
+              <div class="faq-item glass-card">
+                <div class="faq-header" onclick="toggleFAQ(this)">
+                  <span>Is there a free trial period?</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-body">
+                  Absolutely. We offer a 14-day free trial on our Starter and Growth plans so you can experience the power of DigyNex first-hand.
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       <!-- Services Section -->
       <section id="services" class="services">
@@ -711,8 +824,12 @@
           <input type="tel" placeholder="WhatsApp Number (e.g. +94...)" required />
           <textarea placeholder="Your Requirement" rows="4"></textarea>
           <button type="submit" class="btn btn-gold full-width">
-            Send Request
+            Proceed via Email
           </button>
+          <div class="modal-divider"><span>OR</span></div>
+          <a href="https://wa.me/94767119100?text=Hi DigyNex, I'm interested in the SaaS ecosystem." target="_blank" class="btn btn-whatsapp full-width">
+            <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp (Instant)
+          </a>
         </form>
       </div>
     </div>

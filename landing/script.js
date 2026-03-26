@@ -385,57 +385,101 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MARKET SENSITIVE PRICING LOGIC ---
   const pricingData = {
+    SE: {
+      currency: "SEK",
+      starter: 299,
+      growth: 799,
+      scale: 1499,
+      setup: { starter: "999 kr", growth: "1,999 kr", scale: "4,999 kr" },
+      marketName: "Sweden (Headquarters)"
+    },
     LK: {
       currency: "LKR",
-      starter: "2,500",
-      business: "12,000",
-      enterprise: "18,000",
+      starter: 2500,
+      growth: 12000,
+      scale: 18000,
+      setup: { starter: "12,000 LKR", growth: "18,000 LKR", scale: "30,000 LKR" },
       marketName: "Sri Lanka (Local)"
     },
     GLOBAL: {
       currency: "USD",
-      starter: "29",
-      business: "89",
-      enterprise: "149",
+      starter: 29,
+      growth: 79,
+      scale: 149,
+      setup: { starter: "$99", growth: "$199", scale: "$499" },
       marketName: "Global Premium"
     }
   };
 
+  let currentMarket = "SE";
+  let isYearly = false;
+
   async function initializePricing() {
-    console.log("Detecting market...");
     const marketIndicator = document.getElementById("detected-market");
+    const billingSwitch = document.getElementById("billing-switch");
     
+    // Initial Load
+    updatePricingUI(pricingData[currentMarket]);
+    if (marketIndicator) marketIndicator.innerText = `Nexus Operating Region: ${pricingData[currentMarket].marketName}`;
+
+    // Billing Toggle Listener
+    if (billingSwitch) {
+      billingSwitch.addEventListener('change', (e) => {
+        isYearly = e.target.checked;
+        document.getElementById('monthly-label').classList.toggle('active', !isYearly);
+        document.getElementById('yearly-label').classList.toggle('active', isYearly);
+        updatePricingUI(pricingData[currentMarket]);
+      });
+    }
+
     try {
       const response = await fetch("https://ipapi.co/json/");
       const data = await response.json();
       const countryCode = data.country_code;
       
-      const market = (countryCode === "LK" || countryCode === "SL") ? "LK" : "GLOBAL";
-      updatePricingUI(pricingData[market]);
+      if (countryCode === "LK" || countryCode === "SL") {
+        currentMarket = "LK";
+      } else if (countryCode !== "SE") {
+        currentMarket = "GLOBAL";
+      }
       
-      if (marketIndicator) {
-        marketIndicator.innerText = `Nexus Operating Region: ${pricingData[market].marketName}`;
-      }
+      updatePricingUI(pricingData[currentMarket]);
+      if (marketIndicator) marketIndicator.innerText = `Nexus Operating Region: ${pricingData[currentMarket].marketName}`;
     } catch (error) {
-      console.warn("Market detection failed, defaulting to Global.");
-      updatePricingUI(pricingData.GLOBAL);
-      if (marketIndicator) {
-        marketIndicator.innerText = "Nexus Operating Region: Global Premium";
-      }
+      console.warn("Dynamic detection failed, staying on Headquarters (SEK).");
     }
   }
 
   function updatePricingUI(config) {
-    const tiers = ['starter', 'business', 'enterprise'];
+    const tiers = ['starter', 'growth', 'scale'];
     
     tiers.forEach(tier => {
       const priceEl = document.getElementById(`${tier}-price`);
       const curEl = document.getElementById(`${tier}-currency`);
+      const setupEl = document.getElementById(`${tier}-setup`);
       
-      if (priceEl) priceEl.innerText = config[tier];
-      if (curEl) curEl.innerText = config.currency;
+      if (priceEl) {
+        let monthlyPrice = config[tier];
+        let displayPrice = isYearly ? Math.floor(monthlyPrice * 0.8) : monthlyPrice;
+        
+        if (config.currency === "SEK") {
+           priceEl.innerText = `${displayPrice.toLocaleString()} kr`;
+           if (curEl) curEl.innerText = ""; 
+        } else {
+           priceEl.innerText = displayPrice.toLocaleString();
+           if (curEl) curEl.innerText = config.currency === "USD" ? "$" : config.currency;
+        }
+
+        if (setupEl) setupEl.innerText = config.setup[tier];
+      }
     });
   }
+
+  // FAQ Toggle Logic
+  window.toggleFAQ = function(element) {
+    const item = element.parentElement;
+    item.classList.toggle('active');
+  };
 
   // Run on load
   initializePricing();

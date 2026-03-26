@@ -6,11 +6,11 @@ export const useCurrencyStore = defineStore('currency', {
     countryCode: localStorage.getItem('user_country') || 'LK',
     currency: 'LKR',
     symbol: 'LKR',
-    // New Tiered Pricing Structure (Master Core)
+    // New Tiered Pricing Structure (Adaptive SaaS Model)
     pricing: {
       starter: 2500,
-      business: 12000,
-      enterprise: 18000
+      growth: 12000,
+      scale: 18000
     },
     taxRate: 0,
     isLoaded: false,
@@ -19,8 +19,8 @@ export const useCurrencyStore = defineStore('currency', {
   getters: {
     // Basic price getters with tax
     starterPrice: (state) => state.pricing.starter * (1 + state.taxRate),
-    businessPrice: (state) => state.pricing.business * (1 + state.taxRate),
-    enterprisePrice: (state) => state.pricing.enterprise * (1 + state.taxRate),
+    growthPrice: (state) => state.pricing.growth * (1 + state.taxRate),
+    scalePrice: (state) => state.pricing.scale * (1 + state.taxRate),
   },
 
   actions: {
@@ -54,36 +54,36 @@ export const useCurrencyStore = defineStore('currency', {
     },
 
     updateStateByCountry() {
-      // 🇱🇰 SRI LANKA - Master Localized Strategy
+      // 🇱🇰 SRI LANKA - Local Fixed Strategy
       if (this.countryCode === 'LK' || this.countryCode === 'SL') {
         this.currency = 'LKR'
         this.symbol = 'LKR'
         this.pricing = {
           starter: 2500,
-          business: 12000,
-          enterprise: 18000
+          growth: 12000,
+          scale: 18000
         }
         this.taxRate = 0
-      } 
-      // 🇸🇪 SWEDEN / EU - Premium Region
+      }
+      // 🇸🇪 SWEDEN / EU - Premium Core Region
       else if (this.countryCode === 'SE') {
         this.currency = 'SEK'
         this.symbol = 'kr'
         this.pricing = {
           starter: 299,
-          business: 899,
-          enterprise: 1499
+          growth: 799,
+          scale: 1499
         }
         this.taxRate = 0.25 // Sweden VAT
-      } 
-      // 🌎 GLOBAL / US DEFAULT - Premium Unified Strategy
+      }
+      // 🌎 GLOBAL / US DEFAULT - Unified SaaS Strategy
       else {
         this.currency = 'USD'
         this.symbol = '$'
         this.pricing = {
           starter: 29,
-          business: 89,
-          enterprise: 149
+          growth: 79,
+          scale: 149
         }
         this.taxRate = 0.05 // Global general duty/tax
       }
