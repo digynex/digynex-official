@@ -13,10 +13,10 @@ The pricing is designed as a **Hybrid Model**: Full-Suite Platform Pricing vs. I
 
 | Tier | Price (Monthly) | Setup Fee | Active Profiles | Key Value |
 | :--- | :--- | :--- | :--- | :--- |
-| **STARTER** | **$29** | **$99** | Up to 100 | Core records & basic dashboards. |
-| **GROWTH** ⭐ | **$79** | **$199** | Up to 500 | AI Decision Intelligence & full automation. |
-| **SCALE** | **$149** | **$499** | Up to 2,000 | Advanced large-scale ops & multi-user management. |
-| **ENTERPRISE** | **Custom** | **$999+** | Unlimited | Dedicated API, support, and custom AI models. |
+| **STARTER** | **$29** | **$99** | Up to 100 | Basic dashboards & core records. |
+| **GROWTH** ⭐ | **$79** | **$199** | Up to 500 | **Nexus AI Business Agent** & full automation. |
+| **SCALE** | **$149** | **$499** | Up to 2,000 | **Custom-Trained AI Agent** & multi-org ops. |
+| **ENTERPRISE** | **Custom** | **$999+** | Unlimited | Dedicated API & specialized custom models. |
 
 ---
 
