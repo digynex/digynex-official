@@ -11,7 +11,7 @@
         background-color: #020617 !important;
         margin: 0;
         padding: 0;
-        overflow: hidden;
+        overflow-y: auto !important;
       }
       #splash-screen {
         position: fixed;
@@ -111,10 +111,11 @@
       // Automatically hide splash screen once Vue takes over
       window.addEventListener('load', () => {
         const splash = document.getElementById('splash-screen');
-        // Small delay to ensure smooth transition
         setTimeout(() => {
           splash.style.opacity = '0';
           splash.style.visibility = 'hidden';
+          // Completely remove from DOM to prevent click interception
+          setTimeout(() => splash.remove(), 500);
         }, 800);
       });
     </script>

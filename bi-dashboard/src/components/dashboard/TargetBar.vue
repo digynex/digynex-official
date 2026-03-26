@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-6 group hover:border-slate-300 transition-colors">
+  <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-6 group hover:border-primary/20 hover:shadow-md transition-all cursor-pointer active:scale-[0.99]" @click="$emit('triggerToast', 'Deep-analyzing Q1 Growth Strategy & Pipeline Audit...'); $emit('drillDown', 'Target Benchmark')">
       <div class="shrink-0 flex items-center justify-center p-3.5 bg-slate-50 border border-slate-100 rounded-xl group-hover:bg-primary/5 group-hover:border-primary/20 transition-colors">
-        <Target class="w-6 h-6 text-primary" />
+        <Target class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform" />
       </div>
       <div class="flex-1 w-full relative">
         <div class="flex justify-between items-end mb-2">
@@ -42,4 +42,5 @@ defineProps({
     default: 0
   }
 })
+defineEmits(['triggerToast', 'drillDown'])
 </script>

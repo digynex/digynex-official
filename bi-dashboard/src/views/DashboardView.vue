@@ -3,18 +3,18 @@
     
     <Sidebar @toggleMenu="isMobileMenuOpen = !isMobileMenuOpen" @triggerToast="triggerToast" />
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f7fb] relative">
+    <main class="flex-1 flex flex-col min-h-0 bg-[#f4f7fb] relative overflow-hidden">
       
       <TopHeader @toggleMenu="isMobileMenuOpen = !isMobileMenuOpen" @triggerToast="triggerToast" />
 
       <!-- GLOBAL ALERT SYSTEM -->
-      <div v-show="showAlert" class="bg-red-50 border-b border-red-100 px-4 sm:px-8 py-2.5 flex items-center justify-between z-0 animate-[slideDown_0.4s_ease-out]">
+      <div v-show="showAlert" class="bg-red-50 border-b border-red-100 flex-shrink-0 px-4 sm:px-8 py-2.5 flex items-center justify-between z-0 animate-[slideDown_0.4s_ease-out]">
         <div class="flex items-center gap-2.5 text-red-700 text-[13px] font-bold">
           <AlertTriangle class="w-4 h-4 animate-pulse shrink-0" />
           <span class="hidden sm:inline">System Alert: Software category revenue dropped by 12% WoW.</span>
           <span class="sm:hidden">Alert: Software revenue -12% WoW.</span>
         </div>
-        <button @click="triggerToast('Routing to Anomaly Intelligence Tracker (Demo Mode)')" class="text-red-700 hover:text-red-900 text-xs font-black uppercase tracking-wider bg-red-100/50 hover:bg-red-200 px-3 py-1 rounded transition-colors whitespace-nowrap">Investigate</button>
+        <button @click="handleNodeClick('anomaly_detection')" class="text-red-700 hover:text-red-900 text-xs font-black uppercase tracking-wider bg-red-100/50 hover:bg-red-200 px-3 py-1 rounded transition-colors whitespace-nowrap">Investigate</button>
       </div>
 
       <div class="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
@@ -25,14 +25,14 @@
         </div>
 
         <div v-else>
-          <KPICards :kpis="dashboardData.kpis" />
+          <KPICards :kpis="dashboardData.kpis" @triggerToast="triggerToast" />
 
           <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
             <MainChart :chartData="dashboardData.charts" @nodeClicked="handleNodeClick" @triggerToast="triggerToast" />
-            <AIInsights :insights="dashboardData.insights" @triggerToast="triggerToast" />
+            <AIInsights :insights="dashboardData.insights" @triggerToast="triggerToast" @drillDown="handleNodeClick" />
           </div>
 
-          <TargetBar :progress="dashboardData.kpis.targetProgress" />
+          <TargetBar :progress="dashboardData.kpis.targetProgress" @triggerToast="triggerToast" @drillDown="handleNodeClick" />
         </div>
 
       </div>

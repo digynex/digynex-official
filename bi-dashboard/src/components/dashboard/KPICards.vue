@@ -2,7 +2,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
       
       <!-- REVENUE (Hero Card) -->
-      <div class="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-700 shadow-xl shadow-slate-900/10 text-white relative overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-1">
+      <div @click="$emit('triggerToast', 'Drilling into Unified Revenue Stream: Enterprise Subscriptions & Batch Fees')" class="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-700 shadow-xl shadow-slate-900/10 text-white relative overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-1 cursor-pointer active:scale-[0.99]">
         <div class="absolute -top-10 -right-10 p-8 opacity-5 transform rotate-12 group-hover:rotate-0 transition-transform duration-700"><DollarSign class="w-56 h-56"/></div>
         
         <div class="relative z-10 flex flex-col h-full justify-between">
@@ -28,7 +28,7 @@
       </div>
 
       <!-- NET PROFIT -->
-      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
+      <div @click="$emit('triggerToast', 'Opening P&L Context: Margin Analysis & Efficiency Ratios')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 cursor-pointer active:scale-[0.98]">
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Net Profit</h3>
@@ -48,7 +48,7 @@
       <!-- CASH FLOW & EXPENSES VERTICAL STACK -->
       <div class="flex flex-col gap-4 h-full">
         <!-- Free Cash Flow -->
-        <div class="bg-white px-5 py-4 rounded-2xl border border-emerald-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5">
+        <div @click="$emit('triggerToast', 'Liquidity Radar: 30-Day Cash Cycle Insight')" class="bg-white px-5 py-4 rounded-2xl border border-emerald-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
            <div class="absolute inset-y-0 left-0 w-1 bg-emerald-400"></div>
           <div class="flex items-center justify-between mb-1.5">
             <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Free Cash Flow</h3>
@@ -61,7 +61,7 @@
         </div>
         
         <!-- Operating Expenses -->
-        <div class="bg-white px-5 py-4 rounded-2xl border border-red-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5">
+        <div @click="$emit('triggerToast', 'Expense Auditor: Infrastructure, Marketing & Payroll split')" class="bg-white px-5 py-4 rounded-2xl border border-red-100 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer active:scale-[0.97]">
            <div class="absolute inset-y-0 left-0 w-1 bg-red-400"></div>
           <div class="flex items-center justify-between mb-1.5">
             <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Op. Expenses</h3>
@@ -86,4 +86,5 @@ defineProps({
     required: true
   }
 })
+defineEmits(['triggerToast'])
 </script>

@@ -24,24 +24,19 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-3 font-mono text-xs">#TRX-9942A</td>
-                    <td class="px-6 py-3 flex items-center gap-2"><Database class="w-3.5 h-3.5 text-primary"/> POS Terminal B</td>
-                    <td class="px-6 py-3">LKR 45,000</td>
-                    <td class="px-6 py-3 text-right"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Settled</span></td>
-                  </tr>
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-3 font-mono text-xs">#TRX-9941B</td>
-                    <td class="px-6 py-3 flex items-center gap-2"><Layers class="w-3.5 h-3.5 text-accent"/> Web Gateway</td>
-                    <td class="px-6 py-3">LKR 128,500</td>
-                    <td class="px-6 py-3 text-right"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Settled</span></td>
-                  </tr>
-                  <tr class="hover:bg-slate-50 transition-colors bg-red-50/20">
-                    <td class="px-6 py-3 font-mono text-xs">#TRX-9938X</td>
-                    <td class="px-6 py-3 flex items-center gap-2"><Wallet class="w-3.5 h-3.5 text-slate-400"/> Wire Transfer</td>
-                    <td class="px-6 py-3">LKR 95,000</td>
-                    <td class="px-6 py-3 text-right"><span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-bold uppercase tracking-widest">Pending Clearence</span></td>
-                  </tr>
+                   <tr v-for="item in currentData" :key="item.id" class="hover:bg-slate-50 transition-colors" :class="item.highlight ? 'bg-red-50/20' : ''">
+                     <td class="px-6 py-3 font-mono text-xs">{{ item.id }}</td>
+                     <td class="px-6 py-3 flex items-center gap-2">
+                        <component :is="item.icon" :class="item.iconClass" class="w-3.5 h-3.5" /> 
+                        {{ item.source }}
+                     </td>
+                     <td class="px-6 py-3">{{ item.amount }}</td>
+                     <td class="px-6 py-3 text-right">
+                        <span :class="getStatusClass(item.status)" class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">
+                           {{ item.status }}
+                        </span>
+                     </td>
+                   </tr>
                 </tbody>
               </table>
             </div>
@@ -55,8 +50,37 @@
 </template>
 
 <script setup>
-import { X, Database, Layers, Wallet } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { X, Database, Layers, Wallet, AlertCircle, Zap, Activity, Clock } from 'lucide-vue-next'
 
-defineProps({ isOpen: Boolean, category: String })
+const props = defineProps({ isOpen: Boolean, category: String })
 defineEmits(['close', 'triggerToast'])
+
+const currentData = computed(() => {
+  if (props.category.includes('Database')) {
+    return [
+      { id: '#LOG-Sync8', source: 'Supabase V3 Edge', amount: 'Real-time', status: 'Success', icon: Activity, iconClass: 'text-emerald-500' },
+      { id: '#LOG-Sync7', source: 'Infrastructure Hook', amount: '12ms Latency', status: 'Success', icon: Zap, iconClass: 'text-accent' },
+      { id: '#LOG-Sync6', source: 'BI Ledger Sync', amount: 'Batch #449', status: 'Success', icon: Database, iconClass: 'text-primary' },
+    ]
+  } else if (props.category.includes('Target')) {
+    return [
+      { id: '#KPI-Rev', source: 'Direct Sales Path', amount: 'LKR 4.2M', status: 'On Track', icon: Layers, iconClass: 'text-blue-500' },
+      { id: '#KPI-Exp', source: 'Operational Burden', amount: 'LKR 0.9M', status: 'Over Budget', icon: Wallet, iconClass: 'text-red-500', highlight: true },
+      { id: '#KPI-Net', source: 'Growth Buffer', amount: 'LKR 3.3M', status: 'Optimized', icon: Zap, iconClass: 'text-emerald-500' },
+    ]
+  } else {
+    return [
+      { id: '#TRX-9942A', source: 'POS Terminal B', amount: 'LKR 45,000', status: 'Settled', icon: Database, iconClass: 'text-primary' },
+      { id: '#TRX-9941B', source: 'Web Gateway', amount: 'LKR 128,500', status: 'Settled', icon: Layers, iconClass: 'text-accent' },
+      { id: '#TRX-9938X', source: 'Wire Transfer', amount: 'LKR 95,000', status: 'Pending', icon: AlertCircle, iconClass: 'text-amber-500', highlight: true },
+    ]
+  }
+})
+
+const getStatusClass = (status) => {
+  if (['Settled', 'Success', 'On Track', 'Optimized'].includes(status)) return 'bg-emerald-100 text-emerald-700'
+  if (status === 'Over Budget') return 'bg-red-100 text-red-700'
+  return 'bg-amber-100 text-amber-700'
+}
 </script>

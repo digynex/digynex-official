@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#020817] text-slate-50 font-sans selection:bg-primary/30">
+  <div class="min-h-screen bg-[#020817] text-slate-50 font-sans selection:bg-primary/30 scroll-smooth">
     
     <!-- Top Navigation -->
     <nav class="absolute top-0 w-full border-b border-white/5 bg-white/5 backdrop-blur-xl z-50">
@@ -13,15 +13,15 @@
         
         <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
           <a href="#features" class="hover:text-white transition-colors">Features</a>
-          <a href="#demo" class="hover:text-white transition-colors">Solutions</a>
+          <a href="#solutions" class="hover:text-white transition-colors">Solutions</a>
           <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
         </div>
         
         <div class="flex items-center gap-4">
-          <a href="mailto:contact@digynex.com" class="hidden sm:block text-sm font-bold text-slate-300 hover:text-white transition-colors">Contact Sales</a>
-          <router-link to="/dashboard" class="px-5 py-2.5 bg-white text-slate-900 hover:bg-slate-200 rounded-lg text-sm font-black transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:-translate-y-0.5">
+          <a href="#contact" class="hidden sm:block text-sm font-bold text-slate-300 hover:text-white transition-colors">Contact Sales</a>
+          <a href="#contact" class="px-5 py-2.5 bg-white text-slate-900 hover:bg-slate-200 rounded-lg text-sm font-black transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 text-center">
             Book Demo
-          </router-link>
+          </a>
         </div>
       </div>
     </nav>
@@ -91,7 +91,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           <!-- Feature 1 -->
-          <div class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-colors group cursor-default">
+          <div @click="openFeature('insights')" class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-all group cursor-pointer block no-underline hover:-translate-y-1">
             <div class="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Brain class="w-7 h-7 text-blue-400" />
             </div>
@@ -100,7 +100,7 @@
           </div>
 
           <!-- Feature 2 -->
-          <div class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-colors group cursor-default">
+          <div @click="openFeature('forecasting')" class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-all group cursor-pointer block no-underline hover:-translate-y-1">
             <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <LineChart class="w-7 h-7 text-accent" />
             </div>
@@ -109,7 +109,7 @@
           </div>
 
           <!-- Feature 3 -->
-          <div class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-colors group cursor-default">
+          <div @click="openFeature('alerts')" class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-all group cursor-pointer block no-underline hover:-translate-y-1">
             <div class="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <AlertTriangle class="w-7 h-7 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]" />
             </div>
@@ -117,6 +117,149 @@
             <p class="text-slate-400 text-sm leading-relaxed font-medium">Real-time alerts intercept sudden expense spikes or revenue segment drops instantly, turning defense into offense.</p>
           </div>
 
+        </div>
+      </div>
+    </section>
+    <!-- Solutions / Demo Section -->
+    <section id="solutions" class="py-24 bg-[#020817] relative">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-6">AI Decisions, <br/>Simplified.</h2>
+            <p class="text-slate-400 text-lg mb-8 leading-relaxed">
+              We don't just show you data; we tell you what it means. DigyNex 360 processes thousands of data points to generate natural-language insights that help you lead.
+            </p>
+            <ul class="space-y-4 mb-10">
+              <li class="flex items-center gap-3 text-slate-300 font-medium">
+                <div class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                </div>
+                Real-time Revenue Attribution
+              </li>
+              <li class="flex items-center gap-3 text-slate-300 font-medium">
+                <div class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                </div>
+                Automated Profit Mapping
+              </li>
+              <li class="flex items-center gap-3 text-slate-300 font-medium">
+                <div class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                </div>
+                Enterprise-grade Data Encryption
+              </li>
+            </ul>
+            <a href="#contact" class="inline-flex px-8 py-3 bg-white text-slate-900 rounded-lg font-bold hover:bg-slate-200 transition-all">
+              Request Full Demo
+            </a>
+          </div>
+          <div class="relative group">
+            <div class="absolute -inset-4 bg-gradient-to-r from-primary to-accent opacity-10 blur-2xl rounded-3xl group-hover:opacity-20 transition-opacity"></div>
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2026&auto=format&fit=crop" 
+                 alt="Dashboard Interface" 
+                 class="relative rounded-2xl border border-white/5 shadow-2xl" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 bg-[#050b1a] relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+        <h2 class="text-3xl md:text-5xl font-black text-white mb-4">Transparent Enterprise Pricing</h2>
+        <p class="text-slate-400 mb-16 max-w-2xl mx-auto text-lg">Scale with confidence. Choose the tier that matches your business velocity.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <!-- Starter -->
+          <div class="p-8 rounded-2xl bg-white/5 border border-white/10 flex flex-col hover:border-white/20 transition-all">
+            <h3 class="text-xl font-bold text-white mb-2">Starter</h3>
+            <div class="text-primary text-sm font-bold uppercase tracking-wider mb-6">Up to 500 orders/mo</div>
+            <div class="text-4xl font-black text-white mb-1">$89 <span class="text-sm font-medium text-slate-500">/mo</span></div>
+            <p class="text-slate-500 text-sm mb-8">LKR 12,000 / month (Regional Office)</p>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Basic KPI Dashboard</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Daily AI Insights</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Standard Reports</li>
+            </ul>
+            <button class="w-full py-3 border border-white/10 rounded-lg text-white font-bold hover:bg-white/5 transition-all">Get Started</button>
+          </div>
+
+          <!-- Business -->
+          <div class="p-8 rounded-2xl bg-primary/10 border-2 border-primary flex flex-col relative transform scale-105 shadow-[0_0_40px_rgba(59,130,246,0.2)]">
+            <div class="absolute top-0 right-0 p-3">
+              <span class="bg-primary text-white text-[10px] font-black uppercase px-3 py-1 rounded-full">Most Popular</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Business</h3>
+            <div class="text-primary text-sm font-bold uppercase tracking-wider mb-6">Unlimited Orders</div>
+            <div class="text-4xl font-black text-white mb-1">$149 <span class="text-sm font-medium text-slate-500">/mo</span></div>
+            <p class="text-slate-500 text-sm mb-8">LKR 18,000 / month (Regional Office)</p>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Advanced AI Forecasting</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Real-time Anomaly Alerts</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Multi-currency Support</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Priority Human Support</li>
+            </ul>
+            <button class="w-full py-3 bg-primary rounded-lg text-white font-black hover:bg-blue-600 transition-all shadow-lg shadow-primary/20">Go Pro Now</button>
+          </div>
+
+          <!-- Enterprise -->
+          <div class="p-8 rounded-2xl bg-white/5 border border-white/10 flex flex-col hover:border-white/20 transition-all">
+            <h3 class="text-xl font-bold text-white mb-2">Enterprise</h3>
+            <div class="text-primary text-sm font-bold uppercase tracking-wider mb-6">Custom Scale</div>
+            <div class="text-4xl font-black text-white mb-1">Custom</div>
+            <p class="text-slate-500 text-sm mb-8">Quote based on infrastructure</p>
+            <ul class="space-y-4 mb-10 flex-grow text-sm text-slate-400">
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> On-premise Deployment</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Custom AI Model Training</li>
+              <li class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[10px]">✓</div> Dedicated Success Manager</li>
+            </ul>
+            <button class="w-full py-3 border border-white/10 rounded-lg text-white font-bold hover:bg-white/5 transition-all">Contact Sales</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 bg-[#020817] relative">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div>
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-6">Let's Fuel Your Enterprise Growth.</h2>
+            <p class="text-slate-400 text-lg mb-8">Ready to deploy customized AI agents for your business? Our team is ready to map your intelligence journey.</p>
+            <div class="space-y-6">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Mail class="w-6 h-6" />
+                </div>
+                <div>
+                  <div class="text-white font-bold">Official Email</div>
+                  <div class="text-slate-500 text-sm font-medium hover:text-primary transition-colors cursor-pointer">info@digynex.se</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <Layers class="w-6 h-6" />
+                </div>
+                <div>
+                  <div class="text-white font-bold">Global Presence</div>
+                  <div class="text-slate-500 text-sm font-medium uppercase tracking-widest">Sweden • Sri Lanka</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm shadow-2xl">
+            <form @submit.prevent class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input type="text" placeholder="Full Name" class="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-all placeholder:text-slate-600" />
+                <input type="email" placeholder="Business Email" class="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-all placeholder:text-slate-600" />
+              </div>
+              <input type="text" placeholder="Company Name" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-all placeholder:text-slate-600" />
+              <textarea v-model="contactMessage" rows="4" placeholder="How can we help?" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-all placeholder:text-slate-600"></textarea>
+              <button class="w-full py-4 bg-primary text-white font-black rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-primary/20">
+                Send Inquiry
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
@@ -149,7 +292,7 @@
              <h4 class="text-white font-bold mb-6 text-sm uppercase tracking-widest">Platform</h4>
              <ul class="space-y-4 text-slate-400 text-sm">
                <li><a href="#features" class="hover:text-white transition-colors">Performance Engine</a></li>
-               <li><a href="#demo" class="hover:text-white transition-colors">Decision Mapping</a></li>
+               <li><a href="#solutions" class="hover:text-white transition-colors">Decision Mapping</a></li>
                <li><a href="#pricing" class="hover:text-white transition-colors">Pricing Options</a></li>
                <li><router-link to="/dashboard" class="hover:text-white transition-colors">Live Dashboard</router-link></li>
              </ul>
@@ -188,11 +331,101 @@
       </div>
     </footer>
 
-  </div>
+
+      <!-- Feature Detail Modals -->
+    <div v-if="activeFeature" @click.self="selectedFeatureKey = null" class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div class="max-w-2xl w-full bg-[#0f172a] border border-white/10 rounded-3xl p-10 relative shadow-2xl overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-[80px]"></div>
+        
+        <button @click="selectedFeatureKey = null" class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors">
+          <X class="w-6 h-6" />
+        </button>
+
+        <div class="flex items-center gap-6 mb-8">
+           <div :class="`w-20 h-20 rounded-2xl flex items-center justify-center ${activeFeature.color} shadow-lg`">
+              <component :is="activeFeature.icon" class="w-10 h-10" />
+           </div>
+           <div>
+              <h3 class="text-3xl font-black text-white">{{ activeFeature.title }}</h3>
+              <p class="text-primary font-bold uppercase tracking-widest text-xs mt-1">Enterprise Module V3.0</p>
+           </div>
+        </div>
+
+        <div class="space-y-6 text-slate-400 leading-relaxed font-medium">
+           <p>{{ activeFeature.description }}</p>
+           <div class="bg-white/5 rounded-xl p-6 border border-white/5">
+              <h4 class="text-white font-bold mb-4 flex items-center gap-2">
+                 <CheckCircle class="w-4 h-4 text-green-500" />
+                 Key Technical Capabilities
+              </h4>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                 <li v-for="cap in activeFeature.caps" :key="cap" class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span> {{ cap }}
+                 </li>
+              </ul>
+           </div>
+        </div>
+
+        <div class="mt-10 flex gap-4">
+           <router-link to="/dashboard" class="flex-1 py-4 bg-primary text-white text-center font-black rounded-xl hover:bg-blue-600 transition-all">
+              Launch Live Module
+           </router-link>
+           <a href="#contact" @click="requestSetup" class="flex-1 py-4 bg-white/5 border border-white/10 text-white text-center font-bold rounded-xl hover:bg-white/10 transition-all">
+              Request Setup
+           </a>
+        </div>
+      </div>
+    </div>
+
+    </div>
 </template>
 
 <script setup>
-import { Layers, ArrowRight, Brain, LineChart, AlertTriangle } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Layers, ArrowRight, Brain, LineChart, AlertTriangle, Mail, Phone, MessageCircle, X, CheckCircle } from 'lucide-vue-next'
+
+const selectedFeatureKey = ref(null)
+
+const features = {
+  insights: {
+    title: 'AI Deep Insights',
+    description: 'Our proprietary LLM analyzes raw transaction data in real-time to surface hidden patterns, cost leakages, and growth opportunities that traditional BI tools miss entirely.',
+    icon: Brain,
+    color: 'bg-blue-500/20 text-blue-400',
+    caps: ['Sentiment Analysis', 'Trend Prediction', 'NLP Summaries', 'Executive Briefings']
+  },
+  forecasting: {
+    title: 'Predictive Forecasting',
+    description: 'Leverage historical data and market indicators to build precise revenue and expense paths. Compare daily trajectory against monthly targets with 94%+ accuracy.',
+    icon: LineChart,
+    color: 'bg-accent/20 text-accent',
+    caps: ['Market Modeling', 'Target Deviation', 'Revenue Velocity', 'Cash Flow Scenarios']
+  },
+  alerts: {
+    title: 'Anomaly Alerts',
+    description: 'Instant notification engine for when your business reality shifts. From suspicious expense spikes to sudden revenue segment drops, we catch it before it hits the bottom line.',
+    icon: AlertTriangle,
+    color: 'bg-red-500/20 text-red-500',
+    caps: ['Expense Spikes', 'Segment Drops', 'Risk Detection', 'Real-time Push']
+  }
+}
+
+const activeFeature = computed(() => {
+  return selectedFeatureKey.value ? features[selectedFeatureKey.value] : null
+})
+
+const openFeature = (key) => {
+  selectedFeatureKey.value = key
+}
+
+const contactMessage = ref('')
+
+const requestSetup = () => {
+  if (activeFeature.value) {
+    contactMessage.value = `I am interested in setting up the "${activeFeature.value.title}" module for my enterprise. Please provide more details on implementation steps.`
+  }
+  selectedFeatureKey.value = null
+}
 </script>
 
 <style scoped>

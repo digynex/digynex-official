@@ -8,12 +8,13 @@
       
       <div v-for="insight in insights" :key="insight.id" 
            :class="getInsightClass(insight.type)"
-           class="min-w-[280px] lg:min-w-0 p-4 rounded-2xl shadow-sm hover:-translate-y-1 transition-transform cursor-default group/card relative overflow-hidden flex flex-col justify-between">
+           @click="$emit('triggerToast', `AI is identifying performance drivers for '${insight.title}'...`); $emit('drillDown', insight.title)"
+           class="min-w-[280px] lg:min-w-0 p-4 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer group/card relative overflow-hidden flex flex-col justify-between active:scale-[0.98]">
         
         <div v-if="insight.type === 'anomaly'" class="absolute inset-y-0 left-0 w-1 bg-amber-400"></div>
 
         <div class="flex items-start gap-3 mb-2">
-          <div :class="getIconClass(insight.type)" class="p-1.5 bg-white rounded-lg shadow-sm border mt-0.5 transition-colors">
+          <div :class="getIconClass(insight.type)" class="p-1.5 bg-white rounded-lg shadow-sm border mt-0.5 transition-all group-hover/card:scale-110">
             <component :is="getIcon(insight.type)" class="w-4 h-4" />
           </div>
           <div>
@@ -22,9 +23,12 @@
           </div>
         </div>
         
-        <button v-if="insight.type === 'anomaly'" @click="$emit('triggerToast', 'Deep Dive Analyzer Launching... Context: Expense Review')" class="mt-1 ml-9 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-md transition-colors flex items-center justify-between group/btn w-fit">
-          View Breakdown <ArrowRight class="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-        </button>
+        <div class="mt-2 flex items-center justify-between pl-7">
+           <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 opacity-60">Engine Module {{ insight.id }}</span>
+           <button class="text-[10px] font-black uppercase tracking-wider text-slate-900 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1 group/btn">
+             Investigate <ArrowRight class="w-3 h-3 group-hover/btn:translate-x-1 transition-transform text-primary" />
+           </button>
+        </div>
       </div>
 
     </div>
@@ -35,7 +39,7 @@
 import { Brain, TrendingUp, AlertTriangle, Zap, ArrowRight } from 'lucide-vue-next'
 
 defineProps({ insights: Array })
-defineEmits(['triggerToast'])
+defineEmits(['triggerToast', 'drillDown'])
 
 const getIcon = (type) => { if (type === 'surge') return TrendingUp; if (type === 'anomaly') return AlertTriangle; return Zap }
 const getInsightClass = (type) => { if (type === 'surge') return 'bg-indigo-50/80 border border-indigo-100'; if (type === 'anomaly') return 'bg-amber-50/80 border border-amber-100'; return 'bg-emerald-50/80 border border-emerald-100' }
