@@ -68,65 +68,86 @@
               </div>
           </div>
 
-          <!-- Ledger Table Mock -->
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-12">
-              <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
-                  <h3 class="font-black text-slate-900 uppercase tracking-widest text-[11px] flex items-center gap-2">
-                    <Database class="w-4 h-4 text-slate-400" /> Executive Ledger Flow (Latest)
-                  </h3>
-                  <button @click="isLedgerAuditOpen = true" class="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 hover:border-primary transition-all">All Ledger Items</button>
+           <!-- Ledger Table Mock -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              <!-- TRANSACTION LEDGER -->
+              <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
+                      <h3 class="font-black text-slate-900 uppercase tracking-widest text-[11px] flex items-center gap-2">
+                        <Database class="w-4 h-4 text-slate-400" /> Transaction Flow
+                      </h3>
+                      <button @click="isLedgerAuditOpen = true" class="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 hover:border-primary transition-all">All Items</button>
+                  </div>
+                  <div class="overflow-x-auto flex-1">
+                      <table class="w-full">
+                          <thead class="bg-slate-50/50">
+                              <tr class="text-left border-b border-slate-100">
+                                  <th class="px-6 py-4 text-[9px] font-black uppercase text-slate-400 tracking-widest">Desc</th>
+                                  <th class="px-6 py-4 text-[9px] font-black uppercase text-slate-400 tracking-widest text-right">Amount</th>
+                              </tr>
+                          </thead>
+                          <tbody class="divide-y divide-slate-50">
+                              <tr v-for="tx in ledger.slice(0, 6)" :key="tx.id" class="hover:bg-slate-50/50 transition-colors">
+                                  <td class="px-6 py-4">
+                                      <p class="text-[11px] font-bold text-slate-800">{{ tx.desc }}</p>
+                                      <p class="text-[9px] text-slate-400 uppercase font-black">{{ tx.cat }}</p>
+                                  </td>
+                                  <td class="px-6 py-4 text-right font-black text-[11px]" :class="tx.type === 'In' ? 'text-emerald-500' : 'text-red-500'">
+                                      {{ tx.type === 'In' ? '+' : '-' }} {{ (Number(tx.val) || 0).toLocaleString() }}
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
               </div>
-              <div class="overflow-x-auto">
-                  <table class="w-full">
-                      <thead class="bg-slate-50/50">
-                          <tr class="text-left border-b border-slate-100">
-                              <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Description</th>
-                              <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Category</th>
-                              <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Amount</th>
-                              <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Date</th>
-                              <th class="px-8 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
-                          </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-50">
-                          <tr v-for="tx in ledger" :key="tx.desc" class="hover:bg-slate-50/50 transition-colors group">
-                              <td class="px-8 py-5">
-                                  <div class="flex items-center gap-3">
-                                      <div :class="tx.type === 'In' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'" class="p-2 rounded-xl border border-slate-100/50">
-                                          <ArrowUpRight v-if="tx.type === 'In'" class="w-4 h-4" />
-                                          <ArrowDownRight v-else class="w-4 h-4" />
+
+              <!-- INVOICE LEDGER (NEW) -->
+              <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
+                      <h3 class="font-black text-slate-900 uppercase tracking-widest text-[11px] flex items-center gap-2">
+                        <FileText class="w-4 h-4 text-indigo-500" /> Central Invoice Ledger
+                      </h3>
+                      <button @click="fetchInvoices" class="p-1.5 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
+                        <RefreshCw class="w-3.5 h-3.5 text-slate-500" />
+                      </button>
+                  </div>
+                  <div class="overflow-x-auto flex-1">
+                      <table class="w-full">
+                          <thead class="bg-slate-50/50">
+                              <tr class="text-left border-b border-slate-100">
+                                  <th class="px-6 py-4 text-[9px] font-black uppercase text-slate-400 tracking-widest">Invoice Unit</th>
+                                  <th class="px-6 py-4 text-[9px] font-black uppercase text-slate-400 tracking-widest text-center">Status</th>
+                                  <th class="px-6 py-4 text-[9px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
+                              </tr>
+                          </thead>
+                          <tbody class="divide-y divide-slate-50">
+                              <tr v-for="inv in invoices" :key="inv.id" class="hover:bg-slate-50/50 transition-colors">
+                                  <td class="px-6 py-4">
+                                      <div class="flex flex-col">
+                                          <p class="text-[11px] font-black text-slate-800 uppercase tracking-tight">{{ inv.client_name }}</p>
+                                          <p class="text-[10px] font-bold text-slate-400">VAL: {{ brandingStore.currency }} {{ Number(inv.amount).toLocaleString() }}</p>
                                       </div>
-                                      <div>
-                                          <p class="text-sm font-bold text-slate-800">{{ tx.desc }}</p>
-                                          <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{ tx.id }}</p>
-                                      </div>
-                                  </div>
-                              </td>
-                              <td class="px-8 py-5">
-                                  <span :class="tx.type === 'In' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm">
-                                      {{ tx.cat }}
-                                  </span>
-                              </td>
-                              <td class="px-8 py-5 font-black text-sm text-slate-800 font-mono tracking-tighter">{{ tx.type === 'In' ? '+' : '-' }} {{ brandingStore.currency }} {{ (Number(tx.val) || 0).toLocaleString() }}</td>
-                              <td class="px-8 py-5 text-xs font-bold text-slate-500">{{ tx.date }}</td>
-                              <td class="px-8 py-5 text-right relative">
-                                  <button @click="toggleActions(tx.id)" class="p-2.5 text-slate-400 hover:text-primary transition-all hover:bg-primary/5 rounded-xl border border-transparent hover:border-primary/20"><MoreHorizontal class="w-4.5 h-4.5" /></button>
-                                  
-                                  <!-- ACTION MENU POPOVER -->
-                                  <div v-if="activeActionId === tx.id" class="absolute right-8 top-12 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 min-w-[180px] overflow-hidden animate-[slideDown_0.2s_ease-out]">
-                                      <button @click="triggerToast('Verifying Ledger Integrity with Blockchain...')" class="w-full px-4 py-3 text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 flex items-center gap-2 border-b border-slate-50">
-                                          <ShieldCheck class="w-3.5 h-3.5 text-emerald-500" /> Verify Integrity
+                                  </td>
+                                  <td class="px-6 py-4 text-center">
+                                      <span 
+                                        :class="inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100 animate-pulse'" 
+                                        class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border"
+                                      >
+                                          {{ inv.status }}
+                                      </span>
+                                  </td>
+                                  <td class="px-6 py-4 text-right">
+                                      <button @click="downloadIndividualInvoice(inv)" class="p-1.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                                          <Download class="w-3.5 h-3.5" />
                                       </button>
-                                      <button @click="triggerToast('Generating Secure PDF Receipt...')" class="w-full px-4 py-3 text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 flex items-center gap-2 border-b border-slate-50">
-                                          <Download class="w-3.5 h-3.5 text-blue-500" /> Download Receipt
-                                      </button>
-                                      <button @click="triggerToast('Record Archived. Restricted from public view.')" class="w-full px-4 py-3 text-[10px] font-black text-red-600 uppercase tracking-widest hover:bg-red-50 flex items-center gap-2">
-                                          <Trash2 class="w-3.5 h-3.5" /> Archive Record
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
-                      </tbody>
-                  </table>
+                                  </td>
+                              </tr>
+                              <tr v-if="invoices.length === 0">
+                                  <td colspan="3" class="px-6 py-12 text-center text-[10px] font-bold text-slate-400 italic">No invoices committed to cloud ledger.</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
               </div>
           </div>
         </div>
@@ -229,11 +250,14 @@ import DrilldownModal from '../components/dashboard/DrilldownModal.vue'
 import AddTransactionModal from '../components/dashboard/AddTransactionModal.vue'
 import QuarterlyAuditModal from '../components/dashboard/QuarterlyAuditModal.vue'
 import { fetchFinanceLedger, fetchFinancialSummary } from '../services/financeService'
+import { supabase } from '../services/supabase'
+import { generatePDF } from '../utils/pdfGenerator'
 
 const isMobileMenuOpen = ref(false)
 const isLoading = ref(true)
 const toastState = ref({ show: false, message: '' })
 const ledger = ref([])
+const invoices = ref([])
 const summary = ref({ revenue: 0, expense: 0, profit: 0, margin: 0 })
 
 // UI States
@@ -283,11 +307,34 @@ const handleNewRecord = (data) => {
     triggerToast(`✓ Transaction ${data.id} successfully committed to Strategic Ledger.`)
 }
 
+const fetchInvoices = async () => {
+    const { data: invs, error } = await supabase
+        .from('invoices')
+        .select('*, wo_id(*, po_id(*))')
+        .order('created_at', { ascending: false })
+    
+    if (!error) {
+        invoices.value = invs || []
+    }
+}
+
+const downloadIndividualInvoice = (inv) => {
+    triggerToast(`Retrieving Digital Original for Invoice ${inv.id.slice(0, 5)}...`)
+    // Prepare data for generator
+    const docData = {
+        ...inv.wo_id,
+        amount: inv.amount,
+        client_name: inv.client_name
+    }
+    generatePDF(docData, 'Invoice')
+}
+
 onMounted(async () => {
     try {
         const [ledgerData, summaryData] = await Promise.all([
             fetchFinanceLedger(),
-            fetchFinancialSummary()
+            fetchFinancialSummary(),
+            fetchInvoices()
         ]);
         ledger.value = ledgerData;
         summary.value = summaryData;

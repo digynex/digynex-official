@@ -189,6 +189,24 @@ The Settings module provides central governance over branding, localization, and
 - **Audit Granularity:** Real-time selection of Security Audit Log levels (Minimal, Standard, Strict) to balance performance and compliance.
 - **Transactional Persistence:** Premium save sequence ensuring global business rules are locked and propagated across the cloud ecosystem.
 
+### 9. THE STRATEGIC CORE FLOW (SERVICE & PROJECT OPS)
+
+DigyNex 360 acts as a **Managed Services Workflow Engine**, transitioning Purchase Orders into verified Invoices.
+
+#### 📝 Purchase Order (PO) Module
+- **Input Context:** Client Name, PO Number, Total Project Budget, Start Date.
+- **Approval Gate:** Once "Approved," it is eligible for WO Conversion.
+
+#### ⚙️ Work Order (WO) Transformation
+- **Logic:** Each PO can spawn one or more Work Orders.
+- **Control:** Assign a **Project Supervisor (Admin)** and a **Subcontractor / Technician (from CMS)**.
+- **Visibility:** Real-time budget consumption vs. assignment metrics.
+
+#### 📑 Operational Invoicing (Lightweight)
+- **Generation:** Once a WO is marked "Completed" by the subcontractor.
+- **Financial Link:** The invoice amount is auto-synced back to the **BI Ledger** for revenue reporting.
+- **Tracking:** Paid vs. Unpaid status management.
+
 ---
 
 ## 📅 DEVELOPMENT MILESTONES
@@ -200,9 +218,10 @@ The Settings module provides central governance over branding, localization, and
 - [x] **Phase 5:** Finalize Operational Efficiency view (READY)
 - [x] **Phase 6:** Develop Financial Intelligence Vault (READY)
 - [x] **Phase 7:** Implement Organizational Settings and Global Currency Synchronization. (READY)
-- [ ] **Phase 8:** Synchronize `tms` and `cms` stores (`currency.js`) with the new global pricing keys.
-- [ ] **Phase 9:** Develop simplified sub-product pricing sections for CMS and TMS pages.
-- [ ] **Phase 10:** Link all sub-pages back to the Main Platform Pricing for Upselling.
+- [ ] **Phase 8:** Strategic Work-Order Automation (PO → WO → Invoice Flow). (IN PROGRESS 🚀)
+- [ ] **Phase 9:** Synchronize `tms` and `cms` stores (`currency.js`) with the new global pricing keys.
+- [ ] **Phase 10:** Develop simplified sub-product pricing sections for CMS and TMS pages.
+- [ ] **Phase 11:** Link all sub-pages back to the Main Platform Pricing for Upselling.
 
 ---
 

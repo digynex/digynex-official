@@ -48,7 +48,7 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center border-t border-slate-50 pt-8">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center border-t border-slate-50 pt-8">
                         <div class="space-y-1">
                             <p class="text-sm font-bold text-slate-800">Security Audit Logs</p>
                             <p class="text-xs text-slate-400">Strict mode session recording levels.</p>
@@ -67,16 +67,115 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-12 flex justify-end">
-                    <button 
-                        @click="handleSave" 
-                        :disabled="isSaving"
-                        class="px-10 py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
-                        <Save v-else class="w-4 h-4" />
-                        {{ isSaving ? 'Saving Data...' : 'Save Changes' }}
-                    </button>
+            </div>
+
+            <!-- Document Branding & SaaS Customization -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 group overflow-hidden">
+                <h3 class="font-black text-slate-900 uppercase tracking-widest text-[11px] mb-8 border-b border-slate-50 pb-4 flex items-center gap-2">
+                    <Palette class="w-4 h-4 text-primary" /> Document Branding & SaaS Customization
+                </h3>
+                
+                <div class="space-y-8">
+                    <!-- Brand Assets -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                        <div class="space-y-1">
+                            <p class="text-sm font-bold text-slate-800">Visual Identity</p>
+                            <p class="text-xs text-slate-400">Tenant Logo and Primary Color scheme.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-2xl border border-slate-100 bg-slate-50 flex items-center justify-center overflow-hidden">
+                                    <img :src="brandingStore.logoUrl" class="w-full h-full object-contain p-2" @error="handleImageError" />
+                                </div>
+                                <div class="flex-1 space-y-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Logo URL (Public)</p>
+                                    <input type="text" v-model="brandingStore.logoUrl" class="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold font-mono text-slate-500">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 border-t border-slate-50 pt-4">
+                                <div :style="{ backgroundColor: brandingStore.primaryColor }" class="w-10 h-10 rounded-xl shadow-lg border-2 border-white ring-1 ring-slate-100"></div>
+                                <div class="flex-1 space-y-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Brand Accent HEX</p>
+                                    <input type="text" v-model="brandingStore.primaryColor" class="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold font-mono">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- Contact & Legal -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-50">
+                        <div class="space-y-1">
+                            <p class="text-sm font-bold text-slate-800">Commercial Contact</p>
+                            <p class="text-xs text-slate-400">Default info on WOs and Invoices.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Organization Legal Name</p>
+                                <input type="text" v-model="brandingStore.companyName" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-xs font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global HQ Address</p>
+                                <textarea v-model="brandingStore.address" rows="2" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-xs font-bold resize-none"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tax ID / VAT</p>
+                                    <input type="text" v-model="brandingStore.taxId" class="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-2 text-[11px] font-bold">
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Primary Email</p>
+                                    <input type="text" v-model="brandingStore.contactEmail" class="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-2 text-[11px] font-bold">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE PREVIEW MODAL INTEGRATED -->
+                <div class="mt-12 bg-slate-900 rounded-2xl p-6 border border-slate-800 overflow-hidden relative group/preview">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover/preview:opacity-30 transition-opacity">
+                        <Layout class="w-32 h-32 text-white" />
+                    </div>
+                    <div class="relative z-10 flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <h4 class="text-white text-sm font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <Eye class="w-4 h-4 text-emerald-400" /> Live Strategic Preview
+                            </h4>
+                            <p class="text-slate-400 text-[11px] leading-relaxed mb-6">Real-time simulation of how your generated Work Orders and Invoices will render for clients and subcontractors.</p>
+                            
+                            <!-- MINI PDF MOCKUP -->
+                            <div class="bg-white rounded-lg shadow-2xl p-4 max-w-sm mx-auto md:mx-0 transform scale-95 origin-top-left border border-slate-100">
+                                <div :style="{ backgroundColor: brandingStore.primaryColor }" class="h-8 rounded-t-sm mb-4 flex items-center px-4 justify-between">
+                                    <span class="text-[8px] text-white font-black uppercase tracking-widest">{{ brandingStore.companyName }}</span>
+                                    <div class="w-4 h-4 bg-white/20 rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 p-2 pt-0">
+                                    <div class="w-16 h-2 bg-slate-200 rounded"></div>
+                                    <div class="w-full h-1 bg-slate-100 rounded"></div>
+                                    <div class="w-2/3 h-1 bg-slate-100 rounded"></div>
+                                    <div class="mt-4 flex gap-2">
+                                        <div class="flex-1 h-12 bg-slate-50 rounded border border-slate-100 dashed border-2"></div>
+                                        <div class="flex-1 h-12 bg-slate-50 rounded border border-slate-100"></div>
+                                    </div>
+                                    <div class="mt-4 flex justify-between items-center pt-2 border-t border-slate-50">
+                                        <div class="w-10 h-2 bg-slate-900 rounded"></div>
+                                        <div class="w-6 h-2 bg-slate-200 rounded"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-end">
+                             <button 
+                                @click="handleSave" 
+                                :disabled="isSaving"
+                                class="px-10 py-3 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                            >
+                                <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
+                                <Save v-else class="w-4 h-4" />
+                                {{ isSaving ? 'Committing Snapshot...' : 'Propagate Branding' }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -140,11 +239,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Settings, X, Loader2, Save, RotateCcw, Key, ShieldAlert } from 'lucide-vue-next'
+import { Settings, X, Loader2, Save, RotateCcw, Key, ShieldAlert, Palette, Eye, Layout } from 'lucide-vue-next'
 import Sidebar from '../components/dashboard/Sidebar.vue'
 import TopHeader from '../components/dashboard/TopHeader.vue'
 
-import { brandingStore } from '../services/brandingService'
+import { brandingStore, setBranding } from '../services/brandingService'
+import { supabase } from '../services/supabase'
 
 const isMobileMenuOpen = ref(false)
 const isSaving = ref(false)
@@ -164,7 +264,7 @@ const triggerToast = (msg) => {
   setTimeout(() => { toastState.value.show = false }, 3000)
 }
 
-onMounted(() => {
+onMounted(async () => {
     // Sync initial state from global store
     const mapping = {
         'LKR': 'LKR - Sri Lankan Rupee',
@@ -173,20 +273,53 @@ onMounted(() => {
         'EUR': 'EUR - Euro'
     }
     selectedCurrency.value = mapping[brandingStore.currency] || 'LKR - Sri Lankan Rupee'
+    
+    // Fetch fresh org data from Supabase
+    const { data: org } = await supabase.from('organizations').select('*').eq('slug', 'digynex-hq').single()
+    if (org) {
+        setBranding({
+            companyName: org.name,
+            address: org.address,
+            contactEmail: org.contact_email,
+            taxId: org.tax_id,
+            website: org.website,
+            logoUrl: org.logo_url,
+            primaryColor: org.primary_color
+        })
+    }
 })
 
-const handleSave = () => {
+const handleImageError = (e) => {
+    e.target.src = 'https://raw.githubusercontent.com/amilawijayantha/digynex-assets/main/logo-dark.png' // Fallback
+}
+
+const handleSave = async () => {
     isSaving.value = true
     
-    // Extract currency code (e.g., 'LKR') from 'LKR - Sri Lankan Rupee'
     const code = selectedCurrency.value.split(' ')[0]
     brandingStore.currency = code
     
-    // Simulate persistent storage update
-    setTimeout(() => {
+    try {
+        // Update Supabase Organizations Table
+        const { error } = await supabase.from('organizations').update({
+            name: brandingStore.companyName,
+            address: brandingStore.address,
+            contact_email: brandingStore.contactEmail,
+            tax_id: brandingStore.taxId,
+            website: brandingStore.website,
+            logo_url: brandingStore.logoUrl,
+            primary_color: brandingStore.primaryColor
+        }).eq('slug', 'digynex-hq')
+
+        if (error) throw error
+
+        triggerToast(`Strategic Synchronization Complete. Organization: ${brandingStore.companyName} is now live.`)
+    } catch (err) {
+        console.error(err)
+        triggerToast("Sync Error: Unable to propagate branding to cloud nodes.")
+    } finally {
         isSaving.value = false
-        triggerToast(`Cloud persistence updated. Brand Identity: ${brandingStore.productName}${brandingStore.productSuffix} | Currency: ${code} verified.`)
-    }, 1500)
+    }
 }
 </script>
 

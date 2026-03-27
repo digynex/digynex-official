@@ -27,36 +27,41 @@
                 class="relative p-2 text-slate-500 hover:text-slate-800 transition-colors rounded-full hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 group"
               >
                 <Bell class="w-5 h-5 group-hover:animate-[wiggle_1s_ease-in-out_infinite]" />
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full animate-bounce"></span>
+                <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full animate-bounce"></span>
               </button>
 
               <transition name="dropdown">
                 <div v-if="isNotificationsOpen" class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[50] ring-1 ring-slate-900/5 origin-top-right">
                   <div class="px-5 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                     <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Action Engine</h3>
-                    <span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold">3 NEW</span>
+                    <span v-if="unreadCount > 0" class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold">{{ unreadCount }} NEW</span>
                   </div>
-                  <div class="max-h-[350px] overflow-y-auto">
+                  <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
                     <div 
-                      v-for="(note, i) in notifications" 
-                      :key="i" 
+                      v-for="(note, i) in notificationsStore" 
+                      :key="note.id" 
                       @click="handleNotificationClick(note)"
+                      :class="note.is_read ? 'opacity-60 bg-white' : 'bg-blue-50/30'"
                       class="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group"
                     >
                       <div class="flex gap-3">
-                        <div :class="note.color" class="p-2 rounded-lg h-fit group-hover:scale-110 transition-transform">
-                          <component :is="note.icon" class="w-4 h-4" />
+                        <div :class="getTypeColor(note.type)" class="p-2 rounded-lg h-fit group-hover:scale-110 transition-transform">
+                          <component :is="getTypeIcon(note.type)" class="w-4 h-4" />
                         </div>
                         <div>
                           <p class="text-[11px] font-black text-slate-800 leading-tight mb-1 group-hover:text-primary transition-colors">{{ note.title }}</p>
-                          <p class="text-[11px] text-slate-500 font-medium leading-relaxed">{{ note.desc }}</p>
-                          <span class="text-[9px] text-slate-400 font-bold uppercase mt-2 block">{{ note.time }}</span>
+                          <p class="text-[11px] text-slate-500 font-medium leading-relaxed">{{ note.message }}</p>
+                          <span class="text-[9px] text-slate-400 font-bold uppercase mt-2 block">{{ formatTime(note.created_at) }}</span>
                         </div>
                       </div>
                     </div>
+                    <div v-if="notificationsStore.length === 0" class="p-8 text-center">
+                        <Zap class="w-8 h-8 text-slate-100 mx-auto mb-2" />
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">No active alerts in archive.</p>
+                    </div>
                   </div>
                   <div class="px-5 py-3 border-t border-slate-50 bg-slate-50/20 text-center">
-                    <button @click="markAllRead" class="text-[11px] font-black text-primary hover:text-blue-700 uppercase tracking-widest">Mark all as read</button>
+                    <button @click="markAllRead" class="text-[11px] font-black text-primary hover:text-blue-700 uppercase tracking-widest">Archive History</button>
                   </div>
                 </div>
               </transition>
@@ -79,18 +84,37 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Menu, Bell, Download, AlertTriangle, Database, Zap, Sparkles } from 'lucide-vue-next'
+import { Menu, Bell, Download, AlertTriangle, Database, Zap, Sparkles, FileText, CheckCircle, Info } from 'lucide-vue-next'
+import { notificationsStore, unreadCount, fetchNotifications, markAsRead } from '../../services/notificationService'
 
 const emit = defineEmits(['toggleMenu', 'triggerToast'])
 
 const isNotificationsOpen = ref(false)
 const isExporting = ref(false)
 
-const notifications = [
-  { title: 'Anomaly Detected', desc: 'Software category revenue dropped by 12% WoW. Investigation recommended.', time: '2 mins ago', icon: AlertTriangle, color: 'bg-red-50 text-red-500' },
-  { title: 'Intelligence Sync', desc: 'AI Forecast Path successfully re-calculated using latest Supabase ledger.', time: '1 hour ago', icon: Database, color: 'bg-blue-50 text-primary' },
-  { title: 'Target Upgrade', desc: 'Q1 Growth Target adjusted to +15% based on March performance.', time: '3 hours ago', icon: Sparkles, color: 'bg-purple-50 text-purple-600' }
-]
+const getTypeColor = (type) => {
+    switch(type) {
+        case 'success': return 'bg-emerald-50 text-emerald-500'
+        case 'warning': return 'bg-amber-50 text-amber-500'
+        case 'error': return 'bg-red-50 text-red-500'
+        default: return 'bg-blue-50 text-primary'
+    }
+}
+
+const getTypeIcon = (type) => {
+    switch(type) {
+        case 'success': return CheckCircle
+        case 'warning': return AlertTriangle
+        case 'error': return AlertTriangle
+        case 'invoice': return FileText
+        default: return Info
+    }
+}
+
+const formatTime = (ts) => {
+    const d = new Date(ts)
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 
 const closeDropdown = (e) => {
   if (!e.target.closest('.bell-container')) {
@@ -98,21 +122,23 @@ const closeDropdown = (e) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('click', closeDropdown)
+  await fetchNotifications()
 })
 
 onUnmounted(() => {
   window.removeEventListener('click', closeDropdown)
 })
 
-const handleNotificationClick = (note) => {
-  emit('triggerToast', `Drilling into Intelligence Context: ${note.title}. Navigating to Ledger Detail...`)
+const handleNotificationClick = async (note) => {
+  emit('triggerToast', `Engagement Intelligence: ${note.title}. Navigating to linked manifest...`)
+  await markAsRead(note.id)
   isNotificationsOpen.value = false
 }
 
 const markAllRead = () => {
-  emit('triggerToast', 'All notifications synced to Archive. Action Engine cleared.')
+  emit('triggerToast', 'Strategic archive updated. All active alerts moved to cold storage.')
   isNotificationsOpen.value = false
 }
 
