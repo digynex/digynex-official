@@ -46,6 +46,11 @@ const router = createRouter({
       component: () => import('../views/CRMView.vue')
     },
     {
+      path: '/sales-nexus',
+      name: 'sales-nexus',
+      component: () => import('../views/SalesNexusView.vue')
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: SettingsView

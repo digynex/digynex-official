@@ -6,11 +6,32 @@
 ## 1. Core Value Proposition (සරල සිංහලෙන්)
 අපේ සහ පාරිභෝගිකයාගේ ව්‍යාපාරයේ වර්ධනය සඳහා 'DigyNex' කියන්නේ නිකන්ම Software එකක් නෙවෙයි. මේක **"Digital Workforce"** (ඩිජිටල් සේවක පිරිසක්) වගේ වැඩ කරන පද්ධතියක්.
 
-*   **Central Nervous System:** ඔක්කොම දත්ත (Sales, Operations, Finance) එකම තැනක.
-*   **Operational Sovereignty:** පාරිභෝගිකයාගේ දත්ත සහ AI Logic ඔවුන්ටම අයිතියි (Self-hosted).
-*   **Efficiency:** මනුෂ්‍ය ශ්‍රමයෙන් කරන වැඩ වලින් 75%ක් ස්වයංක්‍රීයව (Automated) සිදුවීම.
+## 🛡️ Enterprise Security & Operational Sovereignty
+DigyNex 360 is engineered for the highest compliance standards (GDPR, ISO 27001). Unlike generic SaaS, we offer **Operational Sovereignty**.
+
+### 1. Data Residency (Local Infrastructure)
+- **On-Premise Deployment:** Large logistics and financial firms can host DigyNex on their local servers (Windows/Linux) via **Dockerized Capsules**.
+- **Private Cloud Isolation:** Ability to deploy on the client's own AWS/Azure/Google Cloud accounts. No data ever leaves the client's physical or logical control.
+
+### 2. The License Heartbeat (Authorization Control)
+- **Remote Activation Hub:** A secure, lightweight "Heartbeat" protocol pings the DigyNex Central HQ to verify active licensing and operational integrity.
+- **Granular Feature Gating:** Features can be remotely activated/deactivated based on tiers (Starter, Pro, Enterprise) or subscription health.
 
 ---
+
+## 🚀 High-Value Sales Propositions (CFO-Grade)
+1. **Autonomous Audit Readiness:** Every financial transaction is traced with an immutable log, cutting audit times from weeks to hours.
+2. **AI PO Logistics Matching:** Multi-language AI that pairs Swedish PDF Invoices with ERP Purchase Orders to prevent billing fraud.
+3. **AI Social Nexus (Viral Lead Gen):** Automated discovery and outreach for high-intent B2B leads across **LinkedIn and Facebook**, integrated directly into the CRM pipeline.
+4. **Value-Based Pricing Model:** $5,000 Initial Audit & Strategy Fee | $15,000+ Custom Implementation | $4,500 Monthly Retainer (License + Managed AI Agents).
+
+---
+
+## 📈 Roadmap: Phased Integration
+- **Phase 1 (Completed):** Enterprise Dashboard & Finance Intelligence.
+- **Phase 2 (In-Progress):** AI Social Nexus (Lead Discovery Hub).
+- **Phase 3:** TeaAI Visual Grade Classification (Sri Lankan Tea Export Vertical).
+- **Phase 4:** Logistics PO Matching Agent (Swedish Market Expansion).
 
 ## 2. Pricing Roadmap (මිල ගණන් සැසඳීම)
 

@@ -26,6 +26,10 @@
               <div class="flex items-center gap-3"><Brain class="w-4 h-4 group-hover:text-accent transition-colors" /> BI Reports</div>
               <span class="w-2 h-2 rounded-full bg-accent animate-pulse shadow-sm"></span>
             </router-link>
+
+            <router-link v-if="authStore.can('sales')" to="/sales-nexus" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors group" active-class="bg-slate-900 text-white hover:bg-slate-800">
+              <Target class="w-4 h-4 group-hover:text-indigo-600 transition-colors" /> AI Social Nexus
+            </router-link>
           </nav>
         </div>
 
@@ -67,7 +71,7 @@
 </template>
 
 <script setup>
-import { Layers, LayoutDashboard, TrendingUp, Brain, Briefcase, Wallet, Settings, ChevronRight, Users } from 'lucide-vue-next'
+import { Layers, LayoutDashboard, TrendingUp, Brain, Briefcase, Wallet, Settings, ChevronRight, Users, Target } from 'lucide-vue-next'
 import { authStore } from '../../services/authService'
 import { brandingStore } from '../../services/brandingService'
 
