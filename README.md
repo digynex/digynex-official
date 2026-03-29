@@ -12,6 +12,9 @@
 
 DigyNex is more than a service provider; it's a **Digital Architecture**. This repository contains the unified ecosystem of DigyNex, ranging from high-conversion landing pages to complex Enterprise management systems.
 
+> [!TIP]
+> **Strategic 2026 Expansion Plan**: Our roadmap for Sweden and Sri Lanka markets, including our new Value-Based AI pricing model, is detailed in [DIGYNEX_STRATEGY_2026.md](file:///d:/Amila/With%20Antigravity/DigyNex-Official/DIGYNEX_STRATEGY_2026.md).
+
 ### 🏗️ Ecosystem Components
 
 | Module                    | Description                                                  | Live Access                                  |

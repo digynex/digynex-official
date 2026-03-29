@@ -30,42 +30,159 @@
             </div>
           </div>
 
-          <!-- KPI CARDS GRID -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-              <div @click="openDrilldown('Liquidity Radar')" class="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-all">
-                  <div class="absolute -right-4 -top-4 bg-white/5 w-32 h-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div class="relative z-10">
-                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Operational Runway</p>
-                     <h2 class="text-4xl font-black tracking-tighter mb-4">{{ brandingStore.currency }} {{ runwayDisplay }}</h2>
-                     <div class="flex items-center gap-2 text-[10px] font-black text-emerald-400 bg-emerald-400/10 w-fit px-2 py-1 rounded-md border border-emerald-400/20 uppercase tracking-tighter">
-                          <ArrowUpRight class="w-3.5 h-3.5" /> SUSTAINABLE
-                     </div>
+          <!-- TOP KPI CARDS (UPGRADED WITH TRENDS) -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+              <!-- LIQUIDITY -->
+              <div @click="openDrilldown('Liquidity Radar')" class="bg-slate-900 p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden group cursor-pointer hover:translate-y-[-4px] transition-all duration-500">
+                  <div class="absolute -right-4 -top-4 bg-emerald-500/10 w-32 h-32 rounded-full blur-3xl group-hover:scale-150 transition-all duration-700"></div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Operational Runway</p>
+                  <h2 class="text-3xl font-black tracking-tighter mb-4">{{ brandingStore.currency }} {{ runwayDisplay }}</h2>
+                  <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1 text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20 uppercase">
+                        <ArrowUpRight class="w-3 h-3" /> +14.2%
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">vs Prev Month</span>
                   </div>
               </div>
 
-               <div @click="openDrilldown('Expense Auditor')" class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all relative overflow-hidden group">
-                   <div class="absolute -right-2 top-0 w-12 h-12 bg-red-50 rounded-full opacity-50 group-hover:scale-125 transition-transform"></div>
-                   <div>
-                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Burn Rate (Monthly)</p>
-                     <h2 class="text-3xl font-black text-slate-900 font-mono tracking-tighter">{{ brandingStore.currency }} {{ burnRateDisplay }}</h2>
+              <!-- BURN RATE / EBITDA HUB -->
+              <div @click="openDrilldown('Efficiency Audit')" class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer relative overflow-hidden">
+                  <div class="absolute -right-6 top-0 w-20 h-20 bg-red-50 rounded-full blur-2xl opacity-50 group-hover:scale-125 transition-all"></div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Monthly Burn Rate</p>
+                  <h2 class="text-2xl font-black text-slate-900 tracking-tighter">{{ brandingStore.currency }} {{ burnRateDisplay }}</h2>
+                  <div class="flex items-center gap-2 mt-4">
+                    <div class="flex items-center gap-1 text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase">
+                        <ArrowDownRight class="w-3 h-3" /> -2.4%
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">Efficiency Gain</span>
                   </div>
-                  <div class="h-1.5 bg-slate-100 rounded-full mt-6 overflow-hidden border border-slate-50">
-                      <div class="h-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]" :style="`width: ${Math.min(100, (summary.expense/20000)*100)}%`"></div>
-                  </div>
-                  <p class="text-[10px] font-black text-slate-400 uppercase mt-3 tracking-tighter">Utilization: <span class="text-red-500">42% of Allocation used</span></p>
               </div>
 
-               <div @click="openDrilldown('P&L Context')" class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all relative overflow-hidden group">
-                   <div class="absolute -right-2 top-0 w-12 h-12 bg-emerald-50 rounded-full opacity-50 group-hover:scale-125 transition-transform"></div>
-                   <div>
-                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Gross Profit Margin</p>
-                     <h2 class="text-3xl font-black text-slate-900 font-mono tracking-tighter">{{ summary.margin }}%</h2>
+              <!-- MARGIN / EBITDA -->
+              <div @click="openDrilldown('Profit Intelligence')" class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer relative overflow-hidden">
+                  <div class="absolute -right-6 top-0 w-20 h-20 bg-indigo-50 rounded-full blur-2xl opacity-50 group-hover:scale-125 transition-all"></div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">EBITDA (Est.)</p>
+                  <h2 class="text-2xl font-black text-slate-900 tracking-tighter">{{ summary.margin }}%</h2>
+                  <div class="h-1 bg-slate-100 rounded-full mt-5 overflow-hidden">
+                      <div class="h-full bg-indigo-500 transition-all duration-1000" :style="`width: ${summary.margin}%`"></div>
                   </div>
-                  <div class="h-1.5 bg-slate-100 rounded-full mt-6 overflow-hidden border border-slate-50">
-                      <div class="h-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" :style="`width: ${summary.margin}%`"></div>
-                  </div>
-                  <p class="text-[10px] font-black text-slate-400 uppercase mt-3 tracking-tighter">Bench: <span class="text-emerald-500">Targeted 70% Bench</span></p>
+                  <p class="text-[9px] font-black text-indigo-500 uppercase mt-3 tracking-tighter">Target: <span class="text-slate-400">75.0% Benchmark</span></p>
               </div>
+
+              <!-- BREAK-EVEN FORECAST -->
+              <div class="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 shadow-sm relative overflow-hidden group">
+                  <p class="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1.5">Break-even Projection</p>
+                  <h2 class="text-2xl font-black text-emerald-900 tracking-tighter">Q3 2026</h2>
+                  <div class="flex items-center gap-2 mt-4">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">On-Track for Scale</span>
+                  </div>
+              </div>
+          </div>
+
+          <!-- STRATEGIC INTELLIGENCE GRID -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <!-- ROI FORECASTER (CORE) -->
+            <div class="lg:col-span-6 flex flex-col">
+               <ROICalculator />
+            </div>
+
+            <!-- AR AGING & TAX LIABILITY (ADVANCED) -->
+            <div class="lg:col-span-6 grid grid-cols-1 gap-6">
+                <!-- AR AGING TRACKER (PROPER COLOR OVERHAUL) -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="relative z-10 flex items-center justify-between mb-8">
+                        <div>
+                            <h4 class="text-[14px] font-[950] text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <Clock class="w-5 h-5 text-emerald-500" /> AR Aging Intelligence
+                            </h4>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">Operational Liquidity Audit</p>
+                        </div>
+                        <div class="text-right">
+                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Total Receivables</p>
+                             <p class="text-2xl font-[950] text-slate-900 tracking-tighter">{{ brandingStore.currency }} 452,000</p>
+                        </div>
+                    </div>
+
+                    <!-- HIGH-CONTRAST BAR WITH PRECISE HEX CODES -->
+                    <div class="h-16 w-full bg-slate-50 rounded-2xl flex overflow-hidden border border-slate-200 shadow-inner mb-8">
+                        <!-- 0-30 DAYS (Emerald Green) -->
+                        <div class="h-full bg-[#2ECC71] w-[50%] flex flex-col items-center justify-center border-r-2 border-white/30 hover:brightness-110 transition-all cursor-default">
+                             <span class="text-[11px] font-[950] text-white uppercase tracking-tighter italic">0-30 DAYS</span>
+                             <span class="text-[9px] font-black text-white/80 uppercase">STABLE (50%)</span>
+                        </div>
+                        <!-- 31-60 DAYS (Proper Amber) -->
+                        <div class="h-full bg-[#F39C12] w-[30%] flex flex-col items-center justify-center border-r-2 border-white/30 hover:brightness-110 transition-all cursor-default">
+                             <span class="text-[11px] font-[950] text-white uppercase tracking-tighter italic">31-60 DAYS</span>
+                             <span class="text-[9px] font-black text-white/80 uppercase">WARNING (30%)</span>
+                        </div>
+                        <!-- 60-90+ DAYS (Proper Red) -->
+                        <div class="h-full bg-[#E74C3C] w-[20%] flex flex-col items-center justify-center hover:brightness-110 transition-all cursor-default animate-pulse">
+                             <span class="text-[11px] font-[950] text-white uppercase tracking-tighter italic">60-90+ DAYS</span>
+                             <span class="text-[9px] font-black text-white/80 uppercase">CRITICAL (20%)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between px-2">
+                         <div class="flex items-center gap-6">
+                            <div v-for="tag in [{l:'Secure', c:'bg-[#2ECC71]'}, {l:'Review', c:'bg-[#F39C12]'}, {l:'High Priority', c:'bg-[#E74C3C]'}]" :key="tag.l" class="flex items-center gap-2.5">
+                                <div :class="tag.c" class="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100"></div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ tag.l }}</span>
+                            </div>
+                         </div>
+                         <div class="bg-red-50 px-4 py-2.5 rounded-xl border border-red-100 flex items-center gap-3">
+                            <AlertCircle class="w-4 h-4 text-[#E74C3C]" />
+                            <p class="text-[10px] font-[950] text-[#E74C3C] uppercase tracking-tighter italic">Liquidity Action Threshold Reached</p>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- TAX LIABILITY & COMPLIANCE (INTERACTIVE) -->
+                <div class="bg-slate-900 p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden group">
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl opacity-50 group-hover:scale-125 transition-all"></div>
+                    <div class="flex items-start justify-between relative z-10">
+                         <div class="space-y-4 flex-1">
+                            <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                <ShieldCheck class="w-4 h-4" /> Global Compliance Vault
+                            </h4>
+                            
+                            <!-- COUNTRY SELECTOR DRIVEN TAX -->
+                            <div class="flex flex-col gap-2 max-w-[180px]">
+                                <label class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Regional Corridor</label>
+                                <select 
+                                    v-model="selectedCountry" 
+                                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] font-black text-slate-300 outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all appearance-none cursor-pointer"
+                                    style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 12px;"
+                                >
+                                    <option value="General">🌐 General Corridor</option>
+                                    <option value="SL">🇱🇰 Sri Lanka (VAT)</option>
+                                    <option value="Sweden">🇸🇪 Sweden (Moms)</option>
+                                    <option value="UK">🇬🇧 United Kingdom (VAT)</option>
+                                    <option value="USA">🇺🇸 United States (Sales Tax)</option>
+                                </select>
+                            </div>
+                         </div>
+                         <div class="text-right flex flex-col items-end">
+                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Tax Liability Est.</p>
+                             <p class="text-xl font-black text-white tracking-widest">{{ brandingStore.currency }} {{ calculatedTax }}</p>
+                             <div class="mt-2 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black text-emerald-400 rounded uppercase italic">
+                                {{ currentTaxRate }}% {{ selectedCountry }} Base
+                             </div>
+                         </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Audit Policy</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">IMMUTABLE_SYNC</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-2xl border border-white/10 text-right">
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Data Residency</p>
+                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest italic tracking-tighter">{{ selectedCountry === 'Sweden' ? 'STOCKHOLM_POD_V3' : 'LOCAL_HOST_POD' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
           </div>
 
            <!-- Ledger Table Mock -->
@@ -249,6 +366,7 @@ import TopHeader from '../components/dashboard/TopHeader.vue'
 import DrilldownModal from '../components/dashboard/DrilldownModal.vue'
 import AddTransactionModal from '../components/dashboard/AddTransactionModal.vue'
 import QuarterlyAuditModal from '../components/dashboard/QuarterlyAuditModal.vue'
+import ROICalculator from '../components/dashboard/ROICalculator.vue'
 import { fetchFinanceLedger, fetchFinancialSummary } from '../services/financeService'
 import { supabase } from '../services/supabase'
 import { generatePDF } from '../utils/pdfGenerator'
@@ -267,6 +385,22 @@ const isAddModalOpen = ref(false)
 const isAuditModalOpen = ref(false)
 const isLedgerAuditOpen = ref(false)
 const activeActionId = ref(null)
+
+// Country-based Tax Logic
+const selectedCountry = ref('Sweden')
+const taxRates = {
+    'General': 15.0,
+    'SL': 18.0,
+    'Sweden': 25.0,
+    'UK': 20.0,
+    'USA': 8.5
+}
+const currentTaxRate = computed(() => taxRates[selectedCountry.value] || 15.0)
+const calculatedTax = computed(() => {
+    // Estimating tax based on revenue for demo purposes
+    const tax = (summary.value.revenue * (currentTaxRate.value / 100)) / 1000
+    return tax.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "K"
+})
 
 const toggleActions = (id) => {
     activeActionId.value = activeActionId.value === id ? null : id;
