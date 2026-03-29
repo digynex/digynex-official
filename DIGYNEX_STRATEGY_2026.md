@@ -9,7 +9,19 @@
 ## 🛡️ Enterprise Security & Operational Sovereignty
 DigyNex 360 is engineered for the highest compliance standards (GDPR, ISO 27001). Unlike generic SaaS, we offer **Operational Sovereignty**.
 
-### 1. Data Residency (Local Infrastructure)
+### 🤖 Phase 2: AI Social Nexus Automation (n8n Workflows)
+Targeting high-velocity lead generation for LinkedIn and Facebook.
+
+| Tier | Workflow Stage | Logic Node | Outcome |
+|---|---|---|---|
+| **1. Discovery** | **Global Scan** | Apify / PhantomBuster | Capture profiles based on 'Decarbonization', 'LTL/FTL', 'Tuition Scale'. |
+| **2. Analysis** | **AI Synthesis** | OpenAI GPT-4o | Generate Persona-Score & Custom Outreach Draft based on user activity. |
+| **3. Mapping** | **Dashboard Hub** | Supabase Ingestion | Real-time population of the 'Sales Nexus' view with high-priority targets. |
+| **4. Broadcast** | **Execution Hub** | Webhook → Social Auth | One-click delivery of the AI draft directly to the lead's social inbox. |
+
+---
+
+### 🏛️ Digital Infrastructure Pillars
 - **On-Premise Deployment:** Large logistics and financial firms can host DigyNex on their local servers (Windows/Linux) via **Dockerized Capsules**.
 - **Private Cloud Isolation:** Ability to deploy on the client's own AWS/Azure/Google Cloud accounts. No data ever leaves the client's physical or logical control.
 
