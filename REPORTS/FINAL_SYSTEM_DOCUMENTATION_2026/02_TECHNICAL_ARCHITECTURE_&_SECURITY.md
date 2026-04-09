@@ -7,6 +7,7 @@ The DigyNex 360 ecosystem is built on a **Modular Micro-Services Architecture**,
 *   **Frontend Engine:** Vue 3 (Composition API) with Tailwind CSS for high-fidelity, reactive UI/UX.
 *   **Database Backbone:** Supabase (PostgreSQL) providing real-time synchronization and secure data storage.
 *   **Automation Engine:** Enterprise-grade n8n cluster for ETL pipelines and cross-platform integrations.
+    *   *[PENDING AI BACKEND]*: The Nexus ROI Simulation Engine will be backed by a dedicated n8n workflow. It will fetch live financial matrices from Supabase, parse them via LLM (Gemini) Node, and feed generated Strategic Action Plans back via Webhook into the Vue frontend state.
 *   **AI Models:** Deep integration with Google Gemini 1.5 Pro and Imagen 4.0 for generative intelligence & forecasting.
 
 ---

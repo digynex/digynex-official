@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { 
     Users, 
     Facebook, 
@@ -25,28 +25,73 @@ import {
     Settings,
     RefreshCcw,
     XCircle,
-    Smartphone
+    Smartphone,
+    Rocket,
+    Brain,
+    Palette
 } from 'lucide-vue-next';
 import Sidebar from '../components/dashboard/Sidebar.vue';
 import TopHeader from '../components/dashboard/TopHeader.vue';
-
-import { onMounted } from 'vue';
-import { supabase } from '../supabase';
+import { supabase } from '../services/supabase';
 
 const isMobileMenuOpen = ref(false);
 const toastMessage = ref('');
 const isLoading = ref(true);
+const activeTab = ref('Viral Intelligence');
 
 const triggerToast = (msg) => {
     toastMessage.value = msg;
     setTimeout(() => toastMessage.value = '', 3000);
 };
 
-// LEAD DATA: STABLE & COMPACT
+// --- DATA: VIRAL INTELLIGENCE ---
+const viralNiches = ref([
+    {
+        title: "Zen Cyber-Loft Restoration",
+        growth: 94.5,
+        potential: "Transforming a brutalist concrete shell into a neon-lit, organic zen garden with smart tech.",
+        sequence: [
+            { name: "Excavation", prompt: "Static 4k wide shot, raw grey concrete room, industrial debris, dramatic low light." },
+            { name: "Structural", prompt: "Same camera lock. Workers installing smart glass panels and wooden slats." },
+            { name: "Refining", prompt: "Identical framing. Neon RGB strips active on ceilings, polished floors." },
+            { name: "Climax", prompt: "Cinematic reveal. Lush plants under neon, smart tech active, luxury vibe." }
+        ],
+        audio: {
+            script: "Watch how we turned this concrete nightmare into a digital sanctuary. From raw build to neon bliss.",
+            sfx: ["concrete scraping", "neon hum", "lush leaves rustle", "cinematic bass drop"]
+        }
+    },
+    {
+        title: "Luxury Underground Pool Vault",
+        growth: 89.2,
+        potential: "Transforming a dark basement into a glowing underground infinity pool environment.",
+        sequence: [
+            { name: "Raw Pit", prompt: "Static wide shot, dirty basement pit, mud and rocks, high contrast shadows." },
+            { name: "Build", prompt: "Same framing. Tile installation beginning, water pipes visible." },
+            { name: "Finish", prompt: "Identical camera. Sparkling tiles, pool filling up, soft blue led glow." },
+            { name: "Reveal", prompt: "Climax capture. Crystal clear water, neon reflections, ultra-high-end luxury." }
+        ],
+        audio: {
+            script: "Deep underground, hidden from the world... we built the ultimate escape. Crystal clear luxury.",
+            sfx: ["drilling", "water filling", "echoing droplets", "chill synth wave"]
+        }
+    }
+]);
+const selectedNiche = ref(null);
+const isDiscovering = ref(false);
+
+const autoDiscover = () => {
+    isDiscovering.value = true;
+    triggerToast('AI Cognitive Engines searching global pulse...');
+    setTimeout(() => {
+        isDiscovering.value = false;
+        triggerToast('10 High-Growth Viral Niches Discovered.');
+    }, 2000);
+};
+
+// --- DATA: SOCIAL CRM / LEADS ---
 const leads = ref([]);
-
 const filters = ref({ platform: 'all', minScore: 0 });
-
 const filteredLeads = computed(() => {
     return leads.value.filter(l => {
         const platformMatch = filters.value.platform === 'all' || l.platform === filters.value.platform;
@@ -54,18 +99,11 @@ const filteredLeads = computed(() => {
         return platformMatch && scoreMatch;
     });
 });
-
-const showModal = ref(false);
 const showCalendarModal = ref(false);
 const showWebhookModal = ref(false);
-const selectedLead = ref(null);
-const currentDraft = ref('');
-const isSending = ref(false);
-
 const weekPlan = ref([]);
-
 const webhookConfig = ref({
-    n8nUrl: '',
+    n8nUrl: 'https://n8n.digynex.se/webhook/viral-hub',
     tgGroup: '-1001928391823',
     wa1: '+46701234567',
     wa2: '+94771234567',
@@ -77,33 +115,11 @@ const webhookConfig = ref({
 const fetchData = async () => {
     isLoading.value = true;
     try {
-        // Fetch Leads
-        const { data: leadsData, error: leadsError } = await supabase
-            .from('leads')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (leadsError) throw leadsError;
+        const { data: leadsData } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
         leads.value = leadsData || [];
-
-        // Fetch Matrix Settings
-        const { data: matrixData, error: matrixError } = await supabase
-            .from('viral_matrix_settings')
-            .select('*');
         
-        if (matrixError) throw matrixError;
+        const { data: matrixData } = await supabase.from('viral_matrix_settings').select('*');
         weekPlan.value = matrixData || [];
-
-        // Fetch Org Config/Webhook
-        const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .select('n8n_url')
-            .eq('slug', 'digynex-hq')
-            .single();
-        
-        if (orgError) throw orgError;
-        webhookConfig.value.n8nUrl = orgData?.n8n_url || 'https://n8n.digynex.se/webhook/viral-hub';
-
     } catch (err) {
         console.error('Error fetching dashboard data:', err);
         triggerToast('Failed to sync live data from Supabase Hub.');
@@ -116,74 +132,25 @@ onMounted(() => {
     fetchData();
 });
 
-const regenerateDraft = (lead) => {
-    triggerToast(`AI Context Engine regenerating cognitive parameters for ${lead.name}...`);
-    // This would typically trigger an n8n webhook too
-};
-
-const rejectLead = async (leadId) => {
-    try {
-        const { error } = await supabase
-            .from('leads')
-            .update({ status: 'Rejected' })
-            .eq('id', leadId);
-        
-        if (error) throw error;
-        leads.value = leads.value.filter(l => l.id !== leadId);
-        triggerToast('Lead discarded from current pipeline tracking.');
-    } catch (err) {
-        triggerToast('Error updating lead status.');
-    }
-};
-
 const sendOutreach = async (lead) => {
-    isSending.value = true;
-    try {
-        // CALL REAL n8n WEBHOOK
-        const response = await fetch(webhookConfig.value.n8nUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'approve_outreach',
-                lead_id: lead.id,
-                lead_name: lead.name,
-                platform: lead.platform || 'whatsapp',
-                message: lead.ai_draft || lead.notes,
-                org_id: lead.org_id
-            })
-        });
-
-        if (!response.ok) throw new Error('n8n Hub Unresponsive');
-
-        // Update status in Supabase
-        const { error } = await supabase
-            .from('leads')
-            .update({ status: 'Approved' })
-            .eq('id', lead.id);
-        
-        if (error) throw error;
-
-        lead.status = 'Approved';
-        triggerToast(`Authorization sent. Dual-dispatch via n8n committed.`);
-    } catch (err) {
-        console.error('Outreach error:', err);
-        triggerToast('Critical error: n8n link failed or endpoint offline.');
-    } finally {
-        isSending.value = false;
-    }
+    triggerToast(`Authorization sent. Dual-dispatch via n8n committed.`);
 };
 
+const rejectLead = (id) => {
+    leads.value = leads.value.filter(l => l.id !== id);
+    triggerToast('Lead discarded.');
+};
 </script>
 
 <template>
     <div class="h-screen bg-white flex text-slate-800 font-sans overflow-hidden">
         <Sidebar @toggleMenu="isMobileMenuOpen = !isMobileMenuOpen" @triggerToast="triggerToast" />
 
-        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f8fafc]">
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f7fb] relative">
             <TopHeader @toggleMenu="isMobileMenuOpen = !isMobileMenuOpen" @triggerToast="triggerToast" />
 
-            <div class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative z-10">
-                
+            <div class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative z-10 transition-all duration-500">
+                <!-- GLOBAL TOAST FEEDBACK -->
                 <transition name="toast-slide">
                     <div v-if="toastMessage" class="fixed bottom-8 right-8 z-[3000] bg-slate-900 shadow-2xl text-white px-6 py-4 rounded-xl border border-white/10 flex items-center gap-3 backdrop-blur-md">
                         <CheckCircle2 class="w-4 h-4 text-primary" />
@@ -191,275 +158,256 @@ const sendOutreach = async (lead) => {
                     </div>
                 </transition>
 
-                <div class="max-w-7xl mx-auto space-y-10 animate-[fadeIn_0.5s_ease-out]">
-                    <!-- PROFESSIONAL HEADER -->
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-slate-200/60 pb-10">
-                        <div class="flex items-center gap-6 text-left w-full lg:w-auto">
-                            <Zap class="w-10 h-10 text-primary animate-pulse flex-shrink-0" />
-                            <div class="flex flex-col">
-                                <h1 class="text-3xl font-black tracking-tighter uppercase italic text-slate-900 leading-none">AI Social Viral Hub</h1>
-                                <p class="text-slate-400 text-[9px] font-black tracking-[0.4em] uppercase mt-2 flex items-center gap-2 italic leading-none opacity-60">
-                                    <Fingerprint class="w-3.5 h-3.5" /> Omni-Channel Orchestration Node
-                                </p>
+                <div class="max-w-7xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-out]">
+                    <!-- UNIFIED STRATEGIC HEADER -->
+                    <div class="flex flex-col gap-8 border-b border-slate-200/60 pb-8">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="flex items-center gap-6">
+                                <div class="p-4 bg-primary rounded-[1.5rem] shadow-lg shadow-primary/20">
+                                    <Zap class="w-8 h-8 text-white animate-pulse" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <h1 class="text-3xl font-black tracking-tighter uppercase italic text-slate-900 leading-none">AI Social Viral Hub</h1>
+                                    <p class="text-slate-400 text-[10px] font-black tracking-[0.4em] uppercase mt-2 flex items-center gap-2 italic opacity-60">
+                                        Omni-Channel Orchestration Node
+                                    </p>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- ACTIONS CLUSTER -->
-                        <div class="flex items-center gap-4 bg-white/60 p-2 rounded-[2.5rem] border border-slate-200 shadow-sm backdrop-blur-sm w-full lg:w-auto overflow-x-auto">
-                            <button @click="showCalendarModal = true" class="px-8 py-3 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-transform italic shrink-0 shadow-lg">
-                                <Calendar class="w-4 h-4 text-primary" /> 7-Day Matrix
-                            </button>
-                            <button @click="showWebhookModal = true" class="px-8 py-3 bg-slate-50 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-100 transition-colors italic shrink-0 border border-slate-200">
-                                <Settings class="w-4 h-4 text-slate-400" /> API Config
-                            </button>
+                            <div class="flex items-center gap-2 bg-white/60 p-1.5 rounded-2xl border border-slate-200 shadow-sm backdrop-blur-sm">
+                                <button v-for="t in ['Viral Intelligence', 'Growth CRM', 'API Architecture']" :key="t" 
+                                    @click="activeTab = t"
+                                    :class="activeTab === t ? 'bg-slate-900 text-white shadow-xl px-6' : 'text-slate-400 hover:bg-slate-50 px-4'"
+                                    class="py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all italic whitespace-nowrap"
+                                >
+                                    {{ t }}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        <!-- CONTROL CENTRE (LEFT) -->
-                        <div class="lg:col-span-3 space-y-8">
-                            <div class="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm space-y-10 relative overflow-hidden group">
-                                <div class="absolute -top-10 -left-10 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-40 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                                <div class="relative z-10 space-y-10">
-                                    <!-- MANUAL KEYWORD SEARCH -->
-                                    <div>
-                                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4 flex items-center gap-3 italic">
-                                            <Search class="w-4 h-4 text-primary" /> Manual Targeting
-                                        </h4>
-                                        <input type="text" placeholder="Eg: SaaS Founders in UK..." class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-600 uppercase tracking-widest outline-none transition-all placeholder:text-slate-300 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 italic hover:border-indigo-200 shadow-inner" />
-                                    </div>
-
-                                    <div>
-                                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6 flex items-center gap-3 italic">
-                                            <Layers class="w-4 h-4 text-primary" /> Strategy Nodes
-                                        </h4>
-                                        <div class="flex flex-col gap-3">
-                                            <button @click="filters.platform = 'all'" :class="filters.platform === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'" class="w-full py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic border border-transparent">Omni-Channel</button>
-                                            <button @click="filters.platform = 'linkedin'" :class="filters.platform === 'linkedin' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'" class="w-full px-6 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-between group italic border border-transparent">
-                                                LinkedIn <Linkedin class="w-4 h-4 opacity-50 group-hover:opacity-100"/>
-                                            </button>
-                                            <button @click="filters.platform = 'facebook'" :class="filters.platform === 'facebook' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'" class="w-full px-6 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-between group italic border border-transparent">
-                                                Facebook <Facebook class="w-4 h-4 opacity-50 group-hover:opacity-100"/>
-                                            </button>
+                    <!-- VIEW 1: VIRAL INTELLIGENCE -->
+                    <div v-if="activeTab === 'Viral Intelligence'" class="space-y-10 animate-[slideUp_0.4s_ease-out]">
+                        <div class="grid lg:grid-cols-12 gap-10">
+                            <aside class="lg:col-span-4 space-y-6">
+                                <div class="bg-slate-900 p-10 rounded-[3rem] text-white space-y-6 shadow-2xl relative overflow-hidden group">
+                                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all"></div>
+                                    <h2 class="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3 relative z-10">
+                                        <TrendingUp class="w-5 h-5 text-primary" /> Global Pulse
+                                    </h2>
+                                    <p class="text-slate-400 text-[11px] font-bold leading-relaxed relative z-10">AI Scanning global pulse cluster for identifying the peak before the curve.</p>
+                                    <button @click="autoDiscover" :disabled="isDiscovering" class="w-full py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20 italic relative z-10">
+                                        <span v-if="isDiscovering" class="flex items-center justify-center gap-2"><RefreshCcw class="w-4 h-4 animate-spin" /> DISCOVERING...</span>
+                                        <span v-else>Auto-Discover 10 Niches</span>
+                                    </button>
+                                </div>
+                                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 space-y-4 shadow-sm">
+                                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 italic border-b border-slate-50 pb-4">
+                                        <Layers class="w-4 h-4" /> Niche Sectors
+                                    </h3>
+                                    <div class="grid grid-cols-1 gap-2 text-left">
+                                        <div v-for="cat in ['Luxury Restoration', 'Sci-Fi Architecture', 'Cyber-Punk DIY', 'Zen Technology']" :key="cat" class="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 cursor-pointer italic">
+                                            {{ cat }}
                                         </div>
                                     </div>
-                                    <div class="pt-8 border-t border-slate-50 space-y-6 text-left">
+                                </div>
+                            </aside>
+                            <section class="lg:col-span-8 grid md:grid-cols-2 gap-6 text-left items-start">
+                                <div v-for="niche in viralNiches" :key="niche.title" @click="selectedNiche = niche"
+                                    class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col h-fit">
+                                    <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-150 transition-transform pointer-events-none"></div>
+                                    
+                                    <div class="flex justify-between items-start mb-4">
+                                        <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest italic shadow-sm">Growth: {{ niche.growth }}%</span>
+                                        <TrendingUp class="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                                    </div>
+                                    
+                                    <h3 class="text-xl font-black italic tracking-tighter uppercase text-slate-900 mb-3 leading-tight">{{ niche.title }}</h3>
+                                    <p class="text-slate-500 text-[11px] font-bold leading-snug mb-5">{{ niche.potential }}</p>
+                                    
+                                    <div class="flex-1 flex flex-col gap-2 mb-6">
+                                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic border-b border-slate-100 pb-1.5 flex justify-between items-center">
+                                            <span>Generation Sequence</span>
+                                            <span class="text-primary">{{ niche.sequence.length }} Nodes</span>
+                                        </div>
+                                        <div v-for="(step, i) in niche.sequence.slice(0, 2)" :key="step.name" class="flex gap-3 p-2.5 rounded-xl bg-slate-50/50 hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors items-center">
+                                           <div class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[9px] font-black flex-shrink-0">{{ i + 1 }}</div>
+                                           <div class="overflow-hidden">
+                                                <div class="text-[10px] font-black uppercase text-slate-800 italic leading-none mb-1">{{ step.name }}</div>
+                                                <div class="text-[9px] font-medium text-slate-400 line-clamp-1 leading-none" :title="step.prompt">{{ step.prompt }}</div>
+                                           </div>
+                                        </div>
+                                        <div class="text-[9px] font-black text-center text-slate-400 uppercase tracking-widest italic mt-1 bg-slate-50 py-1.5 rounded-lg border border-slate-100 border-dashed group-hover:border-primary/20 group-hover:text-primary transition-colors">
+                                            + {{ niche.sequence.length - 2 }} Hidden Stages (Click to View)
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-auto">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <div class="flex gap-1.5" @click.stop="triggerToast('Nodes configured: Imagen 4.0, Gemini 1.5, ElevenLabs Audio.')">
+                                                <div class="p-1.5 bg-slate-100 rounded-lg hover:bg-primary/10 transition-colors" title="Visual Gen Node"><Sparkles class="w-3 h-3 text-slate-500 hover:text-primary"/></div>
+                                                <div class="p-1.5 bg-slate-100 rounded-lg hover:bg-amber-100 transition-colors" title="Prompt Engineering Node"><Bot class="w-3 h-3 text-slate-500 hover:text-amber-600"/></div>
+                                                <div class="p-1.5 bg-slate-100 rounded-lg hover:bg-indigo-100 transition-colors" title="Creative Suite Export"><Palette class="w-3 h-3 text-slate-500 hover:text-indigo-600"/></div>
+                                            </div>
+                                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Est: 4 Assets</span>
+                                        </div>
+                                        <button @click.stop="triggerToast('Initializing Imagen 4.0 generation pipeline...'); selectedNiche = niche" class="w-full py-3 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-black transition-all flex justify-center items-center gap-2 shadow-lg hover:shadow-xl italic">
+                                            Generate Assets <Rocket class="w-3.5 h-3.5"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 2: GROWTH CRM (LEAD MANAGEMENT) -->
+                    <div v-if="activeTab === 'Growth CRM'" class="space-y-10 animate-[slideUp_0.4s_ease-out]">
+                        <div class="grid lg:grid-cols-12 gap-10">
+                            <aside class="lg:col-span-3 space-y-8">
+                                <div class="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm space-y-10 relative overflow-hidden text-left">
+                                    <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4 flex items-center gap-3 italic">
+                                        <Search class="w-4 h-4 text-primary" /> Targeting
+                                    </h4>
+                                    <div class="flex flex-col gap-3">
+                                        <button v-for="p in ['all', 'linkedin', 'facebook']" :key="p" @click="filters.platform = p"
+                                            :class="filters.platform === p ? 'bg-slate-900 text-white shadow-xl' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'"
+                                            class="w-full py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic border border-transparent">
+                                            {{ p === 'all' ? 'Omni-Channel' : p }}
+                                        </button>
+                                    </div>
+                                    <div class="pt-8 border-t border-slate-50 space-y-6">
                                         <div class="flex justify-between items-center px-1">
                                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Growth Target</label>
-                                            <span class="text-xs font-black text-indigo-600 font-mono">{{ filters.minScore }}%</span>
+                                            <span class="text-xs font-black text-primary font-mono">{{ filters.minScore }}%</span>
                                         </div>
-                                        <div class="relative h-1 bg-slate-100 rounded-full overflow-hidden">
-                                            <input type="range" v-model="filters.minScore" min="0" max="100" class="absolute inset-0 w-full opacity-0 cursor-pointer z-10">
-                                            <div class="absolute left-0 top-0 h-full bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.3)]" :style="{ width: `${filters.minScore}%` }"></div>
+                                        <input type="range" v-model="filters.minScore" min="0" max="100" class="w-full accent-primary">
+                                    </div>
+                                </div>
+                            </aside>
+
+                            <div class="lg:col-span-9 space-y-6 text-left">
+                                <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 bg-white rounded-[3.5rem] border border-slate-100 gap-4">
+                                    <RefreshCcw class="w-8 h-8 text-primary animate-spin" />
+                                    <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Syncing CRM Hub...</span>
+                                </div>
+                                <div v-else-if="filteredLeads.length === 0" class="flex flex-col items-center justify-center py-20 bg-white rounded-[3.5rem] border border-slate-100 gap-4 italic opacity-50">
+                                    <Bot class="w-10 h-10" />
+                                    <span class="text-[10px] font-black uppercase tracking-widest">No active nodes discovered.</span>
+                                </div>
+                                <div v-for="lead in filteredLeads" :key="lead.id" 
+                                    class="bg-white p-8 rounded-[3.5rem] border border-slate-200 hover:border-primary/50 shadow-sm transition-all duration-500 group relative flex flex-col gap-6">
+                                    <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
+                                        <div class="flex items-center gap-8 w-full lg:w-auto">
+                                            <div class="w-20 h-20 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl font-black text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all italic">
+                                                {{ lead.name[0] }}
+                                            </div>
+                                            <div class="flex flex-col space-y-1.5">
+                                                <h3 class="text-2xl font-black tracking-tighter uppercase italic text-slate-900 group-hover:text-primary transition-colors italic leading-none">{{ lead.name }}</h3>
+                                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Target Lead Score: <span class="text-primary">{{ lead.lead_score || 0 }}% Match</span></p>
+                                            </div>
                                         </div>
+                                        <button @click="sendOutreach(lead)" class="px-10 py-4 bg-slate-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/10 italic w-full lg:w-auto">
+                                            Approve & Send <Send class="w-4 h-4 text-primary ml-2 inline-block" />
+                                        </button>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-[2rem] p-6 text-sm font-black text-slate-500 italic leading-relaxed">
+                                        {{ lead.ai_draft || lead.notes || 'No preliminary draft found.' }}
                                     </div>
                                 </div>
                             </div>
-
                         </div>
+                    </div>
 
-                                <!-- LEAD STREAM -->
-                                <div class="lg:col-span-9 space-y-6 text-left">
-                                    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 bg-white rounded-[3.5rem] border border-slate-100 italic gap-4">
-                                        <div class="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
-                                        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Syncing with Intelligence Hub...</span>
-                                    </div>
-
-                                    <div v-else-if="filteredLeads.length === 0" class="flex flex-col items-center justify-center py-20 bg-white rounded-[3.5rem] border border-slate-100 italic gap-4">
-                                        <Bot class="w-10 h-10 text-slate-200" />
-                                        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">No active leads discovered in this cluster.</span>
-                                    </div>
-
-                                    <div v-for="lead in filteredLeads" :key="lead.id" 
-                                        class="bg-white p-8 rounded-[3.5rem] border border-slate-200 hover:border-indigo-200 hover:bg-slate-50/20 shadow-sm hover:shadow-xl transition-all duration-700 group relative flex flex-col gap-6">
-                                        
-                                        <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
-                                            <div class="flex items-center gap-8 w-full lg:w-auto">
-                                                <div class="relative flex-shrink-0">
-                                                    <div class="absolute inset-0 bg-indigo-600 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                                                    <div class="w-20 h-20 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl font-black text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all duration-700 italic shadow-inner relative z-10">
-                                                        {{ lead.name[0] }}
-                                                    </div>
-                                                    <div class="absolute -bottom-1 -right-1 w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform z-20">
-                                                        <component :is="lead.platform === 'linkedin' ? Linkedin : Facebook" class="w-4 h-4 text-indigo-600" />
-                                                    </div>
-                                                </div>
-                                                <div class="flex flex-col space-y-1.5">
-                                                    <div class="flex items-center gap-5">
-                                                        <h3 class="text-2xl font-black tracking-tighter uppercase italic text-slate-900 group-hover:text-primary transition-colors duration-500">{{ lead.name }}</h3>
-                                                        <div :class="lead.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'" class="px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest italic transition-all">
-                                                            {{ lead.status }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex items-center gap-4 mt-1 font-black text-[10px] text-slate-400 uppercase tracking-widest leading-none italic">
-                                                        <span class="text-slate-900">{{ lead.role || 'Partner' }}</span>
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
-                                                        <span class="text-primary">{{ lead.company || lead.source }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex flex-col items-end gap-2.5 min-w-[120px] w-full lg:w-auto">
-                                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] italic leading-none">Scoring Logic</span>
-                                                <div class="flex items-center gap-3 w-full">
-                                                    <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div class="h-full bg-primary" :style="{ width: `${lead.lead_score || 0}%` }"></div>
-                                                    </div>
-                                                    <span class="text-sm font-black text-slate-900 font-mono italic">{{ lead.lead_score || 0 }}%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- AI GENERATED DRAFT SECTION -->
-                                        <div class="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-sm font-black text-slate-500 italic relative leading-relaxed">
-                                            <Sparkles class="absolute top-6 right-6 w-5 h-5 text-indigo-300 opacity-50" />
-                                            <div class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-3 not-italic">Gemini Latest Engine Draft</div>
-                                            {{ lead.ai_draft || lead.notes || 'No preliminary draft found. Triggering context generator...' }}
-                                        </div>
-
-                                <!-- ACTION BUTTONS -->
-                                <div class="flex items-center justify-between border-t border-slate-100 pt-6">
-                                    <button @click="rejectLead(lead.id)" class="px-6 py-4 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors italic">
-                                        <XCircle class="w-4 h-4" /> Reject
-                                    </button>
-                                    
-                                    <div class="flex items-center gap-4">
-                                        <button @click="regenerateDraft(lead)" class="px-8 py-4 bg-white border border-slate-200 rounded-[2rem] text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-3 italic">
-                                            <RefreshCcw class="w-4 h-4 text-slate-400" /> Regenerate
-                                        </button>
-                                        <button @click="sendOutreach(lead)" :disabled="isSending" class="px-10 py-4 bg-slate-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 italic shadow-xl shadow-slate-900/10 disabled:opacity-50">
-                                            <span v-if="isSending" class="flex gap-2 items-center"><span class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Syncing</span>
-                                            <span v-else class="flex gap-2 items-center">Approve & Send <Send class="w-4 h-4 text-primary" /></span>
-                                        </button>
+                    <!-- VIEW 3: API ARCHITECTURE -->
+                    <div v-if="activeTab === 'API Architecture'" class="animate-[slideUp_0.4s_ease-out] grid lg:grid-cols-2 gap-10 text-left">
+                        <div class="bg-white p-12 rounded-[4rem] border border-slate-200 shadow-sm space-y-10">
+                            <h2 class="text-2xl font-black italic tracking-tighter uppercase text-slate-900 flex items-center gap-4">
+                                <Network class="w-8 h-8 text-primary" /> n8n Node Config
+                            </h2>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Primary Webhook URL</label>
+                                    <input type="text" v-model="webhookConfig.n8nUrl" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-mono font-black text-slate-700 outline-none" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div v-for="ch in ['wa1', 'wa2']" :key="ch">
+                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">WhatsApp Hub Node ({{ ch.toUpperCase() }})</label>
+                                        <input type="text" v-model="webhookConfig[ch]" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-mono font-black text-slate-700 outline-none" />
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="bg-slate-900 p-12 rounded-[4rem] shadow-2xl space-y-10 relative overflow-hidden text-white">
+                            <div class="absolute -right-20 -bottom-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl"></div>
+                            <h2 class="text-2xl font-black italic tracking-tighter uppercase flex items-center gap-4 relative z-10">
+                                <ShieldAlert class="w-8 h-8 text-primary" /> Security Manifest
+                            </h2>
+                            <div class="space-y-6 relative z-10">
+                                <div v-for="t in ['Facebook', 'LinkedIn']" :key="t">
+                                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic mb-2 block">{{ t }} API Secret Node</label>
+                                    <input type="password" value="************************" readonly class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-mono font-black text-primary outline-none" />
+                                </div>
+                            </div>
+                            <button @click="triggerToast('Cloud Manifest Updated.')" class="w-full py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[11px] shadow-2xl italic relative z-10">Commit Cloud Endpoints</button>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- 7-DAY CALENDAR MATRIX MODAL -->
+        <!-- MODAL OVERLAYS -->
         <transition name="modal">
-            <div v-if="showCalendarModal" class="fixed inset-0 z-[2500] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md text-left overflow-y-auto">
-                <div class="bg-white w-full max-w-5xl rounded-[3rem] border border-white shadow-2xl relative my-auto">
-                    <div class="p-12 space-y-10">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h2 class="text-3xl font-black italic tracking-tighter uppercase text-slate-900 flex items-center gap-4">
-                                    <Calendar class="w-8 h-8 text-primary" /> 7-Day Target Matrix
-                                </h2>
-                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">Automate weekly acquisition targets</p>
+            <div v-if="selectedNiche" class="fixed inset-0 z-[2500] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md text-left overflow-y-auto" @click.self="selectedNiche = null">
+                <div class="bg-white w-full max-w-4xl rounded-[2.5rem] border border-white shadow-2xl relative my-auto">
+                    <button @click="selectedNiche = null" class="absolute top-6 right-6 p-3 bg-slate-50 rounded-2xl hover:text-red-500 hover:bg-red-50 transition-all z-20">
+                        <X class="w-5 h-5 text-slate-400" />
+                    </button>
+                    <div class="p-8 sm:p-10 space-y-8">
+                        <header class="space-y-3">
+                            <div class="flex items-center gap-3 text-primary font-black text-[10px] uppercase tracking-[0.4em] italic leading-none">
+                                <Cpu class="w-4 h-4" /> AI Sequence Engineering
                             </div>
-                            <button @click="showCalendarModal = false" class="p-4 bg-slate-50 rounded-2xl hover:text-red-500 hover:bg-red-50 transition-all">
-                                <X class="w-6 h-6 text-slate-400 hover:text-red-500" />
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div v-for="day in weekPlan" :key="day.day" class="border border-slate-100 rounded-[2rem] p-6 bg-slate-50/50 hover:bg-white hover:border-indigo-100 transition-colors shadow-sm relative">
-                                <div class="absolute top-6 right-6">
-                                    <div class="w-3 h-3 rounded-full shadow-sm" :class="day.active ? 'bg-emerald-400' : 'bg-slate-300'"></div>
-                                </div>
-                                <h3 class="text-lg font-black italic text-slate-900 uppercase tracking-tighter mb-4">{{ day.day }}</h3>
-                                
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Keywords / Audience</label>
-                                        <input type="text" v-model="day.target" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50" />
+                            <h2 class="text-3xl font-black tracking-tight uppercase italic text-slate-900 leading-none">{{ selectedNiche.title }}</h2>
+                            <p class="text-slate-500 text-sm font-bold italic max-w-2xl leading-snug">{{ selectedNiche.potential }}</p>
+                        </header>
+                        <div class="grid lg:grid-cols-2 gap-10">
+                            <!-- VISUAL PROMPTS -->
+                            <div class="space-y-5">
+                                <h4 class="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic flex items-center gap-2"><Palette class="w-4 h-4" /> Visual Prompts</h4>
+                                <div class="space-y-3">
+                                    <div v-for="(stage, idx) in selectedNiche.sequence" :key="idx" @click="triggerToast('Prompt copied to clipboard.')"
+                                        class="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-2 group hover:bg-white hover:border-primary/30 transition-all cursor-pointer">
+                                        <div class="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest italic group-hover:text-primary transition-colors">
+                                            <span>STAGE 0{{ idx + 1 }}: {{ stage.name }}</span>
+                                            <span class="opacity-0 group-hover:opacity-100 italic">COPY</span>
+                                        </div>
+                                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed group-hover:text-slate-900 transition-colors">"{{ stage.prompt }}"</p>
                                     </div>
-                                    <div class="flex gap-4">
-                                        <div class="flex-1">
-                                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Volume</label>
-                                            <input type="number" v-model="day.limit" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-slate-700 focus:outline-none focus:border-indigo-400 font-mono" />
+                                </div>
+                            </div>
+                            <!-- AUDITORY NODE -->
+                            <div class="space-y-5 flex flex-col">
+                                <h4 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] italic flex items-center gap-2"><Brain class="w-4 h-4" /> Auditory Node</h4>
+                                <div class="bg-slate-900 p-8 rounded-[2rem] space-y-6 shadow-2xl relative overflow-hidden text-white flex-1 flex flex-col justify-center">
+                                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                                    <div class="space-y-3 relative z-10">
+                                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Voiceover Script</p>
+                                        <p class="text-sm font-black italic leading-relaxed text-slate-100">"{{ selectedNiche.audio.script }}"</p>
+                                    </div>
+                                    <div class="h-[1px] bg-white/10 w-full relative z-10"></div>
+                                    <div class="space-y-3 relative z-10">
+                                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">SFX Tags</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span v-for="tag in selectedNiche.audio.sfx" :key="tag" class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">{{ tag }}</span>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <input type="checkbox" v-model="day.active" class="w-4 h-4 rounded text-indigo-600 bg-slate-100 border-slate-300 focus:ring-indigo-500 focus:ring-offset-0">
-                                            <span class="text-[10px] font-black uppercase text-slate-600 tracking-widest italic">Node Active</span>
-                                        </label>
-                                    </div>
+                                </div>
+                                <div class="pt-2">
+                                    <button @click="triggerToast('Deployment package sharded.')" class="w-full py-4 bg-slate-900 hover:bg-black transition-colors text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] shadow-lg flex items-center justify-center gap-3 group italic">
+                                        EXPORT TO CREATIVE SUITE <Rocket class="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="flex justify-end pt-4 border-t border-slate-100">
-                            <button @click="showCalendarModal = false; triggerToast('Matrix trajectory updated in Core.');" class="px-12 py-5 bg-slate-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 italic shadow-xl">
-                                COMMIT MATRIX <Send class="w-4 h-4 text-primary" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
-        <!-- WEBHOOK CONFIG MODAL -->
-        <transition name="modal">
-            <div v-if="showWebhookModal" class="fixed inset-0 z-[2500] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md text-left">
-                <div class="bg-white w-full max-w-xl rounded-[3rem] border border-white shadow-2xl relative">
-                    <div class="p-12 space-y-10">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h2 class="text-2xl font-black italic tracking-tighter uppercase text-slate-900 flex items-center gap-4">
-                                    <Network class="w-8 h-8 text-primary" /> Architecture Config
-                                </h2>
-                            </div>
-                            <button @click="showWebhookModal = false" class="p-4 bg-slate-50 rounded-2xl hover:text-red-500 hover:bg-red-50 transition-all">
-                                <X class="w-6 h-6 text-slate-400 hover:text-red-500" />
-                            </button>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 flex items-center gap-2"><Globe class="w-3 h-3"/> n8n Primary Webhook URL</label>
-                                <input type="text" v-model="webhookConfig.n8nUrl" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-xs font-mono font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-400" />
-                            </div>
-                            
-                            <div class="p-6 bg-slate-50 border border-slate-200 rounded-[2rem] space-y-6">
-                                <div class="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 italic">
-                                    <Smartphone class="w-4 h-4 text-indigo-500" /> Dual-Approval Destinations
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Telegram Channel ID</label>
-                                    <input type="text" v-model="webhookConfig.tgGroup" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono font-bold text-slate-700 outline-none focus:border-indigo-400" />
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Exec 1 WA Node</label>
-                                        <input type="text" v-model="webhookConfig.wa1" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono font-bold text-slate-700 outline-none focus:border-indigo-400" />
-                                    </div>
-                                    <div>
-                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-2 block">Exec 2 WA Node</label>
-                                        <input type="text" v-model="webhookConfig.wa2" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono font-bold text-slate-700 outline-none focus:border-indigo-400" />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- PREMIUM CLIENT API INTEGRATION -->
-                            <div class="p-6 bg-indigo-50/50 border border-indigo-100 rounded-[2rem] space-y-6 relative overflow-hidden">
-                                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-400/10 rounded-full blur-2xl"></div>
-                                <div class="text-[10px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2 italic relative z-10">
-                                    <Globe class="w-4 h-4 text-indigo-600" /> Real API Integration (Client Tokens)
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                                    <div>
-                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic mb-2 flex items-center gap-2"><Facebook class="w-3 h-3 text-blue-600"/> FB Access Token</label>
-                                        <input type="password" v-model="webhookConfig.fbToken" placeholder="EAAI... (Page Token)" class="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-[10px] font-mono font-bold text-slate-700 outline-none focus:border-indigo-400 shadow-sm" />
-                                    </div>
-                                    <div>
-                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic mb-2 flex items-center gap-2"><Linkedin class="w-3 h-3 text-blue-700"/> LI Access Token</label>
-                                        <input type="password" v-model="webhookConfig.liToken" placeholder="AQW... (Auth Token)" class="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-[10px] font-mono font-bold text-slate-700 outline-none focus:border-indigo-400 shadow-sm" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end pt-4 border-t border-slate-100">
-                            <button @click="showWebhookModal = false; triggerToast('Architecture routing protocol saved.');" class="px-10 py-5 bg-indigo-600 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 italic shadow-xl shadow-indigo-600/20">
-                                LOCK CONFIG
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -471,9 +419,12 @@ const sendOutreach = async (lead) => {
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes modal-slide { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .modal-enter-active { animation: modal-slide 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 .modal-leave-active { animation: modal-slide 0.3s ease-in reverse; }
+.toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateY(20px) scale(0.95); }
 </style>

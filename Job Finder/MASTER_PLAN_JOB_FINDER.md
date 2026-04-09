@@ -65,6 +65,17 @@ To ensure world-class data integrity and local relevance, we avoid the "Scraping
 
 ---
 
+### 4. B2B Enterprise & Anti-Piggybacking Licensing Strategy
+
+To protect the ecosystem's intellectual property and ensure sustainable revenue in B2B/Enterprise deployments (such as Agencies using JAAAAS), we enforce a strict **Enterprise SaaS Deployment Model**:
+
+- **True Multi-Tenancy Architecture:** Data is isolated per client via hard `<tenant_id>` Database boundaries. This mathematically prevents "sub-letting" (piggybacking) by stopping clients from sharing their accounts with other external companies without corrupting their own data pools.
+- **Phase 01 - The Flat-Fee Pioneer Strategy:** Initial Top-Tier clients receive an "Unlimited Internal Seats" license priced as a high-ticket setup ($5,000+). The Service Level Agreement (SLA) strictly restricts usage to internal staff only.
+- **Phase 02 - Tiered Seat Scalability:** As the platform scales, usage transitions to a **Base License + Per-User Seat** scaling matrix (e.g., Executive Tier up to 25 Users, Corporate Tier up to 100 Users). This aligns premium value without diminishing the "Luxury" brand through micro-transactions, while preventing unchecked user inflation.
+- **Access Sovereignty (IP Protection):** We distribute encrypted Cloud Application Endpoints, NOT source code. If SLA violation occurs (or subscription lapses), DigyNex retains the absolute power to cleanly sever access instantly.
+
+---
+
 ### 5. Multilingual AI Orchestration (UI vs. Engine Logic)
 
 Our "Global Edge" lies in decoupling the User Interface (UI) from the Application (AI) Output. This allows users to trust the tool in their native tongue while applying to jobs in the required local language of the target market.

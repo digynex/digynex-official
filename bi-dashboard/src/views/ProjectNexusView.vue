@@ -8,8 +8,9 @@
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 uppercase tracking-wide">
-                  <Layers class="w-6 h-6 text-primary" /> Project Nexus
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 uppercase tracking-wide italic">
+                  <component :is="activeTab === 'Sector ROI Intelligence' ? Target : Layers" :class="activeTab === 'Sector ROI Intelligence' ? 'text-amber-500 animate-pulse' : 'text-primary'" class="w-6 h-6" />
+                  {{ activeTab === 'Sector ROI Intelligence' ? 'NEXUS STRATEGIC ROI HUB' : 'Project Nexus' }}
                 </h1>
                 <div class="flex items-center gap-4 mt-2">
                     <!-- STRATEGIC PROJECT SELECTOR -->
@@ -31,12 +32,19 @@
             </div>
             <div v-if="authStore.user.role !== 'subcontractor'" class="flex items-center gap-3 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
                 <button 
-                    v-for="t in ['Strategic Intelligence', 'Advanced Milestone Health', 'Bulk Ingest Hub', 'Portfolio Analytics', 'Subcontractor Registry', 'Financial Manifest']" :key="t"
+                    v-for="t in (activeTab === 'Sector ROI Intelligence' ? ['Sector ROI Intelligence'] : ['Strategic Intelligence', 'Advanced Milestone Health', 'Bulk Ingest Hub', 'Portfolio Analytics', 'Subcontractor Registry', 'Financial Manifest', 'Sector ROI Intelligence'])" :key="t"
                     @click="activeTab = t"
-                    :class="activeTab === t ? 'bg-slate-900 text-white shadow-xl scale-100 rotate-0' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50 scale-95'"
+                    :class="[
+                      activeTab === t ? 'bg-slate-900 text-white shadow-xl scale-100' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50 scale-95',
+                      t === 'Sector ROI Intelligence' ? 'relative overflow-hidden border-2 border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.2)] animate-[pulse_3s_infinite]' : ''
+                    ]"
                     class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 transform whitespace-nowrap"
                 >
-                    {{ t }}
+                    <span v-if="t === 'Sector ROI Intelligence'" class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></span>
+                    <span class="relative z-10 flex items-center gap-2" :class="activeTab === t ? 'text-white' : (t === 'Sector ROI Intelligence' ? 'text-amber-600' : '')">
+                        <Sparkles v-if="t === 'Sector ROI Intelligence'" class="w-3 h-3 text-amber-500 fill-amber-500" />
+                        {{ t }}
+                    </span>
                 </button>
             </div>
             <div v-else class="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest">
@@ -176,6 +184,151 @@
             <!-- PROJECT MANIFEST AUDIT (SCV LOGIC) -->
             <!-- ... existing SCV content ... -->
             <!-- We keep the SCV here as it was already part of Strategic Intelligence or Health -->
+        </div>
+
+        <!-- NEW: SECTOR ROI INTELLIGENCE (TIERED ACCESS) -->
+        <div v-if="activeTab === 'Sector ROI Intelligence'" class="animate-[slideIn_0.4s_ease-out] relative min-h-[800px] mb-20">
+            <!-- ELITE ACCESS TEASER OVERLAY (Glass effect) -->
+            <div v-if="!isEliteAccess" class="absolute inset-0 z-50 flex items-center justify-center rounded-[2.5rem] overflow-hidden">
+                <!-- Blurred background layer to show data faintly -->
+                <div class="absolute inset-0 bg-slate-900/[0.03] backdrop-blur-[6px] transition-all"></div>
+                
+                <!-- Premium Floating Unlock Card -->
+                <div class="relative z-10 max-w-sm text-center p-10 bg-white/80 backdrop-blur-xl rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 animate-[slideUp_0.5s_ease-out]">
+                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Lock class="w-10 h-10 text-primary animate-bounce" />
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-4 italic leading-tight">Elite Strategic <br/> Intelligence Required</h2>
+                    <p class="text-slate-600 text-[11px] font-bold leading-relaxed mb-8 uppercase tracking-widest">
+                        Identify $50k+ margin growth opportunities across all business sectors automatically. Acquire the <span class="text-primary font-black">Strategic Elite Package</span> or a one-time audit.
+                    </p>
+                    <div class="flex flex-col gap-3">
+                        <button @click="triggerToast('Upgrade Request Sent to Sales Team.')" class="w-full py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">Upgrade Business Package</button>
+                        <button @click="triggerToast('Redirecting to Audit Portal...')" class="w-full py-4 bg-slate-900/5 text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-900/10 transition-all italic">Purchase Individual Audit ($5,000)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIMULATOR CONTENT (Functional Data) -->
+            <div class="space-y-8 h-full">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight italic">Nexus Strategic Advisor <span class="bg-primary/10 text-primary text-[10px] px-2 py-1 rounded ml-2">GEMINI AI INTEGRATED</span></h2>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Context: {{ selectedProject === 'all' ? 'Global Ecosystem' : projects.find(p => p.id === selectedProject)?.name }}</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                        <Brain class="w-3 h-3 text-primary animate-pulse" /> Strategic Mode: High-Confidence
+                    </div>
+                </div>
+
+                <!-- NEXUS PIVOT QUERY ENGINE -->
+                <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden mt-6 mb-8 border border-indigo-500">
+                    <div class="absolute right-0 top-0 opacity-10"><Brain class="w-64 h-64" /></div>
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="md:w-1/3">
+                            <h3 class="font-black text-xl italic uppercase tracking-tight">Strategic Pivot Query</h3>
+                            <p class="text-indigo-200 text-[10px] uppercase tracking-widest mt-1 font-bold">Ask AI: Should we shift business direction?</p>
+                        </div>
+                        <div class="flex-1 relative w-full">
+                            <input type="text" placeholder="e.g. Should we pivot resources from Civil workflows to Fiber networking?" class="w-full bg-indigo-900/50 border border-indigo-400 text-white rounded-2xl py-5 pl-6 pr-40 outline-none font-medium placeholder-indigo-300 text-sm focus:border-white transition-all shadow-inner">
+                            <button @click="triggerToast('Analyzing entire ecosystem state... Please wait.')" class="absolute right-2 top-2 bottom-2 bg-white text-indigo-600 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center gap-2 shadow-sm">
+                                Ask Nexus AI <Sparkles class="w-3.5 h-3.5"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STRATEGIC KPIS (THE 5 CORE QUESTIONS) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Q1: Profitability Benchmarking -->
+                    <div @click="openRoiDetail('yields')" class="bg-white p-8 rounded-[3rem] border border-slate-200 shadow-sm space-y-4 cursor-pointer hover:border-emerald-400 hover:shadow-xl transition-all">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Current Operational Yields</div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <span class="text-xs font-bold text-slate-600">Core Service Delivery</span>
+                                <span class="text-lg font-black text-slate-900">{{ roiMetrics.coreYield }}</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-xs font-bold text-primary">High-Value Specialization</span>
+                                <span class="text-lg font-black text-primary">{{ roiMetrics.specializedYield }}</span>
+                            </div>
+                            <div class="pt-2 border-t border-slate-50 italic text-[9px] text-slate-400">
+                                *AI: {{ roiMetrics.recommendation }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2: Strategic Opportunity Hub -->
+                    <div @click="openRoiDetail('growth')" class="bg-slate-50 p-8 rounded-[3rem] border border-slate-200 shadow-sm space-y-4 relative overflow-hidden cursor-pointer hover:border-indigo-400 hover:shadow-xl transition-all">
+                        <div class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] italic">Enterprise Growth Opportunities</div>
+                        <div class="space-y-2">
+                            <div v-for="opp in roiMetrics.opportunities" :key="opp.name" class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div> {{ opp.name }}
+                                </div>
+                                <span class="text-[9px] text-emerald-600">{{ opp.gain }}</span>
+                            </div>
+                        </div>
+                        <button class="w-full py-3 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-indigo-400 transition-all">Audit Sector Payouts</button>
+                    </div>
+
+                    <!-- Q3: Account Settlement Index (Project Specific) -->
+                    <div @click="openRoiDetail('settlement')" class="bg-white p-8 rounded-[3rem] border border-slate-200 shadow-sm space-y-6 cursor-pointer hover:border-amber-400 hover:shadow-xl transition-all">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Account Settlement Index</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center">
+                                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Tier 1</div>
+                                <div class="text-xs font-black text-emerald-600">{{ roiMetrics.settlement.tier1 }}%</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Tier 2</div>
+                                <div class="text-xs font-black text-amber-500">{{ roiMetrics.settlement.tier2 }}%</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-[9px] font-black text-slate-400 uppercase mb-1">Tier 3</div>
+                                <div class="text-xs font-black text-red-500">{{ roiMetrics.settlement.tier3 }}%</div>
+                            </div>
+                        </div>
+                        <div class="text-[9px] font-bold text-slate-400 italic">Target: Stabilize Tier-Variance across Portfolio.</div>
+                    </div>
+                </div>
+
+                <!-- MAIN SIMULATION ENGINE -->
+                <div class="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl">
+                    <div class="absolute top-0 right-0 p-20 opacity-5"><Brain class="w-96 h-96" /></div>
+                    <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <div class="space-y-6">
+                            <h2 class="text-3xl font-black tracking-tight uppercase italic">Nexus <span class="text-primary">ROI</span> Simulation.</h2>
+                            <p class="text-slate-400 text-sm leading-relaxed font-medium">
+                                Multi-dimensional pivot analysis for strategic enterprise vendors. Using historical ledger synchronization to forecast upcoming yield trends.
+                            </p>
+                            <div class="space-y-4 pt-4">
+                                <div @click="openRoiDetail('simulation')" class="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all cursor-pointer hover:border-emerald-500/50">
+                                    <div class="p-2 bg-primary/20 rounded-lg text-primary"><Zap class="w-4 h-4" /></div>
+                                    <div class="flex-1">
+                                        <div class="text-[10px] font-black uppercase text-slate-500">Optimized Action Plan</div>
+                                        <div class="text-xs font-bold text-white">Reallocate 20% Operational Capacity to High-Yield Verticals</div>
+                                    </div>
+                                    <div class="text-right text-[10px] font-black text-emerald-400">+ Projected Profit Acceleration</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-black/50 p-8 rounded-[2rem] border border-white/10 backdrop-blur-md">
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Yield Progression: Core vs Specialized</div>
+                                <ActivityIcon class="w-4 h-4 text-primary" />
+                            </div>
+                            <div class="h-48 flex items-end gap-6 px-4">
+                                <div v-for="(h, i) in [30, 45, 60, 55, 80, 95]" :key="i" class="flex-1 bg-primary/40 rounded-t-lg transition-all hover:bg-primary" :style="{ height: h + '%' }"></div>
+                                <div v-for="(h, i) in [40, 65, 85, 75, 95, 100]" :key="i" class="flex-1 bg-amber-400/80 rounded-t-lg transition-all hover:bg-amber-400" :style="{ height: h + '%' }"></div>
+                            </div>
+                            <div class="flex justify-between mt-4 px-2 text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                                <span>Current Baseline</span><span>Strategic Optimization</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
 <!-- BULK INGEST HUB (MOVED FROM OPERATIONS) -->
@@ -815,12 +968,73 @@
             </div>
         </div>
     </transition>
+
+    <!-- ROI DETAIL MODAL (PREMIUM AUDIT VIEW) -->
+    <transition name="modal">
+        <div v-if="isRoiDetailOpen" class="fixed inset-0 z-[2500] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-xl">
+            <div class="bg-white w-full max-w-3xl rounded-[3rem] border border-slate-200 shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out] flex flex-col max-h-[90vh]">
+                <div class="px-10 py-8 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                    <div class="flex gap-6 items-center">
+                        <div class="w-16 h-16 rounded-[1.5rem] bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 italic">
+                            <Brain class="w-8 h-8" />
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic leading-none mb-2 flex items-center gap-2"><Lock class="w-3 h-3"/> {{ selectedRoiDetail?.tag }}</p>
+                            <h2 class="text-3xl font-black tracking-tight text-slate-900 italic uppercase leading-none">{{ selectedRoiDetail?.title }}</h2>
+                        </div>
+                    </div>
+                    <button @click="isRoiDetailOpen = false" class="p-3 bg-white rounded-2xl border border-slate-200 hover:bg-slate-100 transition-colors shadow-sm"><X class="w-6 h-6 text-slate-400" /></button>
+                </div>
+
+                <div class="p-10 space-y-8 overflow-y-auto">
+                    <div class="bg-slate-900 text-slate-300 rounded-[2rem] p-8 font-medium text-sm leading-relaxed shadow-inner border border-slate-800">
+                        <span class="text-white font-bold">EXECUTIVE SUMMARY:</span> {{ selectedRoiDetail?.content }}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div v-for="stat in selectedRoiDetail?.stats" :key="stat.label" class="bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-sm">
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ stat.label }}</div>
+                                <div class="text-2xl font-black text-slate-900">{{ stat.value }}</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
+                            <div class="absolute inset-0 bg-emerald-500/5"></div>
+                            <div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2 relative z-10">AI Confidence Score</div>
+                            <div class="text-4xl font-black text-emerald-500 tracking-tighter relative z-10">{{ selectedRoiDetail?.confidence }}<span class="text-lg text-emerald-400">%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic border-b border-slate-100 pb-2">Strategic Action Imperatives</div>
+                        <div class="space-y-3">
+                            <div v-for="item in selectedRoiDetail?.checklist" :key="item.id" @click="item.done = !item.done" class="flex items-center gap-4 p-4 rounded-2xl border cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all" :class="item.done ? 'bg-emerald-50 border-emerald-100 shadow-sm' : 'bg-slate-50 border-slate-100'">
+                                <CheckCircle2 v-if="item.done" class="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                                <div v-else class="w-5 h-5 rounded-full border-2 border-slate-300 flex-shrink-0"></div>
+                                <div class="text-xs font-bold" :class="item.done ? 'text-emerald-700 line-through opacity-50' : 'text-slate-700'">{{ item.text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8 border-t border-slate-100 bg-white grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button @click="triggerToast('Generating $5,000 Comprehensive Forensic Audit Base...')" class="py-5 bg-white border-2 border-primary text-primary rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-3 italic">
+                        Generate PDF Audit <FileText class="w-4 h-4" />
+                    </button>
+                    <button @click="isRoiDetailOpen = false" class="py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-black transition-all flex items-center justify-center gap-3 italic">
+                        Acknowledge Intelligence <CheckCircle2 class="w-4 h-4 text-emerald-400" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { Activity as ActivityIcon, X, Cpu, Zap, Users, RefreshCw, Layers, Database, Bell, Loader2, Workflow, Terminal, Server, FileText, TrendingUp, Plus, Link, Trash2, Globe, UploadCloud, ShieldAlert, CheckCircle2, ZoomIn, Brain, Clock, Paperclip } from 'lucide-vue-next'
+import { useRoute } from 'vue-router'
+import { Activity as ActivityIcon, X, Cpu, Zap, Users, RefreshCw, Layers, Database, Bell, Loader2, Workflow, Terminal, Server, FileText, TrendingUp, Plus, Link, Trash2, Globe, UploadCloud, ShieldAlert, CheckCircle2, ZoomIn, Brain, Clock, Paperclip, Sparkles, Lock, Send, Target } from 'lucide-vue-next'
 import Sidebar from '../components/dashboard/Sidebar.vue'
 import TopHeader from '../components/dashboard/TopHeader.vue'
 import DrilldownModal from '../components/dashboard/DrilldownModal.vue'
@@ -834,11 +1048,39 @@ import { supabase } from '../services/supabase'
 import { generatePDF } from '../utils/pdfGenerator'
 import { addNotification, logActivity } from '../services/notificationService'
 
+const route = useRoute()
 const isMobileMenuOpen = ref(false)
 const toastState = ref({ show: false, message: '' })
 const isOptimizing = ref(false)
 const activeTab = ref('Strategic Intelligence')
 const ingestionContext = ref('client')
+
+onMounted(async () => {
+    if (authStore.user.role === 'subcontractor') {
+        activeTab.value = 'Business Workflow'
+    } else if (route.query.tab === 'roi') {
+        activeTab.value = 'Sector ROI Intelligence'
+    } else {
+        activeTab.value = 'Strategic Intelligence'
+    }
+    
+    fetchOperationalData()
+})
+
+// Watch for route changes to switch tabs dynamically (Immediate sync)
+watch(() => route.query.tab, (newTab) => {
+    if (newTab === 'roi') {
+        activeTab.value = 'Sector ROI Intelligence'
+    } else {
+        activeTab.value = 'Strategic Intelligence'
+    }
+}, { immediate: true })
+
+const isEliteAccess = computed(() => {
+    // Strategic bypass for Executive and Management nodes
+    const rootRoles = ['ceo', 'manager', 'finance', 'admin'];
+    return rootRoles.includes(authStore.user.role) || authStore.user.package === 'Elite';
+})
 
 const getLeadScoreColor = (score) => {
     if (score >= 90) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
@@ -1289,11 +1531,134 @@ const filteredBurnChartSeries = computed(() => [
         ? [12, 28, 48, 65, 85, 98, 110]
         : [10, 20, 40, 55, 75, 90, 105] }
 ])
+
+const isRoiDetailOpen = ref(false)
+const selectedRoiDetail = ref(null)
+
+const openRoiDetail = (type) => {
+    const project = projects.value.find(p => p.id === selectedProject.value)
+    const name = project?.name || 'Global Portfolio'
+    
+    // Premium $5,000 Level Forensic Analysis Payload
+    const details = {
+        yields: {
+            title: 'Operational Yield Forensic Analysis',
+            tag: 'A.I. LEVEL 5 DEEP SCAN',
+            content: `Extensive multi-node ledger scan completed for ${name}. Our neural network correlates historical labor expenditures against current asset utilization, predicting a potential margin leakage of 8%.`,
+            confidence: 94,
+            stats: [
+                { label: 'EBITDA Margin', value: '24.2%' },
+                { label: 'Asset Utilization', value: '88%' }
+            ],
+            checklist: [
+                { id: '1', text: 'Re-negotiate tier-1 sub-contractor rates.', done: false },
+                { id: '2', text: 'Automate weekly manifest parsing.', done: true },
+                { id: '3', text: 'Halt expansion in low-yield rural nodes.', done: false }
+            ]
+        },
+        growth: {
+            title: 'Enterprise Growth Master-Plan',
+            tag: 'STRATEGIC EXPANSION NODE',
+            content: `Strategic advisory assets for ${name} represent the highest growth potential for 2026. Data streams indicate a lucrative gap in automated Smart City developments.`,
+            confidence: 88,
+            stats: [
+                { label: 'Market Opportunity', value: '$2.5M+' },
+                { label: 'Execution Complexity', value: 'High' }
+            ],
+            checklist: [
+                { id: '1', text: 'Acquire spatial intelligence drone assets.', done: false },
+                { id: '2', text: 'Launch "Platinum" service tier.', done: false }
+            ]
+        },
+        settlement: {
+            title: 'Treasury & Settlement Flow Audit',
+            tag: 'LIQUIDITY GOVERNANCE',
+            content: `Current liquidity buffer for ${name} remains stable. However, AI detects a 12-day drift in Tier-3 vendor payments. Corrective action is strictly recommended.`,
+            confidence: 98,
+            stats: [
+                { label: 'Liquidity Buffer', value: 'Stable' },
+                { label: 'Avg Days Payable', value: '42' }
+            ],
+            checklist: [
+                { id: '1', text: 'Incentivize early payments (2.5% discount).', done: false },
+                { id: '2', text: 'Audit Q1 bulk ingestion records.', done: true }
+            ]
+        },
+        simulation: {
+            title: 'Nexus Simulation Impact matrix',
+            tag: 'FUTURE-STATE MODELING',
+            content: `The forecasted ROI for ${name} assumes an aggressive 85% success rate of the current optimization plan. Adjusting the WBS nodes yields immediate capital efficiency.`,
+            confidence: 91,
+            stats: [
+                { label: 'Forecast Accuracy', value: '91%' },
+                { label: 'Efficiency Gain', value: '+14%' }
+            ],
+            checklist: [
+                { id: '1', text: 'Deploy resource re-allocation script.', done: false },
+                { id: '2', text: 'Finalize Q3 executive board presentation.', done: false }
+            ]
+        }
+    }
+    
+    selectedRoiDetail.value = details[type]
+    isRoiDetailOpen.value = true
+}
+
+const roiMetrics = computed(() => {
+    if (selectedProject.value === 'all') {
+        return {
+            coreYield: '12.4%',
+            specializedYield: '28.0%',
+            recommendation: 'Pivot to Specialization for 2.2x Margin gain.',
+            opportunities: [
+                { name: 'Managed Vertical Solutions', gain: '+$42k' },
+                { name: 'Strategic Advisory Assets', gain: '+$18k' },
+                { name: 'Scale-as-a-Service Hub', gain: '+$12k' }
+            ],
+            settlement: { tier1: 100, tier2: 65, tier3: 22 },
+            simulationSeries: [
+                { name: 'Global Baseline', data: [31, 40, 28, 51, 42, 109, 100] },
+                { name: 'Global Optimization', data: [11, 32, 45, 32, 34, 52, 41] }
+            ]
+        }
+    } else {
+        const project = projects.value.find(p => p.id === selectedProject.value)
+        const name = project?.name || 'Project Node'
+        return {
+            coreYield: '18.2%',
+            specializedYield: '34.5%',
+            recommendation: `Asset efficiency for ${name} can be scaled by 12% in Q3.`,
+            opportunities: [
+                { name: `${name} Resource Sync`, gain: '+$15k' },
+                { name: 'Node Cost Reduction', gain: '+$9k' }
+            ],
+            settlement: { tier1: 92, tier2: 78, tier3: 45 },
+            simulationSeries: [
+                { name: 'Current Progress', data: [45, 52, 38, 24, 33, 26, 21] },
+                { name: 'AI Forecasted ROI', data: [35, 41, 62, 42, 13, 18, 29] }
+            ]
+        }
+    }
+})
+
+const roiChartOptions = ref({
+    chart: { type: 'bar', toolbar: { show: false }, sparkline: { enabled: false } },
+    plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 8 } },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ['transparent'] },
+    xaxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], labels: { style: { colors: '#64748b' } } },
+    yaxis: { labels: { style: { colors: '#64748b' } } },
+    fill: { opacity: 1, colors: ['#6366f1', '#10b981'] },
+    tooltip: { theme: 'dark' },
+    grid: { borderColor: '#ffffff10' },
+    legend: { show: true, position: 'top', horizontalAlign: 'right', labels: { colors: '#fff' } }
+})
 </script>
 
 <style scoped>
 @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
 .toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateY(20px) scale(0.95); }
 .custom-scrollbar::-webkit-scrollbar { width: 5px; }

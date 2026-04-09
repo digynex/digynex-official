@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LandingView from '../views/LandingView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import SalesPivotView from '../views/SalesPivotView.vue'
 import FinanceView from '../views/FinanceView.vue'
@@ -8,12 +7,12 @@ import OperationsView from '../views/OperationsView.vue'
 import SettingsView from '../views/SettingsView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/dashboard/'),
   routes: [
     {
       path: '/',
       name: 'home',
-      component: LandingView
+      component: DashboardView
     },
     {
       path: '/dashboard',

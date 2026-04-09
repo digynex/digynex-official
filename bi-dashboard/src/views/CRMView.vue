@@ -325,7 +325,7 @@ const handleAddItem = async () => {
 }
 
 onMounted(() => {
-    fetchCRMData()
+    // fetchCRMData() // Temporarily disabled to prevent test data ('hjggh') from overwriting mock UI
 })
 
 const triggerToast = (msg) => {

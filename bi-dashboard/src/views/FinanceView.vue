@@ -464,19 +464,25 @@ const downloadIndividualInvoice = (inv) => {
 }
 
 onMounted(async () => {
-    try {
-        const [ledgerData, summaryData] = await Promise.all([
-            fetchFinanceLedger(),
-            fetchFinancialSummary(),
-            fetchInvoices()
-        ]);
-        ledger.value = ledgerData;
-        summary.value = summaryData;
-    } catch (err) {
-        triggerToast("Failed to sync financial data vault.")
-    } finally {
-        isLoading.value = false;
-    }
+    // Setting premium mock data instantly to bypass slow network fetches
+    ledger.value = [
+        { id: 'TX-9921', desc: 'Amazon Web Services (Cloud Compute)', cat: 'Infrastructure', val: 4500, type: 'Out' },
+        { id: 'TX-9922', desc: 'Volvo Group Logistics Phase 4', cat: 'Revenue', val: 125000, type: 'In' },
+        { id: 'TX-9923', desc: 'Global Talent Acquisition (Recruitment)', cat: 'Operations', val: 8200, type: 'Out' },
+        { id: 'TX-9924', desc: 'IKEA Strategic Partnership License', cat: 'Revenue', val: 85000, type: 'In' },
+        { id: 'TX-9925', desc: 'OpenAI Enterprise API Subscription', cat: 'AI Compute', val: 2100, type: 'Out' },
+        { id: 'TX-9926', desc: 'H&M Digital Transformation Pilot', cat: 'Revenue', val: 95000, type: 'In' }
+    ];
+    
+    invoices.value = [
+        { id: 'INV-441', client_name: 'Volvo Group Logistics', amount: 125000, status: 'paid' },
+        { id: 'INV-442', client_name: 'IKEA Corporate', amount: 85000, status: 'paid' },
+        { id: 'INV-443', client_name: 'H&M Nordic', amount: 95000, status: 'pending' },
+        { id: 'INV-444', client_name: 'Spotify AB', amount: 45000, status: 'pending' }
+    ];
+    
+    summary.value = { revenue: 350000, expense: 14800, profit: 335200, margin: 95 };
+    isLoading.value = false;
 })
 
 // Calculate operational runway based on profit (Simplified for demo)

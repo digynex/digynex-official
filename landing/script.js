@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DigyNex Pricing Logic v3.1 Active");
+  // Safety Reset for Scroll
+  document.body.style.overflow = "auto";
+  document.documentElement.style.overflow = "auto";
   // Product Tab Switching Logic
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
@@ -304,12 +307,24 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.removeChild(link);
   };
 
-  // Close modals on outside click
+  // Close modals on outside click or Escape key
+  const closeAllModals = () => {
+    if (typeof closeLeadModal === "function") closeLeadModal();
+    if (typeof closeDemoModal === "function") closeDemoModal();
+    if (typeof closeLoginModal === "function") closeLoginModal();
+    if (typeof closePartnerModal === "function") closePartnerModal();
+    document.body.style.overflow = "auto";
+  };
+
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal-overlay")) {
-      closeLeadModal();
-      closeDemoModal();
-      closeLoginModal();
+      closeAllModals();
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeAllModals();
     }
   });
 

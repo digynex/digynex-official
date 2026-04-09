@@ -43,8 +43,6 @@
   - Approve බොත්තම එබූ විගස, n8n එකෙන් අර Lead එක කාගේදැයි තහවුරු කරගෙන, **එම තත්පරයේදීම** Database එක තුළ ඇති අලුත්ම API Key එක (`Bearar {{dynamic_token}}`) ලබාගෙන පණිවිඩය යවයි.
   - එනිසා Customer Dashboard එක පැත්තෙන් කරන API වෙනස්කම් ඉබේම Automation Engine එකට Apply වේ.
 
----
-
 ## 2. Omnichannel Human-in-the-Loop (Dual Approval) 📱
 **Client ට විකුණන විදිහ:** "AI එක තනියම මැසේජ් යවලා ලෙඩක් දායි කියලා බයවෙන්න දෙයක් නෑ. AI එක මැසේජ් එක යවන්න කලින්, ඔයාගේ සාක්කුවේ තියෙන ෆෝන් එකට Telegram/WhatsApp එකෙන් AI එක ලියපු මැසේජ් එක එනවා. ඔයා Approve කරොත් විතරක් යවනවා."
 
@@ -54,6 +52,52 @@
   - ඒක Client ගේ Smart Phone එකට (Telegram යෙදුමට) එනවා "Approve", "Regenerate", "Reject" බොත්තම් තුනත් එක්ක.
   - Client "Approve" එබුවොත් විතරක්, CMS එක Update වෙලා Social API එක හරහා ඇත්තම මැසේජ් එක ඔටෝ සෙන්ඩ් වෙනවා.
 - **වාසිය:** CEO ලාට/Directors ලාට ගමනේ යෙදෙන ගමන් (On-the-go) තමන්ගේ විකුණුම් කළමනාකරණය කරන්න පුළුවන්.
+
+---
+
+## 3. Executive Financial Intelligence Vault (Global Ledger) 🌍
+**Client ට විකුණන විදිහ:** "ඔයාගේ බිස්නස් එක රටවල් කීපයක දිව්වත්, අපේ සිස්ටම් එක ඇතුලේ අදාළ රටේ බදු (Tax Policies - eg: Sweden MOMS, SL VAT) ඔටෝම කැල්කියුලේට් වෙනවා. ඒ වගේම AR Aging Tracker එක මඟින් සල්ලි හිරවෙලා තියෙන තැන් 빨තු පාටින් අලර්ට් කරනවා."
+
+- **Feature එක:** Multi-Regional Tax Engine & AR Aging Tracker
+- **ක්‍රියාවලිය:**
+  - Finance Dashboard එකේ "Global Compliance Vault" එකක් තියෙනවා. Client ට පුළුවන් ඒ තත්පරයේ තමන්ගේ transactions වලට අදාල රට/කලාපය (Regional Corridor) තෝරන්න.
+  - අපේ සිස්ටම් එක ඔටෝම අදාල රටේ බදු ප්‍රතිශතය ගහලා Liability එක පෙන්නනවා.
+  - ඊට අමතරව AR (Accounts Receivable) Aging Tracker එකෙන් දවස් 0-30, 31-60, 60-90+ විදිහට සල්ලි හිරවී ඇති ප්‍රමාණයන් පැහැදිලිව වෙනම වර්ණවලින් පෙන්නනවා.
+- **වාසිය:** CFO ලාට (Chief Financial Officers) ඩිජිටල් ඔඩිට් එකක් විදිහට මේක විකුණන්න පුළුවන්.
+
+---
+
+## 4. AI Strategic Sequence Engineering (Sales Nexus) 🧬
+**Client ට විකුණන විදිහ:** "අපේ AI එක නිකන්ම පෝස්ට් දාන්නේ නෑ. ඒක මුලින්ම මාකට් එක (Niche) හොයලා, අදියර 4ක (4-Step Strategy) සැලසුමක් හදලා, ඊට පස්සේ තමයි කෑම්පේන් එක රන් කරන්නේ. මේක හරියට ඔයාගේම ඩිජිටල් මාකටින් ඒජන්සියක් වගේ."
+
+- **Feature එක:** The Viral Intelligence Hub & AI Sequence Modal
+- **ක්‍රියාවලිය:**
+  - Sales Nexus එකේ "Viral Niche Detection" හරහා අලුත්ම ට්‍රෙන්ඩ්ස් ඔටෝම හොයනවා.
+  - Client Lead Generation Modal එක click කළාම, Imagen 4.0, Gemini 1.5, සහ ElevenLabs API පාවිච්චි කරලා කෙරෙන අදියර 4ක කෘතිම බුද්ධි සැලැස්මක් පෙන්වනවා.
+  - Client ට පුළුවන් "Commence Full Run" ඔබලා මේ මුළු Strategy එකම n8n හරහා එක පාර Execute කරන්න.
+- **වාසිය:** මාකටින් ටීම් එකක වැඩ කරන පැය 10ක මහන්සිය එක ක්ලික් එකකට ගේනවා. Marketing Agencies වලට පට්ට Upsell එකක්.
+
+---
+
+## 5. Nexus ROI Intelligence (Project Deep-Dive) 📊
+**Client ට විකුණන විදිහ:** "ඔබේ Project එකේ වියදම කීයද කියලා විතරක් නෙවෙයි, ඒකෙන් ඇත්තටම කීයක වටිනාකමක් (TRV - Total Return Value) ආවද කියලා අපි කියනවා."
+
+- **Feature එක:** Tactical Resource VS Return Analysis
+- **ක්‍රියාවලිය:**
+  - Project Nexus පිටුවේ තියෙන "Nexus ROI Intelligence" tab එකට ගියාම, අදාල project එකට ගිය වියදම (TRC) සහ එයින් ලැබුණු ලාභය/වටිනාකම (TRV) රේඩාර් (Radar) එකක් වගේ පෙන්වනවා.
+  - "Highlight" සහ Conditional Styling පාවිච්චි කරලා පාඩු ලබන projects කහ/රතු පාටින් වෙන් කරලා පෙන්නනවා.
+- **වාසිය:** Management එකට හරියටම Invest කරන සල්ලි වලට මොකද වෙන්නේ කියලා පේනවා.
+
+---
+
+## 6. Enterprise Anti-Piggybacking Framework (SaaS Shield) 🛡️
+**Client ට විකුණන විදිහ:** "අපේ පද්ධතියේ කිසිම ඩේටා එකක් ලීක් වෙන්නේ නෑ. එක කම්පැනියක දත්ත වෙනම 'Tenant Isolation' කියන තාක්ෂණයෙන් තනිකරම වෙන් කරලයි තියෙන්නේ. බැරිවෙලාවත් Hack වෙන්න බෑ."
+
+- **Feature එක:** Advanced SLA & Tenant Deployment Architecture
+- **ක්‍රියාවලිය:**
+  - මේක Base Price + Per User Seat Model එකක් යටතේ Client ට විකුණනවා ($5K, $10K වගේ).
+  - Supabase Auth සහ `tenant_id` පාවිච්චි කරලා, එක Client කෙනෙක්ට එයාලගේ වෙනම "Private Pod" එකක් හදලා දෙනවා. අනිත් අයට ඒකට ඇතුල්වීම තහනම්.
+- **වාසිය:** Enterprise Level Trust. බැංකු, Logistics වගේ ලොකු කම්පැනි වලට අත්‍යවශ්‍යම දෙයක්.
 
 ---
 

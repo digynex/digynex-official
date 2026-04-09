@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/dashboard/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DigyNex 360 | Enterprise Business Suite | Global BI Ecosystem</title>
+    <style>
+      /* Splash Screen Styles (to prevent white flash) */
+      body {
+        background-color: #020617 !important;
+        margin: 0;
+        padding: 0;
+        overflow-y: auto !important;
+      }
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #020617;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+      }
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+      .logo-box {
+        width: 48px;
+        height: 48px;
+        background-color: #2563eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px rgba(37, 99, 235, 0.4);
+      }
+      .logo-text {
+        font-family: 'Inter', sans-serif;
+        color: white;
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: -1px;
+      }
+      .logo-accent {
+        color: #2563eb;
+        font-weight: 300;
+      }
+      .loader-bar {
+        width: 200px;
+        height: 2px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .loader-progress {
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #2563eb, transparent);
+        animation: loading 1.5s infinite ease-in-out;
+      }
+      .loading-text {
+        margin-top: 16px;
+        color: #64748b;
+        font-family: sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+      }
+      @keyframes loading {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(0.98); opacity: 0.9; }
+      }
+      #app:not(:empty) + #splash-screen {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+    </style>
+    <script type="module" crossorigin src="/dashboard/assets/index-CGEjh8Bq.js"></script>
+    <link rel="modulepreload" crossorigin href="/dashboard/assets/TopHeader-CufD4kSq.js">
+    <link rel="modulepreload" crossorigin href="/dashboard/assets/chunk-B3K2TuZy.js">
+    <link rel="stylesheet" crossorigin href="/dashboard/assets/TopHeader-DkgqVrKq.css">
+    <link rel="stylesheet" crossorigin href="/dashboard/assets/index-CSaW9gk0.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+    <!-- Branding Splash Screen (Pre-hydration Loader) -->
+    <div id="splash-screen">
+      <div class="logo-container">
+        <div class="logo-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+        </div>
+        <div class="logo-text">DigyNex<span class="logo-accent">360</span></div>
+      </div>
+      <div class="loader-bar">
+        <div class="loader-progress"></div>
+      </div>
+      <p class="loading-text">Analyzing Business Intelligence Engine...</p>
+    </div>
+
+    <script>
+      // Automatically hide splash screen once Vue takes over
+      window.addEventListener('load', () => {
+        const splash = document.getElementById('splash-screen');
+        setTimeout(() => {
+          splash.style.opacity = '0';
+          splash.style.visibility = 'hidden';
+          // Completely remove from DOM to prevent click interception
+          setTimeout(() => splash.remove(), 500);
+        }, 800);
+      });
+    </script>
+  </body>
+</html>

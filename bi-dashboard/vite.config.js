@@ -4,9 +4,10 @@ import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: '/',
+  base: '/dashboard/',
   build: {
-    outDir: 'dist',
+    outDir: '../landing/dashboard',
+    emptyOutDir: true,
     assetsDir: 'assets',
     sourcemap: false
   }

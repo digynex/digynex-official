@@ -95,24 +95,76 @@
             <p class="text-slate-400 text-sm leading-relaxed font-medium">Asynchronous ETL pipeline processing 10,000+ line-item manifests (CSV/PDF) instantly into your project ledger.</p>
           </div>
 
-          <!-- Feature 2: SCV Audit -->
+          <!-- Feature 2: Strategic Intelligence -->
+          <div @click="openFeature('strategy')" class="bg-primary/10 border-2 border-primary/50 p-8 rounded-2xl hover:bg-primary/20 transition-all group cursor-pointer block no-underline hover:-translate-y-1 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+            <div class="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <TrendingUp class="w-7 h-7 text-primary" />
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Strategic ROI Intelligence</h3>
+            <p class="text-slate-400 text-sm leading-relaxed font-medium">Predictive Sector Simulation. Determine high-margin pivots between Fiber, Tower Maintenance, and Civil Works.</p>
+          </div>
+
+          <!-- Feature 3: SCV Audit -->
           <div @click="openFeature('forecasting')" class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-all group cursor-pointer block no-underline hover:-translate-y-1">
             <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <ShieldCheck class="w-7 h-7 text-accent" />
             </div>
             <h3 class="text-xl font-bold text-white mb-3">SCV Financial Auditing</h3>
-            <p class="text-slate-400 text-sm leading-relaxed font-medium">Strategic Cost Variance tracking. Our AI identifies billing mismatches and profit leaks with immutable transaction logs.</p>
+            <p class="text-slate-400 text-sm leading-relaxed font-medium">Strategic Cost Variance tracking. AI identifies billing leaks and identifies value gaps in your subcontractor payouts.</p>
           </div>
 
-          <!-- Feature 3: Sovereignty -->
-          <div @click="openFeature('alerts')" class="bg-white/5 border border-white/10 p-8 rounded-2xl hover:bg-white/10 transition-all group cursor-pointer block no-underline hover:-translate-y-1">
-            <div class="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Lock class="w-7 h-7 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Strategic Intelligence Hub Section -->
+    <section class="py-24 bg-[#020817] relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="p-12 rounded-3xl bg-gradient-to-br from-primary/10 via-slate-900 to-accent/5 border border-white/10 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-10 opacity-10">
+            <i class="fa-solid fa-brain text-9xl"></i>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div class="text-primary font-black uppercase text-xs tracking-widest mb-4">Nexus Intelligence Hub</div>
+              <h2 class="text-3xl md:text-5xl font-black text-white mb-6">Strategic Audit & <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-primary">Decision Intelligence.</span> 💡</h2>
+              <p class="text-slate-400 text-lg mb-8">
+                Ready to find your next double-digit margin? The $5,000 Strategic Audit portal allows you to simulate ROI across different business sectors automatically using Gemini-driven logic.
+              </p>
+              <div class="flex flex-wrap gap-4">
+                <button class="px-8 py-3 bg-primary text-white rounded-lg font-black shadow-lg shadow-primary/20 hover:scale-105 transition-transform flex items-center gap-2">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i> Start Strategic Audit
+                </button>
+                <button class="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-lg font-bold hover:bg-white/10 transition-all">
+                  View Demo Simulator
+                </button>
+              </div>
             </div>
-            <h3 class="text-xl font-bold text-white mb-3">Operational Sovereignty</h3>
-            <p class="text-slate-400 text-sm leading-relaxed font-medium">On-Premise Docker deployment. Your data never leaves your infrastructure. 100% GDPR & Strategic Isolation.</p>
+            <div class="bg-black/40 rounded-2xl border border-white/10 p-6 backdrop-blur-md">
+              <div class="flex items-center justify-between mb-6">
+                <div class="text-sm font-bold text-slate-300">Live Simulation: Sector Profitability</div>
+                <div class="text-[10px] text-green-500 font-bold bg-green-500/10 px-2 py-1 rounded">ACTIVE INTELLIGENCE</div>
+              </div>
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <div class="flex justify-between text-xs font-bold"><span class="text-slate-400">Fiber Maintenance</span> <span class="text-white">12% Margin</span></div>
+                  <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-slate-400 h-full w-[12%]"></div></div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between text-xs font-bold"><span class="text-primary font-black">Tower Maintenance</span> <span class="text-white">28% Margin (Suggested)</span></div>
+                  <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-primary h-full w-[28%]"></div></div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between text-xs font-bold"><span class="text-accent">Civil Infrastructure</span> <span class="text-white">35% Margin (High Risk)</span></div>
+                  <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-accent h-full w-[35%]"></div></div>
+                </div>
+              </div>
+              <div class="mt-6 pt-6 border-t border-white/5 text-[10px] text-slate-500 italic">
+                *Simulations based on industry benchmarks and current operational velocity.
+              </div>
+            </div>
           </div>
-
         </div>
       </div>
     </section>
