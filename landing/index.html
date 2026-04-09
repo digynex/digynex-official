@@ -46,7 +46,6 @@
         <div class="nav-right">
           <ul class="nav-links">
             <li><a href="#home">Home</a></li>
-            <li><a href="360.html" class="gold-text font-bold">360 Enterprise</a></li>
             <li><a href="#products">Products</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#services">Services</a></li>
@@ -458,16 +457,18 @@
                   <small class="starting-label">Starting at</small>
                   <span class="currency" id="starter-currency">$</span>
                   <span class="amount" id="starter-price">199</span>
-                  <small class="billing-period">/mo</small>
+                  <small class="billing-period" id="starter-billing">/mo</small>
                 </div>
                 <p class="p-desc">Essential digital presence & automation for small scale.</p>
                 <div class="setup-fee">Phase 2 Setup: <span id="starter-setup">75,000 LKR</span></div>
               </div>
               <ul class="p-features">
+                <li><i class="fa-solid fa-circle-check"></i> High-Performance Landing Suite</li>
                 <li><i class="fa-solid fa-circle-check"></i> Standard Automation Workflows</li>
                 <li><i class="fa-solid fa-circle-check"></i> Multi-Platform Social CMS</li>
                 <li><i class="fa-solid fa-circle-check"></i> WhatsApp Alert Integration</li>
-                <li><i class="fa-solid fa-circle-check"></i> Basic Operational Registry</li>
+                <li><i class="fa-solid fa-circle-check"></i> Professional Technical Support</li>
+                <li><i class="fa-solid fa-circle-check"></i> Basic Operational Data Vault</li>
               </ul>
               <div class="p-footer">
                 <button onclick="openLeadModal('Nexus Lite')" class="btn btn-outline full-width">Inquire Now</button>
@@ -483,16 +484,18 @@
                   <small class="starting-label">Starting at</small>
                   <span class="currency" id="growth-currency">$</span>
                   <span class="amount" id="growth-price">999</span>
-                  <small class="billing-period">/mo</small>
+                  <small class="billing-period" id="growth-billing">/mo</small>
                 </div>
                 <p class="p-desc">The Complete 360 Operating System for Growth.</p>
                 <div class="setup-fee text-gold">Phase 2 Setup: <span id="growth-setup">150,000 LKR</span></div>
               </div>
               <ul class="p-features">
                 <li><i class="fa-solid fa-circle-check gold-text"></i> Full 360 BI Dashboard Suite</li>
-                <li><i class="fa-solid fa-circle-check gold-text"></i> Financial Intelligence Vault</li>
-                <li><i class="fa-solid fa-circle-check gold-text"></i> Full Social Nexus Automation</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Financial Intelligence Oracle</li>
                 <li><i class="fa-solid fa-circle-check gold-text"></i> AI Sequential Marketing Agent</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Full Social Nexus Automation</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Advanced Lead Scoring Matrix</li>
+                <li><i class="fa-solid fa-circle-check gold-text"></i> Multi-Channel CRM Sync</li>
               </ul>
               <div class="p-footer">
                 <button onclick="openLeadModal('Nexus Pro 360')" class="btn btn-gold full-width">Get Started</button>
@@ -504,17 +507,22 @@
               <div class="p-header">
                 <span class="p-tier uppercase tracking-widest text-white">Nexus Global Elite</span>
                 <div class="p-price">
-                  <span class="amount" style="font-size: 1.8rem;">CUSTOM SLA</span>
-                  <small class="billing-period">PER QUOTE</small>
+                  <span class="currency" id="scale-currency"></span>
+                  <span class="amount" id="scale-price" style="font-size: 1.8rem;">CUSTOM SLA</span>
+                  <small class="billing-period" id="scale-billing">PER QUOTE</small>
                 </div>
                 <p class="p-desc">Bespoke Sovereign AI Infrastructure for Corporations.</p>
                 <div class="setup-fee">Phase 1 Strategic Audit: <span id="scale-setup">Contact Us</span></div>
               </div>
               <ul class="p-features">
-                <li><i class="fa-solid fa-circle-check"></i> Phase 1: High-Ticket Strategic Audit ($5,000 value)</li>
-                <li><i class="fa-solid fa-circle-check"></i> Phase 2: Core Sovereign System Setup</li>
-                <li><i class="fa-solid fa-circle-check"></i> Phase 3: Monthly Operational Retainer</li>
-                <li><i class="fa-solid fa-circle-check"></i> Phase 4: Custom Expansion & Connectors</li>
+                <li><i class="fa-solid fa-circle-check"></i> Phase 1: High-Ticket Strategic Audit ($5,000 Value)</li>
+                <li><i class="fa-solid fa-circle-check"></i> Phase 2: Core Sovereign System Architecture</li>
+                <li><i class="fa-solid fa-circle-check"></i> Phase 3: Operational Retainer & AI Deep Tuning</li>
+                <li><i class="fa-solid fa-circle-check"></i> Phase 4: Custom Expansion & Logic Connectors</li>
+                <li><i class="fa-solid fa-circle-check"></i> Multi-Tenancy Tenant Data Isolation</li>
+                <li><i class="fa-solid fa-circle-check"></i> Sovereign On-Premise Cloud Pods</li>
+                <li><i class="fa-solid fa-circle-check"></i> 24/7 Priority Strategic AI Support</li>
+                <li><i class="fa-solid fa-circle-check"></i> Institutional Data Sovereignty Guarantee</li>
               </ul>
               <div class="p-footer">
                 <button onclick="openLeadModal('Enterprise Elite Custom Quote')" class="btn btn-outline full-width">Inquire for Scale</button>
@@ -543,10 +551,10 @@
               <table class="comparison-table">
                 <thead>
                   <tr>
-                    <th>Capabilites</th>
-                    <th>Starter</th>
-                    <th>Growth</th>
-                    <th>Scale</th>
+                    <th>Capabilities</th>
+                    <th>Nexus Lite</th>
+                    <th>Nexus Pro 360</th>
+                    <th>Global Elite</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -554,7 +562,7 @@
                     <td>Active Profile Limit</td>
                     <td>100</td>
                     <td>500</td>
-                    <td>2,000</td>
+                    <td><span class="gold-text">Unlimited</span></td>
                   </tr>
                   <tr>
                     <td>BI Dashboards</td>
@@ -566,7 +574,7 @@
                     <td>AI Agent</td>
                     <td>Basic Insights</td>
                     <td><span class="gold-text">Nexus Agent</span></td>
-                    <td><span class="gold-text">Custom Agent</span></td>
+                    <td><span class="gold-text">Sovereign Model</span></td>
                   </tr>
                   <tr>
                     <td>Bulk Ingest ETL Interface</td>
@@ -597,6 +605,30 @@
                     <td><i class="fa-solid fa-xmark text-grey"></i></td>
                     <td><i class="fa-solid fa-xmark text-grey"></i></td>
                     <td><i class="fa-solid fa-check text-green"></i></td>
+                  </tr>
+                  <tr>
+                    <td>Data Sovereignty</td>
+                    <td>Shared Cloud</td>
+                    <td>Shared Cloud</td>
+                    <td><span class="gold-text">Isolated Tenant</span></td>
+                  </tr>
+                  <tr>
+                    <td>API Rate Limits</td>
+                    <td>100 req/min</td>
+                    <td>1,000 req/min</td>
+                    <td><span class="gold-text">Unlimited / Dedicated</span></td>
+                  </tr>
+                  <tr>
+                    <td>Audit Logs & Compliance</td>
+                    <td><i class="fa-solid fa-xmark text-grey"></i></td>
+                    <td>30-Day History</td>
+                    <td><span class="gold-text">Full Forensic Logs</span></td>
+                  </tr>
+                  <tr>
+                    <td>Technical Support</td>
+                    <td>Email (Standard)</td>
+                    <td>Priority Support</td>
+                    <td><span class="gold-text">24/7 Dedicated Lead</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -669,36 +701,40 @@
           <div class="services-grid">
             <div class="service-card">
               <div class="service-icon">
-                <i class="fa-solid fa-laptop-medical"></i>
+                <i class="fa-solid fa-screwdriver-wrench"></i>
               </div>
-              <h3>IT Support & Repairs</h3>
+              <h3>Precision IT Repair</h3>
               <p>
-                Professional restoration for computers, phones, and tablets. We explain clearly — no technical jargon.
+                Specialized hardware diagnostics and restoration for corporate
+                infrastructure and high-end workstations.
               </p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="fa-solid fa-shield-halved"></i>
               </div>
-              <h3>Secure Ecosystems</h3>
+              <h3>Cyber Security</h3>
               <p>
-                Calm and reliable cyber security, email protection, and data backup for homes and small businesses.
+                Military-grade encryption and proactive threat monitoring to
+                safeguard your institutional data assets.
               </p>
             </div>
             <div class="service-card">
               <div class="service-icon">
-                <i class="fa-solid fa-network-wired"></i>
+                <i class="fa-solid fa-cloud-arrow-up"></i>
               </div>
-              <h3>Network & WiFi Setup</h3>
+              <h3>Cloud Engineering</h3>
               <p>
-                Optimized installation for fast and stable internet throughout your home or business premise.
+                Scalable cloud architecture setup and migration services
+                optimized for performance and cost-efficiency.
               </p>
             </div>
             <div class="service-card">
-              <div class="service-icon"><i class="fa-solid fa-video"></i></div>
-              <h3>CCTV & Smart Home</h3>
+              <div class="service-icon"><i class="fa-solid fa-brain"></i></div>
+              <h3>AI Integration</h3>
               <p>
-                Advanced security camera installation and smart home integration with full ongoing support.
+                Custom neural networks and automation workflows tailored to
+                optimize your business logic.
               </p>
             </div>
           </div>
@@ -722,10 +758,10 @@
             <span class="badge">The DigyNex Mission</span>
             <h2>Architecting a <span class="gold-text">Smarter World</span></h2>
             <p>
-              With over 18 years of hands-on expertise, DigyNex has
+              Founded on the principle of digital excellence, DigyNex has
               evolved from a boutique IT firm into a global ecosystem provider.
-              We provide calm, reliable help for homes, seniors, and small businesses, while
-              architecting the digital future for large corporations.
+              We don't just build software; we architect the future of how
+              businesses interact with technology.
             </p>
             <div class="stats-grid">
               <div class="stat-item">

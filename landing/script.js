@@ -537,17 +537,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const priceEl = document.getElementById(`${tier}-price`);
       const curEl = document.getElementById(`${tier}-currency`);
       const setupEl = document.getElementById(`${tier}-setup`);
+      const billingCycleEl = document.getElementById(`${tier}-billing`);
       
       if (priceEl) {
-        let monthlyPrice = config[tier];
-        let displayPrice = isYearly ? Math.floor(monthlyPrice * 0.8) : monthlyPrice;
+        let rawPrice = config[tier];
         
-        if (config.currency === "SEK") {
-           priceEl.innerText = `${displayPrice.toLocaleString()} kr`;
-           if (curEl) curEl.innerText = ""; 
+        if (typeof rawPrice === 'number') {
+          let displayPrice = isYearly ? Math.floor(rawPrice * 0.8) : rawPrice;
+          
+          if (config.currency === "SEK") {
+            priceEl.innerText = `${displayPrice.toLocaleString()} kr`;
+            if (curEl) curEl.innerText = ""; 
+          } else {
+            priceEl.innerText = displayPrice.toLocaleString();
+            if (curEl) curEl.innerText = config.currency === "USD" ? "$" : config.currency;
+          }
+          if (billingCycleEl) billingCycleEl.style.display = "block";
         } else {
-           priceEl.innerText = displayPrice.toLocaleString();
-           if (curEl) curEl.innerText = config.currency === "USD" ? "$" : config.currency;
+          // Handle string prices like "Custom SLA"
+          priceEl.innerText = rawPrice;
+          if (curEl) curEl.innerText = "";
+          if (billingCycleEl) billingCycleEl.style.display = "none";
         }
 
         if (setupEl) setupEl.innerText = config.setup[tier];
