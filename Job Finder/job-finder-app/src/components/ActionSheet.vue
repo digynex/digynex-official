@@ -10,19 +10,21 @@ const props = defineProps({
   title: {
     type: String,
     default: 'Quick Actions'
+  },
+  actions: {
+    type: Array,
+    default: () => [
+      { id: 'save', label: 'Save Job', icon: Bookmark, color: 'text-[#C1A172]' },
+      { id: 'share', label: 'Share Link', icon: Share2, color: 'text-blue-400' },
+      { id: 'hide', label: 'Hide Match', icon: EyeOff, color: 'text-gray-400' },
+      { id: 'report', label: 'Report AI Error', icon: AlertTriangle, color: 'text-red-400' }
+    ]
   }
 })
 
 const emit = defineEmits(['close', 'onAction'])
 
 const activeAction = ref(null)
-
-const actions = [
-  { id: 'save', label: 'Save Job', icon: Bookmark, color: 'text-[#C1A172]' },
-  { id: 'share', label: 'Share Link', icon: Share2, color: 'text-blue-400' },
-  { id: 'hide', label: 'Hide Match', icon: EyeOff, color: 'text-gray-400' },
-  { id: 'report', label: 'Report AI Error', icon: AlertTriangle, color: 'text-red-400' }
-]
 
 const handleAction = async (id) => {
     activeAction.value = id;

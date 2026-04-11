@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Pure - Surgical Stealth Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        @page { margin: 0; size: A4; }
+        body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; background-color: #f8fafc; color: #111; line-height: 1.5; }
+        .page { width: 210mm; min-height: 297mm; padding: 12mm 20mm; margin: 20px auto; background: white; position: relative; box-shadow: 0 40px 80px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
+        .serif { font-family: 'Crimson Pro', serif; }
+        
+        /* STEALTH LAYERED DIVIDER */
+        .stealth-divider-container { position: relative; margin: 25px 0; padding: 0; line-height: 0; height: 1.5px; }
+        .stealth-keywords { color: #64748b; font-size: 0.1pt; letter-spacing: -0.5px; position: absolute; top: 0; left: 0; user-select: none; pointer-events: none; white-space: nowrap; overflow: hidden; width: 100%; z-index: 1; opacity: 1; }
+        .visible-line { border: none; border-top: 1px solid #64748b; margin: 0; padding: 0; position: relative; z-index: 2; }
+
+        h2 { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 20px; color: #64748b; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+        p, li { font-size: 11px; line-height: 1.6; color: #334155; text-align: justify; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 150px; font-weight: 900; color: rgba(0, 0, 0, 0.02); pointer-events: none; z-index: 50; text-transform: uppercase; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="page text-left">
+        <div class="watermark">SAMPLE COPY</div>
+        <header class="mb-10 text-left border-b-2 border-slate-50 pb-8 flex items-center">
+            <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm flex-shrink-0"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Amila" alt="P" class="w-full h-full object-cover"></div>
+            <div class="ml-8">
+                <h1 class="text-4xl font-black tracking-tighter text-[#111] uppercase mb-1 leading-none">AMILA PERERA</h1>
+                <p class="text-slate-400 font-extrabold text-xs tracking-widest uppercase">Senior Project Manager</p>
+                <div class="mt-4 text-[9.5px] font-bold text-slate-400 uppercase tracking-widest">Stockholm, SE | amilawijayantha858@gmail.com | +46 76 970 3311</div>
+            </div>
+        </header>
+
+        <section class="section-block"><p class="serif text-[16px] leading-relaxed text-slate-800 italic font-medium">Over 15 years experience in project consulting and management within the telecommunication sector.</p></section>
+
+        <div class="stealth-divider-container">
+            <div class="stealth-keywords">PROJECT MANAGER TELECOM 5G PMP SWEDEN ARTHA TESHAN DIALOG PMO AI CLOUD PYTHON JAVA SCRUM AGILE NFV SDN CORE NETWORK</div>
+            <hr class="visible-line">
+        </div>
+
+        <section class="section-block">
+            <h2>Experience</h2>
+            <div>
+                <div class="flex justify-between items-baseline mb-1 uppercase font-black"><h3>Project Manager</h3><span class="text-[9px] font-mono text-slate-300 tracking-tighter">2021 — PRESENT</span></div>
+                <p class="text-[11px] font-bold text-slate-500 mb-2 italic uppercase font-mono">Artha Engineering</p>
+                <ul class="list-disc pl-5 serif text-[14.5px] text-slate-700"><li>Manage project objectives, scope, and deliverables for key infrastructure projects.</li></ul>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <h2>Linguistic Matrix</h2>
+            <div class="flex gap-12 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><span>English (Expert)</span><span>Sinhala (Native)</span></div>
+        </section>
+
+        <footer class="mt-auto border-t-2 border-slate-50 pt-10 text-center serif text-[11px] italic text-slate-400 font-extrabold uppercase tracking-widest">Info provided is true and correct.</footer>
+    </div>
+</body>
+</html>

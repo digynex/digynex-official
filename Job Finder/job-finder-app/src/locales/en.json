@@ -6,6 +6,10 @@
     "progress": "Your Progress Overview",
     "globalSuite": "Global Suite"
   },
+  "auth": {
+    "signup": "Join",
+    "login": "Login"
+  },
   "stats": {
     "activeApps": "Active Apps",
     "aiMatches": "AI Matches",
@@ -34,7 +38,8 @@
   },
   "analytics": {
     "topMatches": "Top Job Matches",
-    "skillGap": "Skill Gap Analysis"
+    "skillGap": "Skill Gap Analysis",
+    "updateProfile": "Recalibrate Skill Profile"
   },
   "apps": {
     "title": "Active Submissions",

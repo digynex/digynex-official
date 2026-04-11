@@ -26,8 +26,10 @@ We pass the extracted JSON to the **Google Gemini Node**.
 ### Step 3: LaTeX Compilation via Gotenberg
 The Clean JSON is passed into an **HTML/LaTeX Template Node**.
 - We use predefined elite templates (e.g., "Alex Master Sync V6.0 Minimalist").
-- n8n sends a POST request with the rendered template (or `tex` file) to a **Gotenberg** Docker instance.
-- Gotenberg compiles the PDF and returns the binary stream.
+- **Intelligence Formatting Rules**:
+  - **Block Persistence**: Wrap each role entry in a `minipage` to prevent data being split across pages.
+  - **Stealth Keyword Injection**: Injected a 1px "Separator Line" composed of ultra-fine, black-colored keywords to maximize ATS density while maintaining a professional design aesthetic.
+- n8n sends a POST request with the rendered template to a **Gotenberg** Docker instance to compile the final high-fidelity PDF.
 
 ### Step 4: Storage & UI Response
 - The generated PDF is saved to **Supabase Storage** under the user's unique path (`user_id/cv/latest.pdf`).

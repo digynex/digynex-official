@@ -39,7 +39,7 @@ const emit = defineEmits(['close'])
            </div>
            <!-- Logo Unit -->
            <div class="w-20 h-20 rounded-[1.8rem] shadow-2xl flex items-center justify-center border-2 border-white/20 relative z-10 scale-110" :style="{ backgroundColor: job.color || '#0A2647' }">
-              <Briefcase class="w-10 h-10 text-white" />
+              <component :is="job.icon || Briefcase" class="w-10 h-10 text-white" />
            </div>
            <!-- Close Button -->
            <button @click="emit('close')" class="absolute top-6 right-6 p-2 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white hover:bg-white/10 transition-all">

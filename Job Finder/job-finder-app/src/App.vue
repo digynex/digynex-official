@@ -11,6 +11,7 @@ import {
   Briefcase, 
   Zap,
   Globe,
+  Cloud,
   ChevronDown,
   Stars,
   SlidersHorizontal,
@@ -18,7 +19,16 @@ import {
   Sparkles,
   Check,
   Mic,
-  Linkedin
+  Linkedin,
+  DownloadCloud,
+  RefreshCw,
+  BarChart3,
+  UserPlus,
+  Bookmark,
+  Share2,
+  EyeOff,
+  AlertTriangle,
+  ShieldCheck
 } from 'lucide-vue-next'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -34,6 +44,7 @@ const currentLang = ref('EN')
 const isLangOpen = ref(false)
 const quickLangs = ['EN', 'DE', 'SW']
 const langContainer = ref(null)
+const searchQuery = ref('') // Mission-critical state for global filtering
 
 const otherLangs = [
   { name: 'Français', code: 'FR' },
@@ -54,6 +65,43 @@ const otherLangs = [
 ]
 
 const activeTab = ref('dashboard')
+const selectedPipelineStep = ref('applied')
+
+const allJobs = ref([
+  {c: 'TechCorp', r: 'Senior Scientist', s: '80%', d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', m: 80, desc: 'Lead our AI discovery division at high-scale.', step: 'applied'}, 
+  {c: 'Innovate', r: 'Product Manager', s: '50%', d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', m: 50, desc: 'Directing the next-gen SaaS product roadmap.', step: 'review'}, 
+  {c: 'Techwork', r: 'Senior Scientist', s: '60%', d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', m: 60, desc: 'Neural engineering and cloud-native optimization.', step: 'interview'},
+  {c: 'Spotify', r: 'Lead Dev', s: '92%', d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', m: 92, desc: 'Scaling global audio intelligence.', step: 'offer'},
+  {c: 'Google', r: 'AI Architect', s: '88%', d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', m: 88, desc: 'Next-gen LLM optimization.', step: 'applied'},
+  {c: 'Tesla', r: 'Autopilot Eng', s: '75%', d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', m: 75, desc: 'Real-time vision systems.', step: 'applied'},
+  {c: 'Amazon', r: 'Cloud Lead', s: '82%', d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', m: 82, desc: 'Scaling AWS core infrastructure.', step: 'applied'}
+])
+
+const filteredJobs = computed(() => {
+    let result = allJobs.value;
+    // Strictly filter by step to match the UI indicator boxes
+    result = result.filter(j => j.step === selectedPipelineStep.value);
+    
+    if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase();
+        result = result.filter(j => j.c.toLowerCase().includes(q) || j.r.toLowerCase().includes(q));
+    }
+    return result;
+})
+
+const filteredMatches = computed(() => {
+    let result = matches.value;
+    if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase();
+        result = result.filter(m => m.company.toLowerCase().includes(q) || m.title.toLowerCase().includes(q));
+    }
+    return result;
+})
+
+const getStepCount = (step) => {
+    return allJobs.value.filter(j => j.step === step).length
+}
+
 const showCountrySelector = ref(false)
 const countrySearch = ref('')
 const selectedCountriesArr = ref(['Sweden', 'Germany', 'Norway', 'Finland', 'Denmark'])
@@ -204,12 +252,15 @@ const onManualFinalize = () => {
    }
 }
 
+const isSyncingManual = ref(false)
+const isRecalibrating = ref(false)
+
 const isAuthenticated = ref(false)
 const isAuthOpen = ref(false)
 const authMode = ref('login')
 const userProfile = ref({
     email: '',
-    name: 'Expert'
+    name: 'Amila'
 })
 
 const fetchUserProfile = async () => {
@@ -254,14 +305,101 @@ const openJobDetail = (job) => {
     isJobDetailOpen.value = true;
 }
 
+// Action Sheet Logic
+const actionSheetTitle = ref('')
 const isActionSheetOpen = ref(false)
-const openActionSheet = (title) => {
+const activeActions = ref([])
+
+const trackingActions = [
+    { id: 'export', label: 'Export Summary', icon: DownloadCloud, color: 'text-blue-400' },
+    { id: 'sync', label: 'Sync Pipeline', icon: RefreshCw, color: 'text-[#73BBA3]' },
+    { id: 'archive', label: 'Archive Completed', icon: EyeOff, color: 'text-gray-400' }
+]
+
+const analyticsActions = [
+    { id: 'insights', label: 'Full Market Insights', icon: BarChart3, color: 'text-[#C1A172]' },
+    { id: 'skills', label: 'Update Skill Profile', icon: UserPlus, color: 'text-blue-400' },
+    { id: 'recalibrate', label: 'AI Re-Calibration', icon: Zap, color: 'text-purple-400' }
+]
+
+const searchFilters = [
+    { id: 'date', label: 'Filter by Date', icon: FileText, color: 'text-blue-400' },
+    { id: 'relevance', label: 'Most Relevant', icon: Sparkles, color: 'text-[#C1A172]' },
+    { id: 'company', label: 'By Company Name', icon: Briefcase, color: 'text-gray-400' }
+]
+
+const openActionSheet = (title, type) => {
+    actionSheetTitle.value = title;
+    if (type === 'tracking') activeActions.value = trackingActions;
+    else if (type === 'analytics') activeActions.value = analyticsActions;
+    else activeActions.value = searchFilters;
     isActionSheetOpen.value = true;
 }
 
-
 const countriesContainer = ref(null)
 const sliderProgress = ref(0)
+
+// Real Engine Action Handlers
+const showToast = ref(false)
+const toastMessage = ref('')
+
+const handleDashboardAction = async (actionId) => {
+    console.log(`[DIGYNEX ENGINE] Triggering: ${actionId}`);
+    
+    if (actionId === 'skills') {
+        isActionSheetOpen.value = false;
+        isManualFormOpen.value = true;
+        return;
+    }
+
+    if (actionId === 'insights') {
+        activeTab.value = 'matches';
+        toastMessage.value = 'Analyzing real-time market trends...';
+        showToast.value = true;
+        setTimeout(() => { showToast.value = false }, 3000);
+        return;
+    }
+
+    if (actionId === 'recalibrate') {
+        isRecalibrating.value = true;
+        toastMessage.value = 'AI Engine: Recalibrating Neural Vectors...';
+        showToast.value = true;
+        
+        // n8n Webhook / Supabase Edge Function Call
+        try {
+            /* 
+              await fetch('https://your-n8n-instance.com/webhook/recalibrate', { 
+                 method: 'POST', 
+                 body: JSON.stringify({ userId: userProfile.value.email, timestamp: new Date() }) 
+              }); 
+            */
+            await new Promise(r => setTimeout(r, 2500));
+            toastMessage.value = 'Sync Complete: Profile Optimized';
+        } finally {
+            isRecalibrating.value = false;
+            setTimeout(() => { showToast.value = false }, 3000);
+        }
+        return;
+    }
+
+    // Generic Action Wrapper for n8n/Supabase Logging
+    toastMessage.value = `Dispatching Signal: ${actionId}...`;
+    showToast.value = true;
+    
+    try {
+        // Log event to Supabase for analytics
+        if (isAuthenticated.value) {
+           await supabase.from('user_activity').insert([{ action: actionId, user_id: userProfile.value.email }]);
+        }
+        
+        await new Promise(res => setTimeout(res, 1500));
+        toastMessage.value = `Success: Action Synced`;
+    } catch (err) {
+        console.error('Engine Link Error');
+    } finally {
+        setTimeout(() => { showToast.value = false }, 2000);
+    }
+}
 
 const handleScroll = (e) => {
   const el = e.target
@@ -299,7 +437,8 @@ onUnmounted(() => {
        - GOLD BRANDING (PRISTINE)
        - NARROW SLIM NAV BAR (BOTTOM-4)
     -->
-    <main class="w-full max-w-[360px] h-[800px] bg-[#0A2647] relative z-10 flex flex-col border border-white/10 rounded-[3.8rem] ring-1 ring-white/20 shadow-[0_80px_160px_rgba(0,0,0,0.7)] overflow-hidden">
+    <main :dir="locale === 'AR' ? 'rtl' : 'ltr'" 
+          class="w-full max-w-[360px] h-[800px] bg-[#0A2647] relative z-10 flex flex-col border border-white/10 rounded-[3.8rem] ring-1 ring-white/20 shadow-[0_80px_160px_rgba(0,0,0,0.7)] overflow-hidden transition-all duration-500">
         
        <!-- DASHBOARD VIEW -->
        <div v-if="activeTab === 'dashboard'" class="flex flex-col h-full overflow-hidden">
@@ -376,9 +515,9 @@ onUnmounted(() => {
          </header>
  
         <!-- Identity Hub (REDUCED 5PX SPACE) -->
-         <div class="flex justify-between items-center mt-[5px] w-full px-1 font-jakarta">
+         <div class="flex justify-between items-center mt-[5px] w-full px-1 font-jakarta transition-all duration-1000" :class="isRecalibrating ? 'scale-[1.02] blur-[1px]' : ''">
            <h1 class="text-[24px] font-bold text-white tracking-tight leading-none pt-2 font-jakarta">
-              {{ isAuthenticated ? `Welcome, ${userProfile.name.split(' ')[0]}` : t('header.welcome') }}
+              <span :class="isRecalibrating ? 'animate-pulse text-[#C1A172]' : 'neural-glow'">{{ userProfile.name === 'Expert' ? t('header.welcome') : `Welcome, ${userProfile.name}` }}</span>
            </h1>
           <div class="flex items-center gap-3">
             <div class="relative cursor-pointer hover:scale-110 transition-all group">
@@ -404,7 +543,7 @@ onUnmounted(() => {
 
         <!-- Stats Linear Grid -->
         <div class="mt-2 grid grid-cols-[1fr_.5px_1fr_.5px_1fr] items-end px-1 gap-1 pb-1">
-          <div class="flex flex-col items-start translate-x-1">
+          <div class="flex flex-col items-center">
              <p class="text-[8.5px] font-bold text-white/40 mb-2 leading-none uppercase tracking-[0.05em]">{{ t('stats.activeApps') }}</p>
              <p class="text-[22px] font-black text-white leading-none tracking-tighter">14</p>
           </div>
@@ -414,9 +553,9 @@ onUnmounted(() => {
              <p class="text-[22px] font-black text-white leading-none tracking-tighter shadow-2xl">08</p>
           </div>
           <div class="h-6 w-[0.5px] bg-white/10 mb-0.5"></div>
-          <div class="flex flex-col items-end -translate-x-1">
-             <p class="text-[8.5px] font-black text-white/40 mb-2 leading-none uppercase tracking-[0.05em] text-right font-jakarta">{{ t('stats.skillScore') }}</p>
-             <p class="text-[22px] font-black text-white leading-none tracking-tighter text-right font-jakarta">88%</p>
+          <div class="flex flex-col items-center">
+             <p class="text-[8.5px] font-black text-white/40 mb-2 leading-none uppercase tracking-[0.05em] text-center font-jakarta">{{ t('stats.skillScore') }}</p>
+             <p class="text-[22px] font-black text-white leading-none tracking-tighter text-center font-jakarta">88%</p>
           </div>
         </div>
 
@@ -429,25 +568,26 @@ onUnmounted(() => {
              <!-- Header Heading -->
              <div class="flex justify-between items-center mb-0.5 px-1 font-jakarta">
                 <span class="text-[9.5px] font-black text-[#0A2647]/55 uppercase tracking-[0.2em] leading-none font-jakarta">{{ t('sections.tracking') }}</span>
-                <div @click.stop="openActionSheet('Tracking Actions')" class="flex items-center cursor-pointer opacity-30 hover:opacity-100 transition-all font-jakarta p-1">
+                <button @click.stop="openActionSheet('Tracking Actions', 'tracking')" class="relative z-50 flex items-center justify-center cursor-pointer opacity-30 hover:opacity-100 hover:bg-black/5 transition-all font-jakarta p-2 -mr-2 rounded-full border border-transparent hover:border-black/5 active:scale-90">
                    <MoreHorizontal class="w-[18px] h-[18px] text-[#0A2647]" />
-                </div>
+                </button>
              </div>
 
-             <!-- PIPELINE GEOMETRIC SYNC (V5.7 NAVY SYNC) -->
-             <div class="flex items-center justify-between gap-0.5 mb-2.5 px-1 relative font-jakarta">
-                <template v-for="(v, l, i) in {applied: 4, review: 6, interview: 3, offer: 1}" :key="l">
+             <!-- PIPELINE GEOMETRIC SYNC (CENTRALIZED V6.5) -->
+             <div class="flex items-center justify-center gap-1.5 mb-2.5 px-0.5 relative font-jakarta">
+                <template v-for="(v, l, i) in {applied: 'applied', review: 'review', interview: 'interview', offer: 'offer'}" :key="l">
                    <!-- Individual Packed Box -->
-                   <div :class="i === 0 
-                        ? 'bg-gradient-to-b from-[#60A5FA]/90 via-[#0A2647] to-[#60A5FA]/90 text-white shadow-[0_12px_24px_rgba(10,38,71,0.5)] ring-1 ring-white/30' 
+                   <div @click="selectedPipelineStep = v"
+                        :class="selectedPipelineStep === v 
+                        ? 'bg-gradient-to-b from-[#60A5FA]/90 via-[#0A2647] to-[#60A5FA]/90 text-white shadow-[0_12px_24px_rgba(10,38,71,0.5)] ring-1 ring-white/30 scale-100' 
                         : 'bg-[#FDFDFD] border border-black/[0.04] shadow-[0_6px_14px_rgba(0,0,0,0.06)] text-[#0A2647]'"
-                        class="w-[68px] h-[50px] rounded-[0.8rem] flex flex-col items-center justify-center transition-all cursor-pointer relative z-10 active:scale-95 flex-none font-jakarta">
-                       <span class="text-[7.2px] font-bold uppercase mb-0.5 tracking-tighter leading-none" :class="i === 0 ? 'opacity-80' : 'opacity-35'">{{ t('pipeline.' + l) }}</span>
-                       <span class="text-[19px] font-black leading-none font-jakarta">{{v}}</span>
+                        class="w-[60px] h-[46px] rounded-[0.8rem] flex flex-col items-center justify-center transition-all cursor-pointer relative z-10 active:scale-95 flex-none font-jakarta">
+                       <span class="text-[6.8px] font-bold uppercase mb-0.5 tracking-tighter leading-none" :class="selectedPipelineStep === v ? 'opacity-80' : 'opacity-35'">{{ t('pipeline.' + l) }}</span>
+                       <span class="text-[17px] font-black leading-none font-jakarta">{{ getStepCount(v) }}</span>
                    </div>
-                   <!-- Link Arrow -->
-                   <div v-if="i < 3" class="flex-1 flex items-center justify-center font-jakarta">
-                      <ArrowRight class="w-2.5 h-2.5 text-[#2C74B3] opacity-35 transition-all" />
+                   <!-- Link Arrow (Surgical Precision) -->
+                   <div v-if="i < 3" class="flex items-center justify-center font-jakarta px-0">
+                      <ArrowRight class="w-1.5 h-1.5 text-[#2C74B3] opacity-25" />
                    </div>
                 </template>
              </div>
@@ -460,11 +600,12 @@ onUnmounted(() => {
                 <span class="text-[7.8px] font-black text-black/25 uppercase leading-none text-right font-jakarta">{{ t('table.date') }}</span>
              </div>
 
-             <!-- JOB ROWS (ULTRA-ULTRA-PACKED) -->
-             <div class="space-y-2 pt-0.5 pb-1 px-0.5 font-jakarta">
-                <div v-for="(job, i) in [{c: 'TechCorp', r: 'Senior Scientist', s: '80%', d: '14/03/24', icon: Briefcase, color: '#0A2647', m: 80}, {c: 'Innovate', r: 'Product Manager', s: '50%', d: '23/03/24', icon: LayoutDashboard, color: '#73BBA3', m: 50}, {c: 'Techwork', r: 'Senior Scientist', s: '60%', d: '22/03/24', icon: Zap, color: '#6366F1', m: 60}]" :key="i" 
-                     @click="openJobDetail(job)"
-                     class="grid grid-cols-[1.5fr_1.2fr_1fr_0.8fr] items-center bg-transparent group cursor-pointer transition-all active:scale-98">
+             <!-- JOB ROWS (DYNAMIC FILTERING) -->
+             <div class="space-y-2 pt-0.5 pb-1 px-0.5 font-jakarta min-h-[140px]">
+                <TransitionGroup name="fade">
+                    <div v-for="(job, i) in filteredJobs" :key="job.c + job.r + i" 
+                         @click="openJobDetail(job)"
+                         class="grid grid-cols-[1.5fr_1.2fr_1fr_0.8fr] items-center bg-transparent group cursor-pointer transition-all active:scale-98">
                    <div class="flex items-center gap-1">
                       <div class="w-7 h-7 bg-[#0A2647] rounded-xl flex items-center justify-center p-1.5 shadow-lg border border-white/5 ring-1 ring-white/10 group-hover:scale-110 transition-all font-jakarta" :class="i === 1 ? 'bg-[#73BBA3]' : i === 2 ? 'bg-[#6366F1]/60' : 'bg-[#0A2647]'"> 
                         <component :is="job.icon" class="w-full h-full text-white opacity-95 shadow-2xl" /> 
@@ -482,6 +623,7 @@ onUnmounted(() => {
                    </div>
                    <span class="text-[8.5px] font-black text-black/25 text-right leading-none">{{job.d}}</span>
                 </div>
+                </TransitionGroup>
              </div>
           </div>
 
@@ -490,9 +632,9 @@ onUnmounted(() => {
              <!-- Header Heading -->
              <div class="flex justify-between items-center mb-[1px] px-1 font-jakarta">
                 <span class="text-[9.5px] font-black text-[#0A2647]/55 uppercase tracking-[0.2em] leading-none font-jakarta">{{ t('sections.analytics') }}</span>
-                <div @click.stop="openActionSheet('Analytics Options')" class="flex items-center cursor-pointer opacity-30 hover:opacity-100 transition-all font-jakarta p-1">
+                <button @click.stop="openActionSheet('Analytics Options', 'analytics')" class="relative z-50 flex items-center justify-center cursor-pointer opacity-30 hover:opacity-100 hover:bg-black/5 transition-all font-jakarta p-2 -mr-2 rounded-full border border-transparent hover:border-black/5 active:scale-90">
                    <MoreHorizontal class="w-[18px] h-[18px] text-[#0A2647]" />
-                </div>
+                </button>
              </div>
 
              <!-- Content Split (V6.0 - Halved Spacing) -->
@@ -518,17 +660,26 @@ onUnmounted(() => {
                 <!-- RIGHT: SKILL GAP ANALYSIS -->
                 <div class="flex flex-col">
                    <p class="text-[8px] font-black text-black/25 uppercase tracking-widest leading-none text-center font-jakarta">{{ t('analytics.skillGap') }}</p>
-                   <div class="flex flex-col items-center justify-center relative bg-white/40 rounded-[1.6rem] border border-black/[0.03] p-1 shadow-inner h-[110px] mt-1">
+                   <div class="flex flex-col items-center justify-center relative bg-white/40 rounded-[1.6rem] border border-black/[0.03] p-1 shadow-inner h-[105px] mt-1.5 overflow-hidden">
                       <div class="w-full aspect-square scale-[1.1]">
                          <SkillGapChart />
                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-         </div>
-        </div>
-      </div>
+                   </div>
+                </div>
+             </div>
+
+             <!-- ELITE CTAs: SKILL UPGRADE (SYNCED TO WIZARD) -->
+             <div class="mt-2.5 px-1 relative z-20">
+                <button @click.stop="handleDashboardAction('skills')" 
+                        class="w-full bg-[#0A2647] text-white py-2 rounded-xl text-[9.5px] font-black uppercase tracking-[0.15em] shadow-[0_15px_30px_rgba(10,38,71,0.25)] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 border border-white/5 ring-1 ring-white/10 group-hover:ring-[#C1A172]/30 font-jakarta">
+                   <UserPlus class="w-3 h-3 text-[#C1A172]" />
+                   {{ t('analytics.updateProfile') || 'Recalibrate Skill Profile' }}
+                </button>
+             </div>
+          </div>
+       </div>
+    </div>
+ </div>
 
       <!-- APPLICATIONS VIEW -->
       <div v-else-if="activeTab === 'applications'" class="flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-right-10 duration-500">
@@ -541,12 +692,14 @@ onUnmounted(() => {
               <h2 class="text-[14px] font-black text-white/40 uppercase tracking-[0.3em] leading-none">{{ t('apps.title') }}</h2>
            </div>
          </header>
-            <div class="w-full px-1 space-y-3">
-               <div class="relative group">
-                  <input type="text" :placeholder="t('apps.searchPlaceholder')" 
-                         class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-[#2C74B3]/50 transition-all font-jakarta shadow-inner" />
-                  <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-white/30 group-focus-within:text-[#2C74B3] transition-colors" />
-                  <SlidersHorizontal class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 hover:text-white transition-colors cursor-pointer" />
+            <div class="w-full px-1 space-y-3 mt-3">
+               <div class="relative group mx-2">
+                  <input type="text" v-model="searchQuery" :placeholder="t('apps.searchPlaceholder')" 
+                         class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-2 text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#2C74B3]/50 transition-all font-jakarta shadow-inner" />
+                  <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-[#2C74B3] transition-colors" />
+                  <div @click.stop="openActionSheet('Search Filters', 'filters')" class="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/10 rounded-lg cursor-pointer transition-all">
+                     <SlidersHorizontal class="w-3.5 h-3.5 text-white/20 hover:text-white transition-colors" />
+                  </div>
                </div>
                <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
                   <span v-for="cat in ['filterAll', 'filterPending', 'filterInterview', 'filterOffers', 'filterArchived']" :key="cat"
@@ -559,12 +712,7 @@ onUnmounted(() => {
 
          <div class="mt-4 flex-1 overflow-y-auto space-y-2 pb-[94px] px-4 custom-scrollbar">
             <!-- SMART ACTIVE VIEW (TOP 4 PRIORITY) -->
-            <div v-for="(app, i) in [
-               {c: 'Google', r: 'Senior AI Engineer', l: 'Zurich, CH', s: 'interview', m: 98, icon: Zap, color: '#73BBA3'},
-               {c: 'Spotify', r: 'Lead Developer', l: 'Stockholm, SE', s: 'review', m: 92, icon: Briefcase, color: '#1DB954'},
-               {c: 'Tesla', r: 'Systems Architect', l: 'Oslo, NO', s: 'offer', m: 89, icon: LayoutDashboard, color: '#E81C23'},
-               {c: 'Amazon', r: 'Senior AI Platform', l: 'Madrid, ES', s: 'applied', m: 84, icon: Star, color: '#FF9900'}
-            ]" :key="i" class="bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl rounded-[2.2rem] p-4 pt-1 pb-1 border border-white/10 shadow-2xl relative overflow-hidden group hover:scale-[1.01] transition-all">
+            <div v-for="(app, i) in filteredJobs" :key="i" @click="openJobDetail(app)" class="cursor-pointer bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl rounded-[2.2rem] p-4 pt-1 pb-1 border border-white/10 shadow-2xl relative overflow-hidden group hover:scale-[1.01] transition-all">
                <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                
                <!-- SUPREME SYMMETRY CONTAINER -->
@@ -655,76 +803,78 @@ onUnmounted(() => {
               </div>
 
               <!-- SEARCH INPUT (MOVED BELOW COUNTRIES) -->
-              <div class="relative group mt-1">
-                 <input type="text" :placeholder="t('apps.searchPlaceholder')" 
-                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3 text-[11px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#C1A172]/50 transition-all font-jakarta shadow-inner" />
-                 <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-white/30 group-focus-within:text-[#C1A172] transition-colors" />
+              <div class="relative group mt-1 mx-2">
+                 <input type="text" v-model="searchQuery" :placeholder="t('apps.searchPlaceholder')" 
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-2 text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#C1A172]/50 transition-all font-jakarta shadow-inner" />
+                 <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-[#C1A172] transition-colors" />
               </div>
            </div>
          </header>
 
          <div class="mt-4 flex-1 overflow-y-auto space-y-2 pb-[94px] px-4 custom-scrollbar">
             <div v-for="(match, i) in [
-               {c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr'},
-               {c: 'OpenAI', r: 'Language Model Eng', l: 'Remote, Global', m: 97, icon: Stars, color: '#000000', t: '5 hr'},
-               {c: 'Apple', r: 'iOS Core Developer', l: 'Copenhagen, DK', m: 95, icon: LayoutDashboard, color: '#555555', t: '8 hr'},
-               {c: 'Microsoft', r: 'Azure AI Architect', l: 'Oslo, NO', m: 92, icon: Briefcase, color: '#00A4EF', t: '1 d'}
-            ]" :key="i" class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-2 pb-2.5 border border-white shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] relative overflow-hidden group hover:scale-[1.01] transition-all">
+               {id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr'},
+               {id: 'm2', c: 'OpenAI', r: 'Language Model Eng', l: 'Remote, Global', m: 97, icon: Stars, color: '#000000', t: '5 hr'},
+               {id: 'm3', c: 'Apple', r: 'iOS Core Developer', l: 'Copenhagen, DK', m: 95, icon: LayoutDashboard, color: '#555555', t: '8 hr'},
+               {id: 'm4', c: 'Microsoft', r: 'Azure AI Architect', l: 'Oslo, NO', m: 92, icon: Briefcase, color: '#00A4EF', t: '1 d'}
+            ]" :key="i" 
+            @click="openJobDetail(match)"
+            class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-1.5 pb-2 border border-white shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] relative overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer select-none">
                
                <!-- SUPREME SYMMETRY CONTAINER (V6.5 - ALPHA SYNC) -->
-               <div class="flex items-start justify-between relative z-10 mb-3 min-h-[66px] pt-3">
+               <div class="flex items-start justify-between relative z-10 mb-1.5 min-h-[58px] pt-1.5">
                   <!-- LEFT: IDENTITY UNIT -->
                   <div class="flex items-start gap-3.5 h-full">
-                     <div class="w-12 h-12 rounded-[1.2rem] p-2.5 flex items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.4)] ring-1 ring-white/10 shrink-0 transform group-hover:rotate-6 transition-transform" :style="{ backgroundColor: match.color }">
+                     <div class="w-10 h-10 rounded-[1rem] p-2 flex items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.4)] ring-1 ring-white/10 shrink-0 transform group-hover:rotate-6 transition-transform" :style="{ backgroundColor: match.color }">
                         <component :is="match.icon" class="w-full h-full text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]" />
                      </div>
                      <div class="flex flex-col pt-[1px]">
-                        <h3 class="text-[17px] font-black text-[#0A2647] tracking-tight leading-[1.1] font-jakarta">{{ match.r }}</h3>
-                        <div class="flex items-center gap-1.5 mt-1.5">
-                           <span class="text-[11.5px] font-black text-white/40 tracking-wide font-jakarta">{{ match.c }}</span>
-                           <div class="w-1 h-1 bg-white/20 rounded-full"></div>
-                           <span class="text-[10px] font-bold text-[#C1A172] uppercase tracking-[0.1em]">{{ t('matches.posted', { time: match.t }) }}</span>
+                        <h3 class="text-[16px] font-black text-[#0A2647] tracking-tight leading-[1.1] font-jakarta">{{ match.r }}</h3>
+                        <div class="flex items-center gap-1.5 mt-1">
+                           <span class="text-[10.5px] font-black text-[#0A2647]/55 tracking-wide font-jakarta">{{ match.c }}</span>
+                           <div class="w-1 h-1 bg-[#0A2647]/10 rounded-full"></div>
+                           <span class="text-[9px] font-bold text-[#C1A172] uppercase tracking-[0.1em]">{{ t('matches.posted', { time: match.t }) }}</span>
                         </div>
                      </div>
                   </div>
-
+ 
                   <!-- RIGHT: METRIC HUB (DYNAMIC GLOW) -->
                   <div class="flex flex-col items-end pt-[2px] h-full">
-                     <div class="bg-gradient-to-br from-[#C1A172] to-[#FFD700] px-2.5 py-1.5 rounded-xl shadow-[0_8px_20px_rgba(193,161,114,0.3)] border border-white/20 flex items-baseline gap-1 scale-105 group-hover:scale-110 transition-transform">
-                        <span class="text-[11.5px] font-black text-[#0A2647] leading-none">{{ match.m }}%</span>
-                        <span class="text-[7.5px] font-black text-[#0A2647]/60 uppercase tracking-tighter">Match</span>
+                     <div class="bg-gradient-to-br from-[#C1A172] to-[#FFD700] px-2 py-1 rounded-lg shadow-[0_8px_20px_rgba(193,161,114,0.3)] border border-white/20 flex items-baseline gap-1 scale-100 group-hover:scale-105 transition-transform">
+                        <span class="text-[11px] font-black text-[#0A2647] leading-none">{{ match.m }}%</span>
+                        <span class="text-[7px] font-black text-[#0A2647]/60 uppercase tracking-tighter">Match</span>
                      </div>
                   </div>
                </div>
-
+ 
                <!-- TIER 3: LOCATION & INTELLIGENCE HUD (V6.5 TIGHTENED) -->
-               <div class="flex items-center justify-between mb-3 pb-2 border-b border-white/5 mx-0.5">
+               <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-black/[0.03] mx-0.5">
                   <div class="flex items-center gap-2 font-jakarta opacity-85 px-[0.75px] hover:opacity-100 transition-opacity">
-                     <Globe class="w-3.5 h-3.5 text-[#0A2647]" />
-                     <span class="text-[11.5px] font-bold text-[#0A2647]/70 tracking-wide truncate">{{ match.l }}</span>
+                     <Globe class="w-3 h-3 text-[#0A2647]" />
+                     <span class="text-[10.5px] font-bold text-[#0A2647]/70 tracking-wide truncate">{{ match.l }}</span>
                   </div>
-                  <div class="flex items-center gap-1.5 bg-[#C1A172]/10 px-2.5 py-1 rounded-lg border border-[#C1A172]/20 group-hover:bg-[#C1A172]/20 transition-all">
-                     <Zap class="w-3 h-3 text-[#C1A172] animate-pulse" />
-                     <span class="text-[8.5px] font-black text-[#C1A172] uppercase tracking-tighter">{{ t('matches.instantTailor') }}</span>
+                  <div class="flex items-center gap-1.5 bg-[#C1A172]/10 px-2 py-0.5 rounded-lg border border-[#C1A172]/20 group-hover:bg-[#C1A172]/20 transition-all">
+                     <Zap class="w-2.5 h-2.5 text-[#C1A172]" />
+                     <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-tighter">{{ t('matches.instantTailorShort') || 'Tailor' }}</span>
                   </div>
                </div>
-
+               
                <!-- FOOTER: ELITE ACTION CONTROL -->
-               <div class="flex items-center justify-between pt-1 pb-1">
+               <div class="flex items-center justify-between pt-0.5 pb-0.5">
                   <div class="flex items-center gap-3">
                      <div class="flex -space-x-2.5">
-                        <div v-for="j in 3" :key="j" class="w-6 h-6 rounded-full border-2 border-[#0A2647] overflow-hidden group-hover:border-white/10 transition-colors">
+                        <div v-for="j in 3" :key="j" class="w-5 h-5 rounded-full border-2 border-[#0A2647] overflow-hidden group-hover:border-white/10 transition-colors">
                            <img :src="'https://i.pravatar.cc/50?u=' + (i+j)" class="w-full h-full object-cover contrast-125" />
                         </div>
                      </div>
-                     <span class="text-[9px] font-black text-[#0A2647]/35 uppercase tracking-wider font-jakarta">{{ t('matches.applicantsCount', { count: 12 }) }}</span>
+                     <span class="text-[8.5px] font-black text-[#0A2647]/35 uppercase tracking-wider font-jakarta">{{ t('matches.applicantsCount', { count: 12 }) }}</span>
                   </div>
-                  <div class="flex gap-1.5 justify-end items-center">
-                     <button class="bg-white/5 border border-white/10 text-white/30 w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/10 hover:text-white transition-all active:scale-90 group-hover:border-white/20">
-                        <Star class="w-3.5 h-3.5" />
+                  <div class="flex gap-1.5 justify-end items-center relative z-[100]">
+                     <button @click.stop="handleDashboardAction('save_match')" class="bg-white/5 border border-white/10 text-white/30 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/10 hover:text-white transition-all active:scale-90 group-hover:border-white/20">
+                        <Star class="w-3 h-3" />
                      </button>
-                     <button class="bg-[#C1A172] text-[#0A2647] w-[102px] py-1.5 rounded-xl text-[8.5px] font-black uppercase tracking-[0.05em] leading-tight shadow-[0_12px_25px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all font-jakarta relative overflow-hidden text-center">
-                        SAVE GLOBAL PROFILE
+                     <button @click.stop="handleDashboardAction('tailor_cv')" class="bg-[#C1A172] text-[#0A2647] w-[90px] py-1 rounded-xl text-[8px] font-black uppercase tracking-[0.05em] shadow-[0_8px_15px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all font-jakarta relative overflow-hidden text-center">
+                        {{ t('matches.instantTailorShort') || 'Tailor CV' }}
                      </button>
                   </div>
                </div>
@@ -1057,65 +1207,65 @@ onUnmounted(() => {
             <div class="relative w-full max-w-[360px] h-[750px] bg-white rounded-[3rem] overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.8)] flex flex-col scale-100 animate-in zoom-in-95 duration-500">
                <!-- LaTeX Header Simulation -->
                <div class="p-10 pb-6 border-b-4 border-[#0A2647] space-y-3 text-center bg-white">
-                  <h2 class="text-3xl font-black text-[#0A2647] uppercase tracking-[-0.05em] leading-none font-playfair">{{ manualBasic.fullName || 'MASTER IDENTITY' }}</h2>
-                  <p class="text-[10px] font-black text-[#C1A172] uppercase tracking-[0.4em]">{{ manualBasic.headline || 'PROFESSIONAL SYNOPSIS' }}</p>
-                  <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[8px] text-slate-500 font-bold uppercase tracking-widest pt-1">
-                     <span>{{ manualBasic.email || 'Email' }}</span>
-                     <span class="text-[#C1A172]">•</span>
-                     <span>{{ manualBasic.phone || 'Phone' }}</span>
-                     <span class="text-[#C1A172]">•</span>
-                     <span>{{ manualBasic.location || 'Location' }}</span>
-                  </div>
-               </div>
-
-               <!-- CV Body (High Fidelity) -->
-               <div class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar text-[#0A2647] font-inter">
-                  <div class="space-y-4">
-                     <div class="flex items-center gap-4">
-                        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Professional Impact</h3>
-                        <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
-                     </div>
-                     <p class="text-[10.5px] leading-[1.8] italic text-slate-600 font-medium translate-x-1 border-l-2 border-[#C1A172]/20 pl-4">{{ manualBio || 'Synthesize your professional impact here...' }}</p>
-                  </div>
-
-                  <div class="space-y-6">
-                     <div class="flex items-center gap-4">
-                        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Work Evolution</h3>
-                        <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
-                     </div>
-                     <div v-for="(exp, idx) in manualExperiences" :key="idx" class="space-y-2 relative pl-1">
-                        <div class="flex justify-between items-baseline mb-0.5">
-                           <span class="text-[12px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647] leading-tight">{{ exp.role || 'Role / Designation' }}</span>
-                           <span class="text-[9.5px] font-black text-[#C1A172] uppercase tracking-[0.2em]">{{ exp.start }} — {{ exp.isCurrent ? 'Present' : exp.end }}</span>
-                        </div>
-                        <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.3em] leading-relaxed">{{ exp.company || 'Organization / Team' }}</p>
-                        <p class="text-[10.5px] leading-[1.8] text-slate-800 pt-2.5 pr-8 whitespace-pre-wrap font-medium">{{ exp.achievements }}</p>
-                     </div>
-                  </div>
-
-                  <div class="space-y-6">
-                     <div class="flex items-center gap-4">
-                        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Academic History</h3>
-                        <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
-                     </div>
-                     <div v-for="(edu, idx) in manualEducation" :key="idx" class="space-y-1.5">
-                        <div class="flex justify-between items-center">
-                           <span class="text-[11px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647]">{{ edu.title }}</span>
-                           <span class="text-[9px] font-black text-[#C1A172] tracking-[0.2em]">{{ edu.year }}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-extrabold uppercase tracking-[0.3em]">{{ edu.institution }} <span v-if="edu.gpa" class="text-[#C1A172] ml-2 font-black">Grade: {{ edu.gpa }}</span></p>
-                     </div>
-                  </div>
-
-                  <div class="space-y-6">
-                     <div class="flex items-center gap-4">
-                        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Cognitive Stack</h3>
-                        <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
-                     </div>
-                     <div class="flex flex-wrap gap-2.5">
-                        <span v-for="skill in [...manualSkills.hard, ...manualSkills.soft]" :key="skill" class="bg-[#0A2647]/5 px-4 py-2 rounded-lg text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647] border border-[#0A2647]/5">{{ skill }}</span>
-                     </div>
-                  </div>
+                      <h2 class="text-3xl font-black text-[#0A2647] uppercase tracking-[-0.05em] leading-none font-playfair">{{ masterProfile.basic.fullName || 'MASTER IDENTITY' }}</h2>
+                   <p class="text-[10px] font-black text-[#C1A172] uppercase tracking-[0.4em]">{{ masterProfile.basic.headline || 'PROFESSIONAL SYNOPSIS' }}</p>
+                   <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[8px] text-slate-500 font-bold uppercase tracking-widest pt-1">
+                      <span>{{ masterProfile.basic.email || 'Email' }}</span>
+                      <span class="text-[#C1A172]">•</span>
+                      <span>{{ masterProfile.basic.phone || 'Phone' }}</span>
+                      <span class="text-[#C1A172]">•</span>
+                      <span>{{ masterProfile.basic.location || 'Location' }}</span>
+                   </div>
+                </div>
+ 
+                <!-- CV Body (High Fidelity) -->
+                <div class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar text-[#0A2647] font-inter">
+                   <div class="space-y-4">
+                      <div class="flex items-center gap-4">
+                         <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Professional Impact</h3>
+                         <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
+                      </div>
+                      <p class="text-[10.5px] leading-[1.8] italic text-slate-600 font-medium translate-x-1 border-l-2 border-[#C1A172]/20 pl-4">{{ masterProfile.bio || 'Synthesize your professional impact here...' }}</p>
+                   </div>
+ 
+                   <div class="space-y-6">
+                      <div class="flex items-center gap-4">
+                         <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Work Evolution</h3>
+                         <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
+                      </div>
+                      <div v-for="(exp, idx) in masterProfile.experiences" :key="idx" class="space-y-2 relative pl-1">
+                         <div class="flex justify-between items-baseline mb-0.5">
+                            <span class="text-[12px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647] leading-tight">{{ exp.role || 'Role / Designation' }}</span>
+                            <span class="text-[9.5px] font-black text-[#C1A172] uppercase tracking-[0.2em]">{{ exp.start }} — {{ exp.isCurrent ? 'Present' : exp.end }}</span>
+                         </div>
+                         <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.3em] leading-relaxed">{{ exp.company || 'Organization / Team' }}</p>
+                         <p class="text-[10.5px] leading-[1.8] text-slate-800 pt-2.5 pr-8 whitespace-pre-wrap font-medium">{{ exp.achievements }}</p>
+                      </div>
+                   </div>
+ 
+                   <div class="space-y-6">
+                      <div class="flex items-center gap-4">
+                         <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Academic History</h3>
+                         <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
+                      </div>
+                      <div v-for="(edu, idx) in masterProfile.education" :key="idx" class="space-y-1.5">
+                         <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647]">{{ edu.title }}</span>
+                            <span class="text-[9px] font-black text-[#C1A172] tracking-[0.2em]">{{ edu.year }}</span>
+                         </div>
+                         <p class="text-[9px] text-slate-400 font-extrabold uppercase tracking-[0.3em]">{{ edu.institution }} <span v-if="edu.gpa" class="text-[#C1A172] ml-2 font-black">Grade: {{ edu.gpa }}</span></p>
+                      </div>
+                   </div>
+ 
+                   <div class="space-y-6">
+                      <div class="flex items-center gap-4">
+                         <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-[#0A2647] font-playfair">Cognitive Stack</h3>
+                         <div class="flex-1 h-[1px] bg-[#0A2647]/10"></div>
+                      </div>
+                      <div class="flex flex-wrap gap-2.5">
+                         <span v-for="skill in [...masterProfile.skills.hard, ...masterProfile.skills.soft]" :key="skill" class="bg-[#0A2647]/5 px-4 py-2 rounded-lg text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#0A2647] border border-[#0A2647]/5">{{ skill }}</span>
+                      </div>
+                   </div>
                </div>
 
                <!-- Footer Controls -->
@@ -1150,28 +1300,41 @@ onUnmounted(() => {
           <div v-if="activeTab === key" class="absolute -bottom-1.5 w-1 h-1 bg-[#C1A172] rounded-full shadow-[0_0_12px_#C1A172]"></div>
         </div>
       </nav>
+
       <AuthOverlay 
         :isOpen="isAuthOpen" 
         :mode="authMode"
         @close="isAuthOpen = false" 
-        @onSuccess="loginSuccess" 
+        @success="loginSuccess" 
       />
 
-      <JobDetailOverlay
+      <ActionSheet 
+        :isOpen="isActionSheetOpen" 
+        :title="actionSheetTitle"
+        :actions="activeActions"
+        @close="isActionSheetOpen = false" 
+        @on-action="handleDashboardAction"
+      />
+
+      <JobDetailOverlay 
+        v-if="selectedJob"
         :isOpen="isJobDetailOpen"
         :job="selectedJob"
         @close="isJobDetailOpen = false"
       />
 
-      <ActionSheet 
-        :isOpen="isActionSheetOpen"
-        @close="isActionSheetOpen = false"
-      />
+      <!-- NEURAL GLOW TOAST (REAL-TIME FEEDBACK) -->
+      <Transition name="fade">
+        <div v-if="showToast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[80%] max-w-[300px]">
+           <div class="bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-4 shadow-3xl flex items-center gap-3">
+              <div class="w-2 h-2 rounded-full bg-[#C1A172] animate-pulse shadow-[0_0_10px_#C1A172]"></div>
+              <span class="text-[10px] font-black text-white uppercase tracking-widest leading-tight">{{ toastMessage }}</span>
+           </div>
+        </div>
+      </Transition>
 
     </main>
-
-
-  </div>
+   </div>
 </template>
 
 
@@ -1192,6 +1355,15 @@ h1 { letter-spacing: -0.05em; }
 }
 .shadow-3xl {
   box-shadow: 0 60px 180px -45px rgba(0, 0, 0, 0.7);
+}
+.neural-glow {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 255, 247, 0.5), 0 0 20px rgba(0, 255, 247, 0.2);
+  animation: neural-pulse 3s infinite ease-in-out;
+}
+@keyframes neural-pulse {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 247, 0.5), 0 0 20px rgba(0, 255, 247, 0.2); }
+  50% { text-shadow: 0 0 25px rgba(0, 255, 247, 0.9), 0 0 40px rgba(0, 163, 255, 0.5); }
 }
 
 /* Strategic Accuracy Control V6.0 Elite Spacing */

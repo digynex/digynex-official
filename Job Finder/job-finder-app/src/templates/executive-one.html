@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive One - Surgical Stealth Platinum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        @page { margin: 0; size: A4; }
+        body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; background-color: #f1f5f9; color: #1a1a1a; line-height: 1.5; }
+        .page { width: 210mm; min-height: 297mm; padding: 12mm 18mm; margin: 20px auto; background: white; position: relative; box-shadow: 0 40px 80px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
+        
+        /* STEALTH LAYERED DIVIDER */
+        .stealth-divider-container { position: relative; margin: 20px 0; padding: 0; line-height: 0; height: 1.5px; }
+        .stealth-keywords { color: #0A2647; font-size: 0.1pt; letter-spacing: -0.5px; position: absolute; top: 0; left: 0; user-select: none; pointer-events: none; white-space: nowrap; overflow: hidden; width: 100%; z-index: 1; opacity: 1; }
+        .visible-line { border: none; border-top: 2px solid #0A2647; margin: 0; padding: 0; position: relative; z-index: 2; }
+
+        h2 { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 22px; color: #0A2647; border-bottom: 3.5px solid #C1A172; display: inline-block; padding-bottom: 4px; }
+        p, li { font-size: 11px; color: #334155; text-align: justify; }
+        ul.bullet-list { list-style-type: disc; padding-left: 20px; }
+        .experience-item { margin-bottom: 1.5rem; break-inside: avoid; }
+        .watermark { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 140px; font-weight: 900; color: rgba(0, 0, 0, 0.02); pointer-events: none; z-index: 50; text-transform: uppercase; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="page text-left">
+        <div class="watermark">SAMPLE COPY</div>
+        <header class="flex justify-between items-center mb-10 pb-8 border-b-4 border-[#0A2647]">
+            <div class="flex-1">
+                <h1 class="text-4xl font-black tracking-tighter text-[#111] uppercase leading-none mb-2">AMILA PERERA</h1>
+                <p class="text-[#C1A172] font-black text-xs tracking-[0.4em] uppercase italic">Senior Project Manager | Telco Specialist</p>
+                <p class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stockholm, SE | amilawijayantha858@gmail.com | +46 76 970 3311</p>
+            </div>
+            <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Amila" alt="P" class="w-full h-full object-cover"></div>
+        </header>
+
+        <section class="section-block"><p class="font-medium italic text-gray-600 border-l-4 border-gray-100 pl-4 py-1">Telecommunications Professional with over 15 years experience, project consulting, and management specialist.</p></section>
+
+        <div class="stealth-divider-container">
+            <div class="stealth-keywords">PROJECT MANAGER TELECOM 5G PMP SWEDEN ARTHA TESHAN DIALOG PMO AI CLOUD PYTHON JAVA SCRUM AGILE NFV SDN</div>
+            <hr class="visible-line">
+        </div>
+
+        <section class="section-block">
+            <h2>Experience</h2>
+            <div class="space-y-8">
+                <div class="experience-item">
+                    <div class="flex justify-between items-baseline mb-1 text-[15px] font-black text-[#0A2647] uppercase leading-none"><span>Project Manager</span><span class="text-[9px] text-gray-300 font-bold font-mono">2021 — PRESENT</span></div>
+                    <p class="text-[10px] font-bold text-[#C1A172] uppercase tracking-[2px] mb-2 italic">Artha Engineering</p>
+                    <ul class="bullet-list space-y-1"><li>Lead multi-million dollar infrastructure deployments across multiple regions.</li></ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <h2>Education</h2>
+            <div class="grid grid-cols-2 gap-10"><div><p class="font-bold text-[11px] text-gray-800 uppercase">MSc in IT / MBA</p><p class="text-[9.5px] text-gray-400 font-bold italic uppercase">London Metropolitan Uni 2022</p></div></div>
+        </section>
+
+        <footer class="mt-auto border-t-2 border-gray-50 pt-10 text-center uppercase tracking-widest italic font-black text-[9.5px] text-gray-400">Info provided is true and correct.</footer>
+    </div>
+</body>
+</html>
