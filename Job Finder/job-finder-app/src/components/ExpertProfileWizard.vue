@@ -23,7 +23,7 @@ const isGeneratingAI = ref(false)
 const isComparing = ref(false)
 const aiComparison = ref({ field: '', original: '', drafted: '' })
 
-// Shortcuts to props for live synchronization
+// Shortcuts to props for live synchronization - these are direct links to the reactive profile object
 const manualBasic = props.profile.basic
 const manualSocialLinks = props.profile.socialLinks
 const manualExperiences = props.profile.experiences
@@ -80,26 +80,26 @@ const applyAIVersion = () => {
    isComparing.value = false;
 }
 
-const addSocialLink = () => manualSocialLinks.value.push({ platform: 'Link', url: '' })
-const removeSocialLink = (idx) => manualSocialLinks.value.splice(idx, 1)
+const addSocialLink = () => manualSocialLinks.push({ platform: 'Link', url: '' })
+const removeSocialLink = (idx) => manualSocialLinks.splice(idx, 1)
 
-const addExperience = () => manualExperiences.value.push({ company: '', role: '', type: 'Full-time', achievements: '', start: '', end: '', isCurrent: false })
-const removeExperience = (idx) => manualExperiences.value.splice(idx, 1)
+const addExperience = () => manualExperiences.push({ company: '', role: '', type: 'Full-time', achievements: '', start: '', end: '', isCurrent: false })
+const removeExperience = (idx) => manualExperiences.splice(idx, 1)
 
-const addEducation = () => manualEducation.value.push({ title: '', institution: '', year: '', gpa: '' })
-const removeEducation = (idx) => manualEducation.value.splice(idx, 1)
+const addEducation = () => manualEducation.push({ title: '', institution: '', year: '', gpa: '' })
+const removeEducation = (idx) => manualEducation.splice(idx, 1)
 
-const addProject = () => manualProjects.value.push({ name: '', link: '' })
-const removeProject = (idx) => manualProjects.value.splice(idx, 1)
+const addProject = () => manualProjects.push({ name: '', link: '' })
+const removeProject = (idx) => manualProjects.splice(idx, 1)
 
 const addSkillTag = (type) => {
    const val = skillInputTemp.value.val.trim()
-   if (val && !manualSkills.value[type].includes(val)) {
-      manualSkills.value[type].push(val)
+   if (val && !manualSkills[type].includes(val)) {
+      manualSkills[type].push(val)
       skillInputTemp.value.val = ''
    }
 }
-const removeSkillTag = (type, idx) => manualSkills.value[type].splice(idx, 1)
+const removeSkillTag = (type, idx) => manualSkills[type].splice(idx, 1)
 
 const nextStep = () => { if(manualStep.value < 4) manualStep.value++ }
 const prevStep = () => { if(manualStep.value > 1) manualStep.value-- }

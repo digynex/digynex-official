@@ -1,0 +1,60 @@
+/* 
+ * PROFILE SERVICE (Modular V1.0 - Commercial SaaS Architecture)
+ * Handles persistence for User Identities, Templates, and AI Stealth Keywords.
+ * Separates Database DML operations from Vue Component state logic.
+ */
+import { supabase } from '../lib/supabase';
+
+export const profileService = {
+  /**
+   * Upserts identity core data to the Supabase 'profiles' table.
+   * @param {Object} user - The authenticated user object.
+   * @param {Object} profileData - Raw reactive data from the UI.
+   */
+  async syncProfile(user, profileData) {
+    if (!user) throw new Error("Unauthorized engine sync attempt");
+    
+    return await supabase.from('profiles').upsert({
+      id: user.id,
+      primary_color: profileData.primaryColor,
+      secondary_color: profileData.secondaryColor,
+      selected_template: profileData.selectedTemplate,
+      secret_keywords: profileData.secretKeywords,
+      name: profileData.name,
+      email: user.email
+    });
+  },
+
+  /**
+   * Dedicated branding persistence for immediate visual theme sync.
+   */
+  async updateBranding(user, palette) {
+    if (!user) return { error: 'Unauthorized branding sync' };
+    
+    return await supabase.from('profiles').update({
+       primary_color: palette.primary,
+       secondary_color: palette.secondary
+    }).eq('id', user.id);
+  },
+
+  /**
+   * Retrieves the extended profile for a specific user.
+   * @param {string} userId - The unique UUID of the user.
+   */
+  async fetchProfile(userId) {
+    return await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+  },
+
+  /**
+   * Logs a user event to the activity engine.
+   */
+  async logActivity(email, actionId) {
+    return await supabase.from('user_activity').insert([
+      { action: actionId, user_id: email }
+    ]);
+  }
+};

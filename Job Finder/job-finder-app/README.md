@@ -1,21 +1,22 @@
-# 🚀 DigyNex AI Job Finder - Professional Engine V6.0
+# 🚀 DigyNex AI Job Finder - Professional Engine V6.5
 
-**Career Acceleration HUB with Global Reach (Alex Master Sync V6.0 Architecture)**
+**Ultimate Career Acceleration HUB (Alex Master Sync V6.5 Architecture)**
 
-A high-fidelity, AI-powered job discovery and application tracking system built for the modern candidate. This version implements the **Alex Master Sync V6.0** design standard, featuring a premium glassmorphic UI, surgical vertical spacing, and 3D branding signatures.
+A high-fidelity, AI-powered ecosystem for career identity synthesis and high-scale job discovery. This version implements the **Alex Master Sync V6.5** design standard, optimizing for "Surgical Compactness" and "Neural Interaction Flow".
 
 ## ✨ Core Features
-- **Global Strategy Hub**: AI-optimized multi-region job exploration.
-- **Smart Tracking Insight**: Surgical accuracy in application pipeline tracking.
-- **AI Skill Gap Sync**: Visual skill-set calibration vs market demands.
-- **Expert Profile Wizard**: Master identity builder with LaTeX export support.
-- **DigyNex Branding**: Integrated into every layer for a elite user experience.
+- **CV Studio Engine**: Real-time high-fidelity previewing with dynamic branding injection (Primary/Secondary Sync).
+- **Stealth ATS Optimization**: Integrated "Surgical Stealth Divider" for layered keyword enrichment.
+- **Global Strategy Hub**: AI-optimized multi-region job exploration (SE/DE/NO focus).
+- **Expert Profile Wizard**: Multi-step master identity builder with LinkedIn ingestion.
+- **Service-Oriented Architecture**: Rigid separation of UI state and Supabase persistence layers.
 
-## 🛠️ Stack & Standards
-- **Core**: Vue 3 + Vite (Composition API)
-- **Styling**: Tailwind CSS (Extreme Precision Config)
-- **Design Language**: DigyNex Official Alex Master Sync V6.0
-- **i18n**: Multi-language support (EN/DE/SW and Global Suite)
+## 🛠️ System Architecture
+- **Frontend**: Vue 3 (Composition API) + Vite
+- **Logic Layer**: Modular JS Services (`/src/services/`)
+- **Backend Automation**: Python Audit & Surgical Fix Suite (`/backend-services/`)
+- **Database**: Supabase V3 High-Performance DB
 
 ---
+**Documentation**: See `DASHBOARD_ENGINE_INTERACTIVITY_v1.md` for full logic mapping.
 © 2026 DigyNex Official. All Rights Reserved.

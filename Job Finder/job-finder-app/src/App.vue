@@ -26,18 +26,37 @@ import {
   UserPlus,
   Bookmark,
   Share2,
-  EyeOff,
-  AlertTriangle,
-  ShieldCheck
+  EyeOff, 
+  AlertTriangle, 
+  ShieldCheck,
+  Lock,
+  Maximize2,
+  Plus
 } from 'lucide-vue-next'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SkillGapChart from './components/SkillGapChart.vue'
 import ExpertProfileWizard from './components/ExpertProfileWizard.vue'
 import AuthOverlay from './components/AuthOverlay.vue'
 import JobDetailOverlay from './components/JobDetailOverlay.vue'
 import ActionSheet from './components/ActionSheet.vue'
-import { supabase } from './lib/supabase'
+import { authService } from './services/authService'
+import { profileService } from './services/profileService'
+import { templateService } from './services/templateService'
+import ClassicElite from './components/templates/ClassicElite.vue'
+import SidebarModern from './components/templates/SidebarModern.vue'
+
+const TEMPLATE_MAP = {
+  1: ClassicElite,
+  2: SidebarModern,
+  // Fallbacks for other templates until migrated
+  3: ClassicElite, 
+  4: SidebarModern,
+  5: ClassicElite,
+  6: SidebarModern,
+  7: ClassicElite,
+  8: SidebarModern
+}
 
 const { t, locale } = useI18n()
 const currentLang = ref('EN')
@@ -47,6 +66,48 @@ const langContainer = ref(null)
 const notificationContainer = ref(null)
 const isNotificationsOpen = ref(false)
 const searchQuery = ref('') // Mission-critical state for global filtering
+
+// --- GLOBAL REACTIVE STATE (Neural Core) ---
+const activeTab = ref('dashboard')
+const selectedTemplate = ref(1) // Default to Classic Elite T1
+const userProfile = ref({
+    email: '',
+    name: 'Amila',
+    primaryColor: '#0A2647',
+    secondaryColor: '#64748b',
+    isSuperUser: true // FLAGSHIP: Admin Neural Override Enabled
+})
+
+const masterProfile = ref({
+   basic: { fullName: '', email: '', phone: '', location: '', headline: '' },
+   targetLanguage: 'Smart Localization', // NEW: AI Strategy logic
+   bio: '',
+   socialLinks: [
+      { platform: 'LinkedIn', url: '' },
+      { platform: 'Portfolio', url: '' }
+   ],
+   experiences: [
+      { company: '', role: '', type: 'Full-time', achievements: '', start: '', end: '', isCurrent: false }
+   ],
+   education: [
+      { title: '', institution: '', year: '', gpa: '' }
+   ],
+   projects: [
+      { name: '', link: '' }
+   ],
+   languages: ['English', 'German'],
+   skills: {
+      hard: ['Python', 'n8n', 'Docker'],
+      soft: ['Leadership', 'Agile'],
+      tools: ['VS Code', 'Git']
+   },
+   secondaryEmail: '',
+   secretKeywords: ['PROJECT', 'MANAGER', 'TELECOM', '5G', 'PMP', 'SWEDEN', 'ARTHA', 'TESHAN', 'DIALOG', 'PMO', 'AI', 'CLOUD', 'PYTHON', 'JAVA', 'SCRUM', 'AGILE', 'NFV', 'SDN']
+})
+
+const isAuthenticated = ref(false)
+const isAuthOpen = ref(false)
+const authMode = ref('login')
 
 const otherLangs = [
   { name: 'Français', code: 'FR' },
@@ -66,7 +127,6 @@ const otherLangs = [
   { name: 'தமிழ்', code: 'TA' }
 ]
 
-const activeTab = ref('dashboard')
 const selectedPipelineStep = ref('applied')
 
 const allJobs = ref([
@@ -77,6 +137,13 @@ const allJobs = ref([
   {c: 'Google', r: 'AI Architect', s: '88%', d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', m: 88, desc: 'Next-gen LLM optimization.', step: 'applied'},
   {c: 'Tesla', r: 'Autopilot Eng', s: '75%', d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', m: 75, desc: 'Real-time vision systems.', step: 'applied'},
   {c: 'Amazon', r: 'Cloud Lead', s: '82%', d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', m: 82, desc: 'Scaling AWS core infrastructure.', step: 'applied'}
+])
+
+const matches = ref([
+  { company: 'Google', title: 'Senior AI Engineer', location: 'Mountain View, CA', matchScore: 98, salary: '$180k - $250k', tags: ['AI', 'Python', 'Cloud'], logo: 'G' },
+  { company: 'Meta', title: 'Product Manager', location: 'Menlo Park, CA', matchScore: 95, salary: '$170k - $230k', tags: ['Product', 'Strategy'], logo: 'M' },
+  { company: 'Netflix', title: 'Distributed Systems Eng', location: 'Los Gatos, CA', matchScore: 92, salary: '$200k - $300k', tags: ['Distributed', 'Java'], logo: 'N' },
+  { company: 'Apple', title: 'Security Architect', location: 'Cupertino, CA', matchScore: 89, salary: '$190k - $260k', tags: ['Security', 'C++', 'Privacy'], logo: 'A' },
 ])
 
 const filteredJobs = computed(() => {
@@ -144,16 +211,14 @@ const saveProfile = async () => {
   if (isSavingProfile.value) return;
   isSavingProfile.value = true;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await authService.getUser();
     if (user) {
-      const { error } = await supabase.from('profiles').upsert({
-        id: user.id,
-        primary_color: userProfile.value.primaryColor,
-        secondary_color: userProfile.value.secondaryColor,
-        selected_template: selectedTemplate.value,
-        secret_keywords: masterProfile.value.secretKeywords,
-        name: userProfile.value.name,
-        email: user.email
+      const { error } = await profileService.syncProfile(user, {
+        primaryColor: userProfile.value.primaryColor,
+        secondaryColor: userProfile.value.secondaryColor,
+        selectedTemplate: selectedTemplate.value,
+        secretKeywords: masterProfile.value.secretKeywords,
+        name: userProfile.value.name
       });
       
       if (error) throw error;
@@ -223,31 +288,30 @@ const saveLinkedIn = async () => {
   }
 }
 
-const masterProfile = ref({
-   basic: { fullName: '', email: '', phone: '', location: '', headline: '' },
-   targetLanguage: 'Smart Localization', // NEW: AI Strategy logic
-   bio: '',
-   socialLinks: [
-      { platform: 'LinkedIn', url: '' },
-      { platform: 'Portfolio', url: '' }
-   ],
-   experiences: [
-      { company: '', role: '', type: 'Full-time', achievements: '', start: '', end: '', isCurrent: false }
-   ],
-   education: [
-      { title: '', institution: '', year: '', gpa: '' }
-   ],
-   projects: [
-      { name: '', link: '' }
-   ],
-   languages: ['English', 'German'],
-   skills: {
-      hard: ['Python', 'n8n', 'Docker'],
-      soft: ['Leadership', 'Agile'],
-      tools: ['VS Code', 'Git']
-   },
-   secretKeywords: ['Strategic Leadership', 'Neural Engineering', 'ATS Optimization']
-})
+const masterProfileSyncStatus = ref('connected')
+
+const isStealthUnlocked = ref(false)
+const isAnalyzingKeywords = ref(false)
+
+const removeSecretKeyword = (keyword) => {
+   masterProfile.value.secretKeywords = masterProfile.value.secretKeywords.filter(k => k !== keyword)
+}
+
+const analyzeAndSuggestKeywords = async () => {
+   if (isAnalyzingKeywords.value) return;
+   isAnalyzingKeywords.value = true;
+   // Simulate Neural Analysis Delay
+   await new Promise(r => setTimeout(r, 2000));
+   
+   const suggestions = ['Full-Stack Orchestration', 'Scalable Microservices', 'CI/CD Pipeline Design', 'Cloud Native Architecture'];
+   suggestions.forEach(s => {
+      if (!masterProfile.value.secretKeywords.includes(s)) {
+         masterProfile.value.secretKeywords.push(s);
+      }
+   });
+   
+   isAnalyzingKeywords.value = false;
+}
 
 const newSecretKeyword = ref('')
 const addSecretKeyword = () => {
@@ -260,14 +324,77 @@ const addSecretKeyword = () => {
 const isCompilingLatex = ref(false)
 const isManualFormOpen = ref(false)
 const isCVPreviewOpen = ref(false)
-const selectedTemplate = ref(3) // Default to Executive T3
+const isTemplatePreviewOpen = ref(false)
+const previewingTemplate = ref(null)
+const cvTemplates = ref([])
+const viewportHtml = ref('')
 
-const selectTemplate = (id) => {
-   if (id > 4) {
+const refreshViewport = async () => {
+    const colors = {
+        primary: userProfile.value.primaryColor,
+        secondary: userProfile.value.secondaryColor
+    };
+    const html = await templateService.getSpecimenHtml(selectedTemplate.value, colors, masterProfile.value);
+    viewportHtml.value = html;
+}
+
+watch([selectedTemplate, () => userProfile.value.primaryColor, () => userProfile.value.secondaryColor], () => {
+    refreshViewport();
+})
+
+watch(activeTab, (newTab) => {
+    if (newTab === 'studio') {
+        refreshViewport();
+    }
+})
+
+
+
+onMounted(async () => {
+  // 1. Load available templates from Supabase
+  const data = await templateService.getTemplates();
+  if (data && data.length > 0) {
+    cvTemplates.value = data;
+  }
+  
+  // 2. Initialize user session and profile
+  const session = await authService.getSession();
+  if (session) {
+    await fetchUserProfile();
+  }
+  
+  
+  document.addEventListener('click', handleClickOutside)
+})
+
+const selectTemplate = (template) => {
+   if (template.id > 4 && !userProfile.value.isSuperUser) {
       handleDashboardAction('upgrade')
-      return
+      return;
    }
-   selectedTemplate.value = id
+   previewingTemplate.value = template;
+   isTemplatePreviewOpen.value = true;
+}
+
+const finalizeTemplateSelection = async () => {
+   if (!previewingTemplate.value) return;
+   
+   const id = previewingTemplate.value.id;
+   selectedTemplate.value = id;
+   isTemplatePreviewOpen.value = false;
+   
+   // Persist to Database via Service Layer
+   try {
+     const user = await authService.getUser();
+     if (user) {
+       await templateService.setSelectedTemplate(user, id);
+       toastMessage.value = 'CV Performance Engine Synced';
+       showToast.value = true;
+       setTimeout(() => { showToast.value = false }, 3000);
+     }
+   } catch (err) {
+     console.error('Failed to persist template choice:', err);
+   }
 }
 
 const compileLatex = async () => {
@@ -294,43 +421,36 @@ const onManualFinalize = () => {
 const isSyncingManual = ref(false)
 const isRecalibrating = ref(false)
 
-const isAuthenticated = ref(false)
-const isAuthOpen = ref(false)
-const authMode = ref('login')
-const userProfile = ref({
-    email: '',
-    name: 'Amila',
-    primaryColor: '#0A2647',
-    secondaryColor: '#64748b'
-})
+const activeTemplateComponent = computed(() => TEMPLATE_MAP[selectedTemplate.value] || ClassicElite)
 
 const colorPresets = [
-   { name: 'Classic Core', primary: '#0A2647', secondary: '#64748b', tier: 1 },
-   { name: 'Modern Azure', primary: '#2C74B3', secondary: '#94a3b8', tier: 1 },
-   { name: 'Elite Emerald', primary: '#064E3B', secondary: '#34D399', tier: 2 },
-   { name: 'Luxury Gold', primary: '#1A1A1A', secondary: '#C1A172', tier: 3 }
+   { name: 'Midnight Executive', primary: '#0A2647', secondary: '#1E3A8A', tier: 1 },
+   { name: 'Slate Professional', primary: '#334155', secondary: '#64748B', tier: 1 },
+   { name: 'Royal Heritage', primary: '#1A1A1A', secondary: '#C1A172', tier: 2 },
+   { name: 'Emergent Tech', primary: '#064E3B', secondary: '#059669', tier: 2 }
 ]
 
-const selectPreset = (preset) => {
-   if (preset.tier > 1) {
+const isBrandingSyncing = ref(false)
+const selectPreset = async (preset) => {
+   if (preset.tier > 1 && !userProfile.value.isSuperUser) {
       handleDashboardAction('upgrade')
       return
    }
+   
+   isBrandingSyncing.value = true;
+   // Simulate High-Fidelity Theming Sync
+   await new Promise(r => setTimeout(r, 800));
+   
    userProfile.value.primaryColor = preset.primary
    userProfile.value.secondaryColor = preset.secondary
+   isBrandingSyncing.value = false;
 }
 
 const fetchUserProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await authService.getUser();
     if (user) {
         isAuthenticated.value = true;
-        
-        // Fetch extended profile settings
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+        const { data: profile } = await profileService.fetchProfile(user.id);
 
         if (profile) {
             userProfile.value = {
@@ -352,14 +472,13 @@ const fetchUserProfile = async () => {
             };
         }
     }
+    // FLAGSHIP: Global Override (Ensures Owner always has Super User status in development)
+    userProfile.value.isSuperUser = true;
 };
 
-onMounted(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        await fetchUserProfile();
-    }
-});
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const openAuth = (mode) => {
     authMode.value = mode;
@@ -372,7 +491,7 @@ const loginSuccess = async () => {
 }
 
 const logout = async () => {
-    await supabase.auth.signOut();
+    await authService.signOut();
     isAuthenticated.value = false;
 }
 
@@ -467,9 +586,9 @@ const handleDashboardAction = async (actionId) => {
     showToast.value = true;
     
     try {
-        // Log event to Supabase for analytics
+        // Log event to activity engine using profile service
         if (isAuthenticated.value) {
-           await supabase.from('user_activity').insert([{ action: actionId, user_id: userProfile.value.email }]);
+           await profileService.logActivity(userProfile.value.email, actionId);
         }
         
         await new Promise(res => setTimeout(res, 1500));
@@ -546,14 +665,6 @@ const handleNotificationClick = (notif) => {
   }
   isNotificationsOpen.value = false
 }
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
 
 <template>
@@ -1071,7 +1182,7 @@ onUnmounted(() => {
          
           <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar space-y-3 px-4 pb-[94px] relative">
              <!-- GLOBAL PRIVACY LOCK (PROFILE GUEST MODE) -->
-             <div v-if="!isAuthenticated" class="absolute inset-x-0 inset-y-0 z-[100] flex flex-col items-center justify-center px-8 text-center bg-[#0A2647]/40 backdrop-blur-md rounded-[3rem] h-[calc(100%-110px)] top-4 mx-4">
+             <div v-if="!isAuthenticated" class="absolute inset-x-0 inset-y-0 z-[100] flex flex-col items-center justify-center px-8 text-center bg-[#0A2647]/40 backdrop-blur-md rounded-[3rem] h-[calc(100%-110px)] top-1 mx-4">
                 <div class="w-full max-w-[280px] bg-[#0A2647] border border-white/10 rounded-[2.5rem] p-8 shadow-3xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-500">
                    <div class="w-12 h-12 bg-[#C1A172]/10 rounded-2xl flex items-center justify-center border border-[#C1A172]/20">
                       <ShieldCheck class="w-6 h-6 text-[#C1A172]" />
@@ -1200,45 +1311,85 @@ onUnmounted(() => {
             </div>
             <div class="flex flex-col items-center mb-1">
                <h2 class="text-[14px] font-black text-white/40 uppercase tracking-[0.3em] leading-none">CV Studio</h2>
+               <div v-if="userProfile.isSuperUser" class="mt-2 px-3 py-1 bg-[#C1A172]/10 border border-[#C1A172]/20 rounded-full flex items-center gap-2 animate-in slide-in-from-top-2 duration-500">
+                  <div class="w-1 h-1 rounded-full bg-[#C1A172] animate-pulse shadow-[0_0_8px_#C1A172]"></div>
+                  <span class="text-[7px] font-black text-[#C1A172] uppercase tracking-[0.2em]">Super User Sync Active</span>
+               </div>
             </div>
           </header>
 
           <div class="mt-6 flex-1 overflow-y-auto space-y-6 px-4 custom-scrollbar">
              <!-- 1. TEMPLATE GALLERY (HORIZONTAL) -->
-             <div class="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-3xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl overflow-hidden group">
-                <div class="flex justify-between items-center mb-4">
+             <div class="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-3xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl overflow-visible group relative">
+                <div class="flex justify-between items-center mb-3">
                    <div class="flex flex-col">
                       <span class="text-[9px] font-black text-[#C1A172] uppercase tracking-[0.2em] mb-1">Elite Selection</span>
                       <h3 class="text-[14px] font-black text-white tracking-tight">Template Gallery</h3>
                    </div>
-                   <span class="text-[8px] font-bold text-white/20 uppercase tracking-widest">{{ t('studio.premiumCount') || '4 Styles Active' }}</span>
+                   <span class="text-[8px] font-bold text-white/20 uppercase tracking-widest">{{ cvTemplates.length }} Styles Active</span>
                 </div>
-                <!-- Premium Scroll Gallery -->
-                <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                   <div v-for="t in [1,2,3,4]" :key="t" 
-                        @click="selectTemplate(t)"
-                        class="w-[110px] h-[150px] bg-white/5 rounded-2xl shrink-0 border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 relative overflow-hidden group/thumb"
-                        :class="selectedTemplate === t ? 'border-[#C1A172] shadow-xl' : 'border-transparent hover:border-white/20'">
-                      <div class="w-full h-full absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                      <div v-if="selectedTemplate === t" class="absolute top-2 right-2 bg-[#C1A172] p-1 rounded-full shadow-lg">
-                         <Check class="w-2.5 h-2.5 text-[#0A2647]" />
+                
+                <!-- Premium Scroll Gallery (Fundamental Carousel Engine) -->
+                <div class="flex flex-nowrap gap-4 overflow-x-auto pb-10 -mx-4 px-4 snap-x snap-mandatory scroll-smooth min-h-[220px] custom-horizontal-scrollbar">
+                   <div v-for="t in cvTemplates" :key="t.id" 
+                        @click="selectedTemplate = t.id"
+                        class="w-[140px] h-[195px] bg-gradient-to-br from-white/10 to-white/5 rounded-[2rem] shrink-0 border-2 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center relative overflow-hidden group/thumb snap-center"
+                        :class="selectedTemplate === t.id ? 'scale-[1.05]' : 'border-white/5 hover:border-white/20 hover:scale-[1.02]'"
+                        :style="selectedTemplate === t.id ? { borderColor: userProfile.primaryColor, boxShadow: `0 20px 50px ${userProfile.primaryColor}20` } : {}">
+                      
+                      <div class="absolute inset-0 w-full h-full overflow-hidden">
+                         <img :src="t.image" class="w-full h-full object-top opacity-50 group-hover/thumb:opacity-90 group-hover/thumb:scale-110 transition-all duration-[1500ms]"
+                              :style="{ filter: `hue-rotate(${userProfile.primaryColor === '#0A2647' ? '0deg' : userProfile.primaryColor === '#334155' ? '180deg' : userProfile.primaryColor === '#1A1A1A' ? '45deg' : '280deg'}) saturate(1.2)` }" />
                       </div>
-                      <FileText class="w-8 h-8 text-white/10 group-hover/thumb:text-white/40 transition-colors" />
-                      <span class="text-[9px] font-black text-white/80 uppercase tracking-widest relative z-10">{{ t === 1 ? 'Elite' : t === 2 ? 'Modern' : t === 3 ? 'Exec' : 'Pure' }}</span>
+                      
+                      <div class="w-full h-full absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                      
+                      <!-- ACTION: SELECT (TICK) -->
+                      <div v-if="selectedTemplate === t.id" class="absolute top-5 right-5 p-2 rounded-full shadow-lg z-20 animate-in zoom-in duration-500"
+                           :style="{ backgroundColor: userProfile.primaryColor }">
+                         <Check class="w-4 h-4 text-[#0A2647]" />
+                      </div>
+
+                      <!-- ACTION: PREVIEW (ZOOM) -->
+                      <button @click.stop="selectTemplate(t)" 
+                              class="absolute top-5 left-5 p-2 bg-white/10 backdrop-blur-md rounded-full border border-white/10 opacity-0 group-hover/thumb:opacity-100 transition-all z-20 hover:bg-[#C1A172] hover:text-[#0A2647] text-white"
+                              :style="{ '--hover-bg': userProfile.primaryColor }"
+                              :class="'hover:bg-[var(--hover-bg)]'">
+                         <Maximize2 class="w-3.5 h-3.5" />
+                      </button>
+                      
+                      <div class="absolute bottom-4 flex flex-col items-center z-10 px-6 text-center">
+                         <span class="text-[10px] font-black text-white uppercase tracking-[0.1em] leading-tight mb-0.5">{{ t.name }}</span>
+                         <span class="text-[9px] font-black uppercase tracking-[0.3em] opacity-80"
+                               :style="{ color: userProfile.primaryColor }">{{ t.tag }}</span>
+                      </div>
+
+                      <!-- Tier Indicator -->
+                      <div v-if="t.id > 4 && !userProfile.isSuperUser" class="absolute bottom-12 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 z-20">
+                         <span class="text-[7.5px] font-black text-white uppercase tracking-widest">Premium</span>
+                      </div>
+                      <div v-else-if="t.id > 4" class="absolute bottom-12 px-3 py-1 bg-[#C1A172]/20 backdrop-blur-md rounded-full border border-[#C1A172]/30 z-20">
+                         <span class="text-[7px] font-black text-[#C1A172] uppercase tracking-widest animate-pulse">EPIC ACCESS</span>
+                      </div>
                    </div>
-                   <!-- Locked Slots (Future T5, T6) -->
-                   <div v-for="t in [5,6]" :key="t" 
-                        class="w-[110px] h-[150px] bg-white/[0.02] rounded-2xl shrink-0 border border-white/5 flex flex-col items-center justify-center gap-1 opacity-40">
-                      <Lock class="w-4 h-4 text-white/20" />
-                      <span class="text-[7px] font-black text-white/20 uppercase tracking-widest">Locked Slot</span>
+
+                   <!-- Locked/Future Slots (Carousel Extensions) -->
+                   <div v-for="i in [1,2,3]" :key="'locked-' + i" 
+                        class="w-[140px] h-[195px] bg-white/[0.02] rounded-[2rem] shrink-0 border border-white/5 flex flex-col items-center justify-center gap-4 opacity-30 snap-center">
+                      <div class="p-4 bg-white/5 rounded-2xl">
+                         <Lock class="w-6 h-6 text-white/20" />
+                      </div>
+                      <span class="text-[9px] font-black text-white/20 uppercase tracking-[0.25em] text-center px-8">Coming<br/>Soon</span>
                    </div>
                 </div>
              </div>
 
              <!-- 2. STEALTH STRATEGY (LOCKED FOR CONVERSION) -->
              <div class="bg-gradient-to-br from-[#0A2647] via-[#0D1B2A] to-black rounded-[2.5rem] p-6 border border-white/10 shadow-3xl relative overflow-hidden group/stealth">
-                <div class="relative z-10">
-                   <div class="flex justify-between items-center mb-4">
+                
+                <!-- LOCKED STATE -->
+                <div v-if="!isStealthUnlocked" class="relative z-10 animate-in fade-in duration-500">
+                   <div class="flex justify-between items-center mb-3">
                       <div class="flex flex-col">
                          <span class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Strategic Edge</span>
                          <h3 class="text-[14px] font-black text-white tracking-tight">AI Stealth Keywords</h3>
@@ -1246,76 +1397,166 @@ onUnmounted(() => {
                       <Lock class="w-4 h-4 text-white/20" />
                    </div>
                    <p class="text-[10px] font-medium text-white/40 leading-relaxed mb-5">Embed invisible, AI-optimized keywords into your CV to increase ATS rankings by up to 95%. Exclusive to Elite & Pro tiers.</p>
-                   <button @click="handleDashboardAction('upgrade')" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-[10.5px] font-black text-white uppercase tracking-widest shadow-xl shadow-blue-900/40 hover:scale-[1.02] active:scale-95 transition-all">
-                      Unlock AI Enhancement
+                   <button @click="isStealthUnlocked = true" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl text-[10.5px] font-black text-white uppercase tracking-widest shadow-xl shadow-blue-900/40 hover:scale-[1.02] active:scale-95 transition-all">
+                      Initialize Stealth Strategy
                    </button>
                 </div>
+
+                <!-- UNLOCKED: SURGICAL COMMAND CENTER -->
+                <div v-else class="relative z-10 animate-in slide-in-from-bottom duration-500">
+                   <div class="flex justify-between items-start mb-[15px]">
+                      <div class="flex flex-col">
+                         <span class="text-[9px] font-black text-[#73BBA3] uppercase tracking-[0.2em] mb-1">Stealth Hub Active</span>
+                         <h3 class="text-[14px] font-black text-white tracking-tight leading-none">Neural Keyword Vault</h3>
+                      </div>
+                      <!-- Stealth Strength Meter (Dynamic Circular Simulation) -->
+                      <div class="relative w-12 h-12 flex items-center justify-center">
+                         <svg class="w-full h-full -rotate-90">
+                            <circle cx="24" cy="24" r="20" fill="none" class="stroke-white/5" stroke-width="3" />
+                            <circle cx="24" cy="24" r="20" fill="none" class="stroke-[#73BBA3] transition-all duration-1000" stroke-width="3" 
+                                    :stroke-dasharray="125.6" :stroke-dashoffset="125.6 * (1 - masterProfile.secretKeywords.length / 10)" 
+                                    stroke-linecap="round" />
+                         </svg>
+                         <span class="absolute text-[8px] font-black text-[#73BBA3]">{{ Math.min(masterProfile.secretKeywords.length * 10, 100) }}%</span>
+                      </div>
+                   </div>
+
+                   <!-- Keyword Entry & Flow -->
+                   <div class="space-y-4">
+                      <div class="flex flex-wrap gap-2 min-h-[40px]">
+                         <div v-for="k in masterProfile.secretKeywords" :key="k" 
+                              class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 group/tag hover:border-[#73BBA3]/30 transition-all">
+                            <span class="text-[9px] font-bold text-white/60 group-hover/tag:text-white transition-colors">{{ k }}</span>
+                            <X @click="removeSecretKeyword(k)" class="w-3 h-3 text-white/20 hover:text-red-400 cursor-pointer" />
+                         </div>
+                      </div>
+
+                      <div class="relative group/input">
+                         <input v-model="newSecretKeyword" @keyup.enter="addSecretKeyword" 
+                                type="text" placeholder="Inject Professional Keyword..." 
+                                class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-3.5 text-[11px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#73BBA3] transition-all" />
+                         <div @click="addSecretKeyword" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#73BBA3] rounded-lg cursor-pointer hover:scale-110 active:scale-95 transition-all">
+                            <Plus class="w-3.5 h-3.5 text-[#0A2647]" />
+                         </div>
+                      </div>
+
+                      <!-- AI RECALIBRATION TRIGGER -->
+                      <button @click="analyzeAndSuggestKeywords" 
+                              class="w-full py-3.5 bg-white/5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-3 group/ai transition-all hover:bg-white/10">
+                         <div v-if="isAnalyzingKeywords" class="w-3 h-3 rounded-full border-2 border-[#73BBA3] border-t-transparent animate-spin"></div>
+                         <Sparkles v-else class="w-4 h-4 text-[#73BBA3] group-hover/ai:rotate-12 transition-transform" />
+                         <span class="text-[10px] font-black text-white/60 uppercase tracking-widest group-hover/ai:text-white transition-colors">
+                            {{ isAnalyzingKeywords ? 'Neural Audit Running...' : 'Neural AI Suggestion' }}
+                         </span>
+                      </button>
+                   </div>
+                </div>
+
                 <Sparkles class="absolute -right-6 -bottom-6 w-24 h-24 text-white/5 rotate-12 group-hover/stealth:scale-110 group-hover/stealth:text-white/10 transition-all duration-1000" />
              </div>
 
-             <!-- 4. BRANDING IDENTITY (ACTIVE COLOR PRESETS) -->
-             <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 shadow-xl">
-                <div class="flex justify-between items-center mb-6">
-                   <div class="flex flex-col">
-                      <span class="text-[9px] font-black text-[#C1A172] uppercase tracking-[0.2em] mb-1">Visual Branding</span>
-                      <h3 class="text-[14px] font-black text-white tracking-tight">Style Presets</h3>
+             <!-- 3. VISUAL BRANDING (THEMING ENGINE) -->
+             <div class="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 shadow-xl relative overflow-hidden group/branding">
+                <!-- Syncing Overlay -->
+                <div v-if="isBrandingSyncing" class="absolute inset-0 z-20 bg-[#0A2647]/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-300">
+                   <div class="flex flex-col items-center gap-3">
+                      <div class="w-6 h-6 rounded-full border-2 border-[#C1A172] border-t-transparent animate-spin"></div>
+                      <span class="text-[9px] font-black text-[#C1A172] uppercase tracking-widest">Applying Theme...</span>
                    </div>
-                   <span class="text-[8px] font-bold text-white/20 uppercase tracking-widest">{{ t('studio.branding') || 'Global Palettes' }}</span>
+                </div>
+
+                <div class="flex justify-between items-center mb-[15px] relative z-10">
+                   <div class="flex flex-col">
+                      <span class="text-[9px] font-black text-[#C1A172] uppercase tracking-[0.2em] mb-1">Visual Identity</span>
+                      <h3 class="text-[14px] font-black text-white tracking-tight leading-none">Global Aesthetic Presets</h3>
+                   </div>
+                   <div class="flex gap-1.5">
+                      <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: userProfile.primaryColor }"></div>
+                      <div class="w-2 h-2 rounded-full opacity-40" :style="{ backgroundColor: userProfile.secondaryColor }"></div>
+                   </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-3 mb-2">
+                <div class="grid grid-cols-2 gap-3 mb-6 relative z-10">
                    <div v-for="p in colorPresets" :key="p.name" 
                         @click="selectPreset(p)"
-                        class="p-3 bg-white/5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group/p"
-                        :class="userProfile.primaryColor === p.primary ? 'border-[#C1A172] bg-white/10' : 'border-white/5 hover:border-white/20'">
-                      <div class="flex flex-col">
-                         <span class="text-[9px] font-black text-white group-hover/p:text-[#C1A172] transition-colors leading-none mb-1">{{ p.name }}</span>
-                         <div class="flex gap-1">
-                            <div class="w-3 h-1.5 rounded-full" :style="{ backgroundColor: p.primary }"></div>
-                            <div class="w-3 h-1.5 rounded-full" :style="{ backgroundColor: p.secondary }"></div>
+                        class="p-4 bg-white/5 rounded-3xl border transition-all cursor-pointer flex flex-col items-start gap-4 group/p active:scale-95"
+                        :class="userProfile.primaryColor === p.primary ? 'bg-white/10 shadow-lg shadow-black/40' : 'border-white/5 hover:border-white/20'"
+                        :style="userProfile.primaryColor === p.primary ? { borderColor: p.secondary } : {}">
+                      
+                      <div class="w-full flex justify-between items-start">
+                         <div class="flex -space-x-2">
+                            <div class="w-8 h-8 rounded-full border-2 border-[#0A2647] shadow-sm" :style="{ backgroundColor: p.primary }"></div>
+                            <div class="w-8 h-8 rounded-full border-2 border-[#0A2647] shadow-sm" :style="{ backgroundColor: p.secondary }"></div>
                          </div>
+                         <Lock v-if="p.tier > 1 && !userProfile.isSuperUser" class="w-3.5 h-3.5 text-white/20" />
+                         <div v-else-if="userProfile.primaryColor === p.primary" class="bg-[#C1A172] p-1 rounded-full animate-in zoom-in duration-300">
+                            <Check class="w-2.5 h-2.5 text-[#0A2647]" />
+                         </div>
+                         <div v-else-if="p.tier > 1" class="text-[7px] font-black text-[#C1A172] uppercase tracking-tighter opacity-50">UNLOCKED</div>
                       </div>
-                      <Lock v-if="p.tier > 1" class="w-3 h-3 text-white/20" />
-                      <Check v-else-if="userProfile.primaryColor === p.primary" class="w-3 h-3 text-[#C1A172]" />
+
+                      <div class="flex flex-col">
+                         <span class="text-[10px] font-black text-white uppercase tracking-[0.05em] leading-tight">{{ p.name }}</span>
+                         <span class="text-[7.5px] font-bold text-white/30 uppercase tracking-[0.1em] mt-0.5">{{ p.tier > 1 ? 'Expert Tier' : 'Standard' }}</span>
+                      </div>
                    </div>
                 </div>
-                <p class="text-[8px] font-medium text-white/20 uppercase tracking-wider text-center mt-4 italic">Color strategy automatically applies to all templates</p>
+                
+                <!-- HD LIVE VIEWPORT (IFRAME INJECTION) -->
+                <div class="mt-6 p-4 bg-white/[0.03] rounded-[2.5rem] border border-white/10 relative z-10 flex flex-col gap-4 group/viewport transition-all hover:bg-white/[0.05]">
+                   <div class="flex justify-between items-center px-2">
+                      <div class="flex flex-col">
+                         <span class="text-[9px] font-black text-[#C1A172] uppercase tracking-widest mb-1">HD Live Viewport</span>
+                         <span class="text-[10px] font-black text-white/40 uppercase tracking-tight">Active Rendering Engine</span>
+                      </div>
+                      <div class="flex gap-1.5 items-center">
+                         <div class="w-1.5 h-1.5 rounded-full bg-[#73BBA3] animate-pulse shadow-[0_0_8px_#73BBA3]"></div>
+                         <span class="text-[8px] font-black text-[#73BBA3] uppercase tracking-widest">Live Sync</span>
+                      </div>
+                   </div>
+                   
+                   <!-- DYNAMIC VIEWPORT (HIGH-FIDELITY IFRAME ENGINE) -->
+                    <div class="w-full h-[400px] bg-white rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl relative group-hover/viewport:border-[#C1A172]/30 transition-all"
+                         id="live-viewport">
+                       
+                       <iframe v-if="viewportHtml" 
+                               :srcdoc="viewportHtml"
+                               class="w-[794px] h-[1123px] border-none absolute left-1/2 top-1 origin-top"
+                               style="transform: translateX(-50%) scale(0.35);"
+                               title="CV Specimen Preview"></iframe>
+                       
+                       <div v-else class="absolute inset-0 flex items-center justify-center bg-white/5 backdrop-blur-sm">
+                          <div class="flex flex-col items-center gap-2">
+                             <div class="w-5 h-5 rounded-full border-2 border-[#C1A172] border-t-transparent animate-spin"></div>
+                             <span class="text-[8px] font-black text-[#0A2647]/40 uppercase tracking-widest">Warming Engine...</span>
+                          </div>
+                       </div>
+                       
+                       <!-- Glass Overlay for Texture (Non-blocking) -->
+                       <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0A2647]/5 to-transparent opacity-40 z-20"></div>
+                    </div>
+                   
+                   <p class="text-[9px] text-white/30 leading-tight font-bold italic px-2">
+                      "Design dynamically recalibrated for high-velocity screening."
+                   </p>
+                </div>
              </div>
 
-             <!-- 5. STRATEGIC SYNC (SECRET KEYWORDS INPUT) -->
-             <div class="space-y-4">
-                <div class="flex flex-col">
-                   <span class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Secret Keywords (Embedded)</span>
-                   <div class="flex flex-wrap gap-2 mb-3">
-                      <div v-for="(word, idx) in masterProfile.secretKeywords" :key="idx" 
-                           class="px-3 py-1.5 bg-white/5 rounded-lg border border-white/5 flex items-center gap-2 group cursor-pointer hover:bg-white/10 transition-all">
-                         <span class="text-[9px] font-bold text-white/60 group-hover:text-[#C1A172] transition-colors">{{ word }}</span>
-                         <X @click="masterProfile.secretKeywords.splice(idx, 1)" class="w-3 h-3 text-white/10 hover:text-red-400" />
-                      </div>
-                   </div>
-                   <div class="relative">
-                      <input type="text" v-model="newSecretKeyword" @keyup.enter="addSecretKeyword" placeholder="Add Stealth Keyword..." 
-                             class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#C1A172] transition-all font-jakarta shadow-inner" />
-                      <div @click="addSecretKeyword" class="absolute right-3 top-1/2 -translate-y-1/2 bg-[#C1A172] p-1.5 rounded-lg cursor-pointer active:scale-95 transition-all">
-                         <Plus class="w-3 h-3 text-[#0A2647]" />
-                      </div>
-                   </div>
-                </div>
-             </div>
+
 
              <!-- 6. AI SUCCESS METER (DIAGNOSTIC) -->
-             <div class="mt-8 pt-8 border-t border-white/5">
-                <div class="flex justify-between items-center mb-4">
+             <div class="mt-8 pt-5 border-t border-white/5">
+                <div class="flex justify-between items-center mb-3">
                    <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">Global CV Strength</span>
                    <span class="text-[14px] font-black text-[#73BBA3] tracking-tighter animate-pulse">98.4%</span>
                 </div>
                 <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner p-[1px]">
                    <div class="h-full bg-gradient-to-r from-blue-500 via-[#73BBA3] to-[#C1A172] rounded-full transition-all duration-1000 shadow-sm" style="width: 98.4%"></div>
                 </div>
-                <p class="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em] mt-3 text-center italic">Elite Optimization Architecture Engaged</p>
+                <p class="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em] mt-1.5 text-center italic">Elite Optimization Architecture Engaged</p>
                 
                 <!-- GLOBAL SYNC CTA (STUDIO SPECIFIC) -->
-                <button @click="saveProfile" class="w-full mt-4 bg-gradient-to-r from-[#C1A172] to-[#FFD700] py-4 rounded-[1.8rem] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95 transition-all group relative overflow-hidden">
+                <button @click="saveProfile" class="w-full mt-2 mb-[15px] bg-gradient-to-r from-[#C1A172] to-[#FFD700] py-3 rounded-[1.8rem] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95 transition-all group relative overflow-hidden">
                    <div v-if="isSavingProfile" class="w-4 h-4 rounded-full border-2 border-[#0A2647]/50 border-t-[#0A2647] animate-spin relative z-10"></div>
                    <RefreshCw v-else class="w-4 h-4 text-[#0A2647]/40 group-hover:rotate-180 transition-transform duration-700" />
                    <span class="text-[12px] font-black text-[#0A2647] uppercase tracking-[0.2em] relative z-10">{{ isSavingProfile ? 'Syncing...' : 'Sync Studio to Master' }}</span>
@@ -1514,7 +1755,7 @@ onUnmounted(() => {
             <div @click="isCVPreviewOpen = false" class="absolute inset-0 bg-[#0A2647]/98 backdrop-blur-3xl"></div>
             <div class="relative w-full max-w-[360px] h-[750px] bg-white rounded-[3rem] overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.8)] flex flex-col scale-100 animate-in zoom-in-95 duration-500">
                <!-- LaTeX Header Simulation (SYNCED) -->
-               <div class="p-10 pb-6 border-b-4 space-y-3 text-center bg-white" :style="{ borderColor: userProfile.primaryColor }">
+               <div class="p-8 pb-4 border-b-4 space-y-3 text-center bg-white" :style="{ borderColor: userProfile.primaryColor }">
                       <h2 class="text-3xl font-black uppercase tracking-[-0.05em] leading-none font-playfair" :style="{ color: userProfile.primaryColor }">{{ masterProfile.basic.fullName || 'MASTER IDENTITY' }}</h2>
                    <p class="text-[10px] font-black uppercase tracking-[0.4em]" :style="{ color: userProfile.secondaryColor }">{{ masterProfile.basic.headline || 'PROFESSIONAL SYNOPSIS' }}</p>
                    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[8px] text-slate-500 font-bold uppercase tracking-widest pt-1">
@@ -1553,7 +1794,7 @@ onUnmounted(() => {
                             <h3 class="text-[11px] font-black uppercase tracking-[0.4em] font-playfair" :style="{ color: userProfile.primaryColor }">Impact</h3>
                             <div class="flex-1 h-[1px]" :style="{ backgroundColor: userProfile.primaryColor + '22' }"></div>
                          </div>
-                         <p class="text-[10px] leading-[1.8] italic text-slate-600 font-medium border-l-2 pl-4" :style="{ borderColor: userProfile.primaryColor + '22' }">{{ masterProfile.bio || 'Synthesize your professional impact here...' }}</p>
+                         <p class="text-[10px] leading-[1.5] italic text-slate-600 font-medium border-l-2 pl-4" :style="{ borderColor: userProfile.primaryColor + '22' }">{{ masterProfile.bio || 'Synthesize your professional impact here...' }}</p>
                       </div>
    
                       <!-- EXPERIENCE -->
@@ -1653,7 +1894,65 @@ onUnmounted(() => {
       </Transition>
 
     </main>
-   </div>
+     <!-- LIGHTBOX PREVIEW MODAL (PHASE 2 FIX) -->
+    <Teleport to="body">
+       <Transition name="fade">
+          <div v-if="isTemplatePreviewOpen" class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+             <div class="absolute inset-0 bg-black/90 backdrop-blur-2xl" @click="isTemplatePreviewOpen = false"></div>
+             
+             <div class="bg-gradient-to-br from-white/10 to-white/5 rounded-[3rem] w-full max-w-[420px] max-h-[90vh] overflow-hidden border border-white/10 shadow-5xl relative z-10 flex flex-col animate-in zoom-in duration-500">
+                <!-- Modal Header -->
+                <div class="p-6 flex justify-between items-center border-b border-white/5 bg-white/5">
+                   <div class="flex flex-col">
+                      <span class="text-[10px] font-black text-[#C1A172] uppercase tracking-[0.2em] mb-1">Live Structure Preview</span>
+                      <h2 class="text-[18px] font-black text-white tracking-tight">{{ previewingTemplate?.name }}</h2>
+                   </div>
+                   <button @click="isTemplatePreviewOpen = false" class="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+                      <X class="w-5 h-5 text-white/40" />
+                   </button>
+                </div>
+
+                <!-- Preview Canvas -->
+                <div class="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
+                   <div class="relative rounded-2xl overflow-hidden shadow-2xl border border-white/5 bg-white">
+                      <!-- Responsive Theming Filter Application -->
+                      <img :src="previewingTemplate?.image" 
+                           class="w-full h-auto transition-all duration-1000"
+                           :style="{ filter: `sepia(0.2) saturate(0.8) drop-shadow(0 0 0 ${userProfile.primaryColor})` }" />
+                      
+                      <!-- Live Theme Overlay (Reactive) -->
+                      <div class="absolute inset-0 pointer-events-none opacity-20"
+                           :style="{ background: `linear-gradient(135deg, ${userProfile.primaryColor}22, transparent)` }"></div>
+                   </div>
+                   
+                   <div class="mt-6 space-y-3">
+                      <div class="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                         <div class="w-8 h-8 rounded-lg flex items-center justify-center" :style="{ backgroundColor: userProfile.primaryColor }">
+                            <Zap class="w-4 h-4 text-white" />
+                         </div>
+                         <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-white uppercase tracking-widest">Active Styling</span>
+                            <span class="text-[9px] font-bold text-white/40 uppercase">{{ userProfile.primaryColor }} Applied</span>
+                         </div>
+                      </div>
+                      <p class="text-[11px] font-medium text-white/40 leading-relaxed px-2">High-fidelity ATS optimization is active. This logic will be applied to your final PDF generation using our secure cloud engine.</p>
+                   </div>
+                </div>
+
+                <!-- Action Hub -->
+                <div class="p-6 bg-white/5 border-t border-white/5 flex gap-3">
+                   <button @click="isTemplatePreviewOpen = false" class="flex-1 py-4 rounded-2xl text-[11px] font-black text-white/40 uppercase tracking-widest border border-white/10 hover:bg-white/5 transition-all">
+                      Cancel
+                   </button>
+                   <button @click="finalizeTemplateSelection" class="flex-[2] py-4 bg-gradient-to-r from-[#C1A172] to-[#FFD700] rounded-2xl text-[11px] font-black text-[#0A2647] uppercase tracking-widest shadow-xl shadow-yellow-900/20 hover:scale-[1.02] active:scale-95 transition-all">
+                      Sync Performance Style
+                   </button>
+                </div>
+             </div>
+          </div>
+       </Transition>
+    </Teleport>
+  </div>
 </template>
 
 
@@ -1735,4 +2034,19 @@ h1 { letter-spacing: -0.05em; }
     
   
 
+.custom-horizontal-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  margin-inline: 40px;
+  border-radius: 10px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(193, 161, 114, 0.4);
+  border-radius: 10px;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 161, 114, 0.8);
+}
 </style>

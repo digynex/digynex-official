@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Modern - CareerNexus V6.5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cv-primary: {{#if primaryColor}}{{primaryColor}}{{else}}#0A2647{{/if}};
+            --cv-secondary: #C1A172;
+            --cv-text-dark: #1e293b;
+            --cv-text-gray: #475569;
+            --cv-bg: #f8fafc;
+        }
+
+        @page { margin: 0; size: A4; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-print-color-adjust: exact; 
+            background: var(--cv-bg); 
+            color: var(--cv-text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .page { 
+            width: 210mm; 
+            min-height: 297mm; 
+            margin: 0 auto; 
+            background: white; 
+            display: flex; 
+            position: relative; 
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* SIDEBAR (30% Width) */
+        .sidebar { 
+            width: 70mm; 
+            background-color: var(--cv-primary); 
+            color: white; 
+            padding: 12mm 8mm; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        /* MAIN CONTENT (70% Width) */
+        .main-content { 
+            flex: 1; 
+            padding: 10mm 15mm; 
+            background: white; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+        }
+
+        /* DENSITY CLASSES */
+        .density-compact { font-size: 9px; }
+        .density-compact .experience-item { margin-bottom: 8px; }
+        .density-compact .bullet-list li { line-height: 1.2; }
+
+        /* SURGICAL STEALTH DIVIDER */
+        .stealth-divider-container { position: relative; margin: 15px 0; padding: 0; line-height: 0; height: 1.5px; }
+        .stealth-keywords {
+            color: var(--cv-secondary); font-size: 0.1pt; letter-spacing: -0.5px; opacity: 1; 
+            position: absolute; top: 0; left: 0; user-select: none; pointer-events: none;
+            white-space: nowrap; overflow: hidden; width: 100%; z-index: 1;
+        }
+        .visible-line { border: none; border-top: 1.8px solid var(--cv-secondary); margin: 0; padding: 0; position: relative; z-index: 2; }
+
+        /* HEADINGS */
+        h2.section-title { 
+            font-size: 13px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 0.12em; 
+            color: var(--cv-primary); 
+            border-bottom: 2.5px solid var(--cv-secondary); 
+            padding-bottom: 4px; 
+            margin-bottom: 12px;
+            margin-top: 18px;
+        }
+
+        .job-title { font-size: 13px; font-weight: 800; color: var(--cv-primary); text-transform: uppercase; }
+        .job-date { font-size: 8.5px; font-weight: 800; color: #a0aec0; }
+        .company-name { font-size: 10px; font-weight: 700; color: var(--cv-secondary); margin-bottom: 5px; font-style: italic; }
+        
+        .bullet-list { list-style-type: none; padding-left: 0; }
+        .bullet-list li { 
+            position: relative; 
+            padding-left: 12px; 
+            font-size: 9.8px; 
+            line-height: 1.4; 
+            color: var(--cv-text-gray); 
+            margin-bottom: 3px; 
+            text-align: justify;
+        }
+        .bullet-list li::before { content: "•"; position: absolute; left: 0; color: var(--cv-secondary); font-weight: bold; }
+
+        .sidebar-item { margin-bottom: 20px; }
+        .sidebar-title { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; color: var(--cv-secondary); margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .sidebar-text { font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.85); line-height: 1.35; margin-bottom: 4px; }
+
+        .edu-item { margin-bottom: 10px; }
+        .edu-degree { font-size: 10px; font-weight: 800; color: white; line-height: 1.2; }
+        .edu-meta { font-size: 8.5px; color: rgba(255,255,255,0.7); font-weight: 600; margin-top: 1px; }
+
+        .skill-bubble { 
+            display: inline-block; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            color: white; 
+            font-size: 8.5px; 
+            font-weight: 600; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            margin-right: 3px; 
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .watermark { 
+            position: absolute; top: 50%; left: 60%; 
+            transform: translate(-50%, -50%) rotate(-45deg); 
+            font-size: 120px; font-weight: 900; 
+            color: rgba(0,0,0,0.012); pointer-events: none; z-index: 100; 
+            text-transform: uppercase; white-space: nowrap; 
+        }
+
+    </style>
+</head>
+<body class="{{densityClass}}">
+    <div class="page">
+        {{#if isSample}}
+        <div class="watermark">SAMPLE COPY</div>
+        {{/if}}
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="header-top">
+                <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white/20 mx-auto mb-5 shadow-lg">
+                    {{#if photoUrl}}<img src="{{photoUrl}}" class="w-full h-full object-cover">{{else}}<div class="w-full h-full bg-white/10 flex items-center justify-center text-white/30 text-2xl font-black">P</div>{{/if}}
+                </div>
+                <h1 class="text-center text-xl font-black uppercase tracking-tight leading-tight mb-1">{{name}}</h1>
+                <p class="text-center text-[9px] font-bold text-{{#if primaryColor}}white{{else}}var(--cv-secondary){{/if}} tracking-widest uppercase italic">{{headline}}</p>
+            </div>
+
+            <div class="sidebar-content mt-10" style="flex-grow: 1;">
+                <!-- CONTACT -->
+                <div class="sidebar-item">
+                    <h3 class="sidebar-title">Contact</h3>
+                    {{#if location}}<p class="sidebar-text">📍 {{location}}</p>{{/if}}
+                    {{#if email}}<p class="sidebar-text">📧 {{email}}</p>{{/if}}
+                    {{#if phone}}<p class="sidebar-text">📞 {{phone}}</p>{{/if}}
+                    {{#if linkedin}}<p class="sidebar-text">🔗 {{linkedin}}</p>{{/if}}
+                </div>
+
+                <!-- EDUCATION (Moved to Sidebar in T2 for balance) -->
+                <div class="sidebar-item">
+                    <h3 class="sidebar-title">Education</h3>
+                    {{{educationHTML}}}
+                </div>
+
+                <!-- LANGUAGES -->
+                <div class="sidebar-item">
+                    <h3 class="sidebar-title">Languages</h3>
+                    {{{languagesHTML}}}
+                </div>
+            
+            {{#if qrCodeUrl}}
+            <div class="qr-vault mt-12 pt-8 border-t border-white/10 flex flex-col items-center">
+                <div class="w-12 h-12 bg-white p-1 rounded-sm shadow-inner">
+                    <img src="{{qrCodeUrl}}" class="w-full h-full object-contain">
+                </div>
+                <span class="text-[6px] font-black text-white/40 uppercase tracking-widest mt-2 italic">Scan to Sync</span>
+            </div>
+            {{/if}}
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div style="flex-grow: 1;">
+                {{#if bio}}
+                <header class="mb-4">
+                    <h2 class="section-title border-none mb-4">Summary</h2>
+                    <p class="text-gray-700 italic font-medium leading-relaxed">{{bio}}</p>
+                </header>
+                {{/if}}
+
+                <div class="stealth-divider-container">
+                    <div class="stealth-keywords">{{stealthKeywords}}</div>
+                    <hr class="visible-line">
+                </div>
+
+                <section class="section-block">
+                    <h2 class="section-title">Professional Experience</h2>
+                    {{{experienceHTML}}}
+                </section>
+
+                <section class="section-block">
+                    <h2 class="section-title">Core Skills</h2>
+                    <div class="flex flex-wrap">
+                        {{#each skills}}<span class="skill-bubble">{{this}}</span>{{/each}}
+                    </div>
+                </section>
+
+                <section class="section-block">
+                    {{{technicalSkillsHTML}}}
+                </section>
+            </div>
+
+            <!-- DECLARATION -->
+            <footer class="mt-8 pt-6 border-t border-gray-100">
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic text-center">
+                    {{#if declaration}}{{declaration}}{{else}}I hereby declare that the information provided is true and correct to the best of my knowledge and belief.{{/if}}
+                </p>
+                <div class="flex justify-between items-center mt-4 text-[7px] font-black text-gray-300 uppercase letter-spacing-widest">
+                    <span>DIGYNEX CAREERNEXUS ENGINE V6.5</span>
+                    <span>Page 1 of 1</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
