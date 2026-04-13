@@ -52,6 +52,88 @@
     "dashboard": "Dashboard",
     "applications": "Bewerbungen",
     "matches": "Matches",
-    "profile": "Profil"
+    "profile": "Profil",
+    "register": "Mitmachen",
+    "t3f3": "Alles freischaltbar. JSON-Export + Anschreiben",
+    "t3promo": "Inklusive Anschreiben-Generator"
+  },
+  "governance": {
+    "general": "Allgemeine Strategie",
+    "pricing": "Preise & Abonnement",
+    "about": "Über DigyNex AI",
+    "legal": "Rechtliches & Sicherheit",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
+    "security": "Datensicherheit & DSGVO",
+    "refund": "Rückerstattungsrichtlinie",
+    "support": "Support & Hilfezentrum",
+    "logout": "Abmelden",
+    "adminTitle": "Neural Master Control",
+    "adminSub": "Globale Governance Aktiv",
+    "version": "Neural Sync",
+    "infoHub": "Informationen",
+    "privacySecurityTitle": "Datenschutz & KI-Ethik (DSGVO)"
+  },
+  "policies": {
+    "version": "v1.2.0-GP",
+    "lastUpdated": "13. April 2026",
+    "privacy": {
+      "title": "Datenschutzrichtlinie",
+      "subtitle": "Wie wir Ihre persönlichen Daten im KI-Zeitalter schützen.",
+      "sections": [
+        { "id": "collection", "title": "Informationserhebung", "content": "Wir sammeln berufliche Daten aus Ihren hochgeladenen Lebensläufen, um Ihr Jobsuche-Erlebnis durch unsere Neural Optimization Engine zu verbessern." },
+        { "id": "ai", "title": "KI-Datenverarbeitung", "content": "Ihre Daten werden über OpenAI- und Google Gemini-APIs verarbeitet. Wir garantieren, dass Ihre Daten niemals zum Training von Drittanbieter-KI-Modellen verwendet werden." },
+        { "id": "sovereignty", "title": "Datensouveränität", "content": "Alle Informationen werden sicher auf EU-basierten Supabase-Clustern gespeichert. Gemäß DSGVO haben Sie jederzeit das Recht auf Löschung Ihrer Daten." }
+      ]
+    },
+    "terms": {
+      "title": "Nutzungsbedingungen",
+      "subtitle": "Regeln für die Nutzung der CareerNexus Neural Engine.",
+      "sections": [
+        { "id": "conduct", "title": "Nutzerverhalten", "content": "Sie erklären sich damit einverstanden, korrekte berufliche Informationen bereitzustellen. Missbrauch der Plattform führt zur sofortigen Kontosperrung." },
+        { "id": "liability", "title": "KI-Haftung", "content": "CareerNexus garantiert keine Arbeitsplatzvermittlung. Die endgültige Richtigkeit des erstellten Lebenslaufs liegt in der Verantwortung des Nutzers." },
+        { "id": "usage", "title": "Faire Nutzung", "content": "Anwendungslimits werden basierend auf Ihrem Abonnement (Discovery, Pro oder Elite) durchgesetzt. Umgehungsversuche führen zur Kündigung." }
+      ]
+    },
+    "security": {
+      "title": "Datensicherheit & DSGVO",
+      "subtitle": "Sicherheit auf chirurgischem Niveau für Ihre Identität.",
+      "sections": [
+        { "id": "encryption", "title": "Ende-zu-Ende-Verschlüsselung", "content": "Alle Datenübertragungen sind mit SSL/TLS 1.3 gesichert. Sensible Profildaten werden im Ruhezustand mit AES-256-Protokollen verschlüsselt." },
+        { "id": "rls", "title": "Row-Level Security (RLS)", "content": "Unsere Datenbankarchitektur stellt sicher, dass Ihre Daten isoliert sind und nur für Sie zugänglich bleiben. Kein Dritter kann Ihre Dokumente einsehen." },
+        { "id": "purge", "title": "Zero-Retention Löschung", "content": "Nach der Kontolöschung werden alle zugehörigen Dateien innerhalb von 24 Stunden dauerhaft von unseren globalen Servern gelöscht." }
+      ]
+    },
+    "refund": {
+      "title": "Rückerstattungs- & Abrechnungsrichtlinie",
+      "subtitle": "Transparente Abrechnung für unsere Premium-Suiten.",
+      "sections": [
+        { "id": "cycles", "title": "Abonnement-Zyklen", "content": "Pro- und Elite-Pläne werden monatlich oder jährlich abgerechnet. Abonnements können jederzeit über das Master Control Panel gekündigt werden." },
+        { "id": "refunds", "title": "Rückerstattungsfähigkeit", "content": "Aufgrund der Beschaffenheit von KI-Diensten bieten wir keine Rückerstattungen für teilweise genutzte Zyklen an. Abrechnungsfehler werden jedoch korrigiert." },
+        { "id": "transparency", "title": "Preistransparenz", "content": "Preisänderungen werden mindestens 30 Tage vor der nächsten Abrechnungsperiode per E-Mail an Sie kommuniziert." }
+      ]
+    }
+  },
+  "pricing": {
+    "title": "Strategische Abonnements-Engine",
+    "tier1Name": "Discovery",
+    "tier1Sub": "Kostenloses Sync-Protokoll",
+    "tier2Name": "Neural Pro",
+    "tier2Sub": "Tiefe Optimierung",
+    "tier3Name": "Neural Elite",
+    "tier3Sub": "Ultimative Intelligenz",
+    "priceMonthly": "Pro Monat",
+    "priceForever": "Für immer",
+    "popular": "Am beliebtesten",
+    "t1f1": "2 Lebensläufe pro Woche (Max. 2 Wochen insgesamt)",
+    "t1f2": "5 manuelle Schlüsselwörter. AI Magic: GESPERRT 🔒",
+    "t1f3": "1 Standardvorlage. Einfache PDF-Übernahme",
+    "t2f1": "6 Lebensläufe pro Woche (Tägliches Limit: 3/Tag)",
+    "t2f2": "15 KI-Schlüsselwörter. LinkedIn Echtzeit-Sync",
+    "t2f3": "4 Elite-Vorlagen (Visuell & Minimal). Pro-Paletten & Neural Meter",
+    "t3f1": "Unbegrenzter globaler Zugriff. Keine Drosselung",
+    "t3f2": "Unbegrenzte Schlüsselwörter. Volle Neural Engine",
+    "t3f3": "Alle 6 Premium-Vorlagen + Custom Branding. Anschreiben-Generator",
+    "t3promo": "Neuraler Anschreiben-Generator Inklusive"
   }
 }

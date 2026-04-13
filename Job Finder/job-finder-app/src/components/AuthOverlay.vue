@@ -164,7 +164,7 @@ const signInWithSocial = async (provider) => {
                  <Sparkles v-else class="w-7 h-7 text-[#C1A172] relative z-10" />
               </div>
               <div class="flex flex-col gap-1">
-                 <h2 class="text-xl font-black text-white uppercase tracking-[0.1em] font-playfair">{{ internalMode === 'login' ? 'Master Access' : 'Create Identity' }}</h2>
+                 <h2 class="text-xl font-black text-white uppercase tracking-[0.1em] font-playfair">{{ internalMode === 'login' ? 'Professional Access' : 'Create Identity' }}</h2>
                  <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] font-jakarta">DigyNex AI Discovery Hub</p>
               </div>
            </div>
@@ -187,7 +187,7 @@ const signInWithSocial = async (provider) => {
               
               <!-- Password -->
               <div class="space-y-1 group">
-                 <label class="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] ml-2 font-jakarta">Encrypted Key</label>
+                 <label class="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] ml-2 font-jakarta">Account Password</label>
                  <input v-model="password" type="password" placeholder="••••••••" class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-[12px] text-white focus:outline-none focus:ring-1 focus:ring-[#C1A172] transition-all" />
               </div>
 
@@ -204,7 +204,7 @@ const signInWithSocial = async (provider) => {
                  </div>
                  <LogIn v-if="internalMode === 'login'" class="w-4 h-4" />
                  <ArrowRight v-else class="w-4 h-4" />
-                 <span>{{ internalMode === 'login' ? 'Login Now' : 'Sign Up Now' }}</span>
+                 <span>{{ internalMode === 'login' ? 'Sign In Now' : 'Sign Up Now' }}</span>
               </button>
            </div>
 

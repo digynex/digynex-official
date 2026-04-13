@@ -33,6 +33,7 @@ import JobDetailOverlay from './components/JobDetailOverlay.vue'
 import ActionSheet from './components/ActionSheet.vue'
 import ClassicElite from './components/templates/ClassicElite.vue'
 import SidebarModern from './components/templates/SidebarModern.vue'
+import AdminPanel from './components/AdminPanel.vue'
 
 const TEMPLATE_MAP = {
   1: ClassicElite,
@@ -434,7 +435,9 @@ const isTemplatePreviewOpen = ref(false)
 const previewingTemplate = ref(null)
 const cvTemplates = ref([])
 const viewportHtml = ref('')
-const viewMode = ref('elite') // 'elite' or 'legacy'
+const viewMode = ref('elite')
+const systemConfig = ref({})
+const isMaintenanceMode = ref(false)
 
 const refreshViewport = async () => {
     const colors = {
@@ -602,6 +605,24 @@ const handleApply = async (job) => {
     }
 }
 
+const isInfoSheetOpen = ref(false)
+const infoSheetType = ref('')
+const infoSheetTitle = ref('')
+
+const openLegalModal = (type) => {
+    infoSheetType.value = type;
+    const titles = {
+        'pricing': 'Strategic Subscription Engine',
+        'about': 'About DigyNex AI',
+        'privacy': 'Privacy & AI Ethics (GDPR)',
+        'terms': 'Terms of Service',
+        'security': 'Data Security & Neural Guard',
+        'refund': 'Billing & Refund Policy'
+    };
+    infoSheetTitle.value = titles[type] || 'Information Hub';
+    isInfoSheetOpen.value = true;
+}
+
 const fetchUserProfile = async () => {
     const user = await authService.getUser();
     if (user) {
@@ -614,7 +635,8 @@ const fetchUserProfile = async () => {
                 name: profile.name || user.user_metadata?.full_name || 'Expert',
                 primaryColor: profile.primary_color || '#0A2647',
                 secondaryColor: profile.secondary_color || '#64748b',
-                languagePreference: profile.language_preference || 'EN'
+                languagePreference: profile.language_preference || 'EN',
+                isAdmin: profile.is_admin || false
             };
             uploadedFileName.value = profile.uploaded_cv_name || 'No CV Uploaded';
             selectedTemplate.value = profile.selected_template || 3;
@@ -935,8 +957,17 @@ const handleNotificationClick = (notif) => {
           @removeField="removeField"
           @addField="addField"
           @openCVModal="isCVModalOpen = true"
+          @openAdminPanel="activeTab = 'admin'" 
+          @logout="logout"
+          @openLegal="openLegalModal"
        />
 
+       <!-- MASTER CONTROL PANEL (ADMIN ONLY) -->
+       <AdminPanel 
+          v-else-if="activeTab === 'admin'"
+          v-model:isMaintenanceMode="isMaintenanceMode"
+          @setTab="(tab) => activeTab = tab"
+       />
 
        <!-- CV STUDIO HUB (MAGIC CENTER) -->
        <StudioHub 
@@ -1347,6 +1378,165 @@ const handleNotificationClick = (notif) => {
                    <button @click="finalizeTemplateSelection" class="flex-[2] py-4 bg-gradient-to-r from-[#C1A172] to-[#FFD700] rounded-2xl text-[11px] font-black text-[#0A2647] uppercase tracking-widest shadow-xl shadow-yellow-900/20 hover:scale-[1.02] active:scale-95 transition-all">
                       Sync Performance Style
                    </button>
+                </div>
+             </div>
+          </div>
+       </Transition>
+
+       <!-- INFORMATION HUB MODAL (GOVERNANCE & LEGAL) -->
+       <Transition name="fade">
+          <div v-if="isInfoSheetOpen" class="fixed inset-0 z-[1100] flex flex-col items-center justify-end sm:justify-center p-0 sm:p-4 animate-in fade-in duration-300">
+             <div @click="isInfoSheetOpen = false" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
+             
+             <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
+                <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
+                   <div class="flex items-center gap-3">
+                      <div class="bg-[#C1A172]/20 p-2 rounded-xl">
+                         <ShieldCheck class="w-5 h-5 text-[#C1A172]" />
+                      </div>
+                      <h3 class="text-xs font-black text-white uppercase tracking-widest">{{ ['privacy', 'terms', 'security', 'refund'].includes(infoSheetType) ? $t(`policies.${infoSheetType}.title`) : (infoSheetType === 'pricing' ? $t('pricing.title') : $t('governance.infoHub')) }}</h3>
+                   </div>
+                   <button @click="isInfoSheetOpen = false" class="p-2 bg-white/5 rounded-full hover:bg-white/10 text-white/50 transition-colors">
+                      <X class="w-5 h-5" />
+                   </button>
+                </div>
+
+                <div class="p-8 overflow-y-auto no-scrollbar space-y-6">
+                   <!-- DYNAMIC CONTENT DISPATCH -->
+                   <div v-if="infoSheetType === 'pricing'" class="space-y-5">
+                   <!-- TIER 1: DISCOVERY -->
+                   <div class="p-7 bg-white/5 border border-white/10 rounded-[2.5rem] relative overflow-hidden transition-all hover:bg-white/[0.07]">
+                      <div class="flex items-center justify-between mb-6">
+                         <div>
+                            <p class="text-[14px] font-black text-white uppercase tracking-[0.2em]">{{ $t('pricing.tier1Name') }}</p>
+                            <p class="text-[10px] font-bold text-white/30 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier1Sub') }}</p>
+                         </div>
+                         <div class="text-right">
+                            <span class="text-[20px] font-black text-[#C1A172] tracking-tighter">$0</span>
+                            <p class="text-[9px] font-black text-white/20 uppercase">{{ $t('pricing.priceForever') }}</p>
+                         </div>
+                      </div>
+                      <div class="space-y-4 border-t border-white/5 pt-5">
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-[#C1A172]/10 p-1 rounded-md mt-0.5"><Check class="w-3.5 h-3.5 text-[#C1A172]" /></div>
+                            <p class="text-[12px] font-bold text-white/60 leading-snug">{{ $t('pricing.t1f1') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-white/10 p-1 rounded-md mt-0.5"><Lock class="w-3.5 h-3.5 text-white/30" /></div>
+                            <p class="text-[12px] font-bold text-white/40 leading-snug">{{ $t('pricing.t1f2') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-[#C1A172]/10 p-1 rounded-md mt-0.5"><Check class="w-3.5 h-3.5 text-[#C1A172]" /></div>
+                            <p class="text-[12px] font-bold text-white/60 leading-snug">{{ $t('pricing.t1f3') }}</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <!-- TIER 2: PRO -->
+                   <div class="p-8 bg-[#C1A172]/10 border border-[#C1A172]/40 rounded-[2.5rem] relative shadow-2xl shadow-[#C1A172]/5 transform scale-[1.02]">
+                      <div class="absolute right-6 -top-3 bg-[#C1A172] text-[#0A2647] text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">{{ $t('pricing.popular') }}</div>
+                      <div class="flex items-center justify-between mb-6">
+                         <div>
+                            <p class="text-[16px] font-black text-[#C1A172] uppercase tracking-[0.2em]">{{ $t('pricing.tier2Name') }}</p>
+                            <p class="text-[10px] font-bold text-[#C1A172]/60 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier2Sub') }}</p>
+                         </div>
+                         <div class="text-right">
+                            <span class="text-[22px] font-black text-white tracking-tighter">$19</span>
+                            <p class="text-[9px] font-black text-white/30 uppercase">{{ $t('pricing.priceMonthly') }}</p>
+                         </div>
+                      </div>
+                      <div class="space-y-4 border-t border-[#C1A172]/20 pt-6">
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-[#C1A172]/20 p-1.5 rounded-lg mt-0.5"><Check class="w-4 h-4 text-[#C1A172]" /></div>
+                            <p class="text-[13px] font-bold text-white leading-snug">{{ $t('pricing.t2f1') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-[#C1A172]/20 p-1.5 rounded-lg mt-0.5"><Zap class="w-4 h-4 text-[#C1A172]" /></div>
+                            <p class="text-[13px] font-bold text-white leading-snug">{{ $t('pricing.t2f2') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-[#C1A172]/20 p-1.5 rounded-lg mt-0.5"><Check class="w-4 h-4 text-[#C1A172]" /></div>
+                            <p class="text-[13px] font-bold text-white leading-snug">{{ $t('pricing.t2f3') }}</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <!-- TIER 3: ELITE -->
+                   <div class="p-7 bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/30 rounded-[2.5rem] relative transition-all hover:bg-indigo-500/20">
+                      <div class="flex items-center justify-between mb-6">
+                         <div>
+                            <p class="text-[14px] font-black text-indigo-100 uppercase tracking-[0.2em] flex items-center gap-2">
+                               {{ $t('pricing.tier3Name') }}
+                               <Sparkles class="w-4 h-4 text-indigo-400" />
+                            </p>
+                            <p class="text-[10px] font-bold text-indigo-400/60 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier3Sub') }}</p>
+                         </div>
+                         <div class="text-right">
+                            <span class="text-[20px] font-black text-white tracking-tighter">$49</span>
+                            <p class="text-[9px] font-black text-white/30 uppercase">{{ $t('pricing.priceMonthly') }}</p>
+                         </div>
+                      </div>
+                      <div class="space-y-4 border-t border-indigo-500/20 pt-5">
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-indigo-500/20 p-1 rounded-md mt-0.5"><Zap class="w-3.5 h-3.5 text-indigo-400" /></div>
+                            <p class="text-[12px] font-bold text-indigo-100/80 leading-snug">{{ $t('pricing.t3f1') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-indigo-500/20 p-1 rounded-md mt-0.5"><Zap class="w-3.5 h-3.5 text-indigo-400" /></div>
+                            <p class="text-[12px] font-bold text-indigo-100/80 leading-snug">{{ $t('pricing.t3f2') }}</p>
+                         </div>
+                         <div class="flex gap-3 items-start">
+                            <div class="bg-indigo-400 p-1 rounded-md mt-0.5"><Check class="w-3.5 h-3.5 text-white" /></div>
+                            <p class="text-[12px] font-bold text-indigo-100 leading-snug">{{ $t('pricing.t3f3') }}</p>
+                         </div>
+                         <p class="text-[11px] text-indigo-400 font-black tracking-widest uppercase flex items-center gap-2 mt-2">
+                            <Sparkles class="w-3 h-3" />
+                            {{ $t('pricing.t3promo') }}
+                         </p>
+                      </div>
+                   </div>
+                </div>
+
+                    <div v-else-if="['privacy', 'terms', 'security', 'billing'].includes(infoSheetType)" class="space-y-6">
+                       <div class="space-y-2">
+                          <p class="text-[13px] font-black text-[#C1A172] uppercase tracking-[0.2em]">{{ $t(`policies.${infoSheetType}.title`) }}</p>
+                          <p class="text-[11px] font-bold text-white/40 uppercase tracking-widest">{{ $t(`policies.${infoSheetType}.subtitle`) }}</p>
+                       </div>
+
+                       <div class="space-y-5">
+                          <div v-for="section in $tm(`policies.${infoSheetType}.sections`)" :key="section.id" class="p-5 bg-white/5 border border-white/10 rounded-3xl space-y-2 hover:bg-white/[0.07] transition-all">
+                             <div class="flex items-center gap-3">
+                                <div class="w-1.5 h-1.5 rounded-full bg-[#C1A172]"></div>
+                                <p class="text-[12px] font-black text-white uppercase tracking-wider">{{ section.title }}</p>
+                             </div>
+                             <p class="text-[12px] font-bold text-white/50 leading-relaxed pl-4.5">
+                                {{ section.content }}
+                             </p>
+                          </div>
+                       </div>
+
+                       <div class="pt-4 border-t border-white/5 flex items-center justify-between opacity-30 px-2">
+                          <span class="text-[9px] font-black text-white uppercase tracking-widest">{{ $t('policies.version') }}</span>
+                          <span class="text-[9px] font-black text-white uppercase tracking-widest">{{ $t('policies.lastUpdated') }}</span>
+                       </div>
+                    </div>
+
+                    <div v-else class="space-y-6">
+                       <div class="p-6 bg-white/5 border border-white/10 rounded-3xl">
+                          <p class="text-[14px] font-black text-white uppercase tracking-[0.2em] mb-3">Sync in Progress</p>
+                          <p class="text-[12px] font-bold text-white/60 leading-relaxed italic">
+                             The detailed governance documentation for {{ infoSheetType.toUpperCase() }} is currently being synchronized with our global legal framework.
+                          </p>
+                       </div>
+                       <div class="p-10 border border-dashed border-white/10 rounded-[2.5rem] text-center flex flex-col items-center gap-4">
+                          <RefreshCw class="w-8 h-8 text-[#C1A172]/20 animate-spin" />
+                          <p class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Awaiting Legal Sync</p>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div class="p-6 bg-white/5 border-t border-white/5 flex justify-center">
+                   <p class="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">DigyNex Identity Hub • Master V7.0</p>
                 </div>
              </div>
           </div>

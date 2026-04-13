@@ -90,5 +90,86 @@
     "studio": "CV Studio",
     "login": "Login",
     "register": "Join"
+  },
+  "governance": {
+    "general": "General Strategy",
+    "pricing": "Pricing & Subscription",
+    "about": "About DigyNex AI",
+    "t3f3": "Everything Unlockable. JSON Export + Cover Letters",
+    "t3promo": "Cover Letter Generator Included",
+    "legal": "Legal & Security",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "security": "Data Security & GDPR",
+    "refund": "Refund & Billing Policy",
+    "support": "Support & Help Center",
+    "logout": "Sign Out",
+    "adminTitle": "Neural Master Control",
+    "adminSub": "Global Governance Active",
+    "version": "Neural Sync",
+    "infoHub": "Information Hub",
+    "privacySecurityTitle": "Privacy & AI Ethics (GDPR)"
+  },
+  "policies": {
+    "version": "v1.2.0-GP",
+    "lastUpdated": "April 13, 2026",
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "How we safeguard your personal data in the AI era.",
+      "sections": [
+        { "id": "collection", "title": "Information Collection", "content": "We collect professional data from your uploaded CVs, including contact details, work history, and skills, solely to enhance your job search experience through our neural optimization engine." },
+        { "id": "ai", "title": "AI Data Processing", "content": "Your data is processed via OpenAI and Google Gemini APIs to generate keywords and optimize CVs. We enforce strict protocols to ensure your data is never used to train third-party AI models." },
+        { "id": "sovereignty", "title": "Data Sovereignty", "content": "Personal information is stored securely on Supabase (EU-based clusters). In strict compliance with GDPR, you retain the right to access, rectify, or request the permanent deletion of your data via the Emergency Purge tool." }
+      ]
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "subtitle": "Rules for using the CareerNexus Neural Engine.",
+      "sections": [
+        { "id": "conduct", "title": "User Conduct", "content": "Users must provide accurate professional information. Misuse of the platform or creating multiple fraudulent accounts to exploit AI limits is strictly prohibited and monitored." },
+        { "id": "liability", "title": "AI Liability", "content": "While our neural engine provides high-fidelity optimization, CareerNexus does not guarantee job placement. The final accuracy and integrity of the generated output remain the user's sole responsibility." },
+        { "id": "usage", "title": "Fair Usage", "content": "Application limits are strictly enforced based on your subscription tier (Discovery, Pro, or Elite). Deliberate technical exploits to bypass these limits will result in immediate account termination." }
+      ]
+    },
+    "security": {
+      "title": "Data Security & GDPR",
+      "subtitle": "Surgical-level security for your professional identity.",
+      "sections": [
+        { "id": "encryption", "title": "End-to-End Encryption", "content": "All data transfers are secured with SSL/TLS 1.3 encryption. Sensitive profile data is encrypted at rest using industry-grade AES-256 protocols to ensure multi-layered protection." },
+        { "id": "rls", "title": "Row-Level Security (RLS)", "content": "Our database architecture uses Postgres RLS to ensure your data is isolated. No other entity, including unauthorized support staff, can view your private CV specimens." },
+        { "id": "purge", "title": "Zero-Retention Deletion", "content": "Upon triggering the Emergency Sign Out & Purge, all associated data, including original PDFs and AI-generated models, are permanently erased within our 24-hour global sync cycle." }
+      ]
+    },
+    "refund": {
+      "title": "Refund & Billing Policy",
+      "subtitle": "Transparent billing for our Premium Suites.",
+      "sections": [
+        { "id": "cycles", "title": "Subscription Cycles", "content": "Pro and Elite plans operate on recurring monthly or annual billing. You retain full control to cancel or downgrade at any time via the Neural Master Control gateway." },
+        { "id": "refunds", "title": "Refund Eligibility", "content": "Given the digital nature of AI token consumption, we generally do not offer refunds for active billing cycles. However, proven technical errors will be rectified if reported within 48 hours." },
+        { "id": "transparency", "title": "Pricing Transparency", "content": "Any adjustments to our pricing structures will be communicated to your registered email at least 30 days prior to the next billing cycle taking effect." }
+      ]
+    }
+  },
+  "pricing": {
+    "title": "Strategic Subscription Engine",
+    "tier1Name": "Discovery",
+    "tier1Sub": "Free Sync Protocol",
+    "tier2Name": "Neural Pro",
+    "tier2Sub": "Deep Optimization",
+    "tier3Name": "Neural Elite",
+    "tier3Sub": "Ultimate Intelligence",
+    "priceMonthly": "Per Month",
+    "priceForever": "Forever",
+    "popular": "Most Popular",
+    "t1f1": "2 CVs per Week (Max 2 weeks total)",
+    "t1f2": "5 Manual Keywords. AI Magic: LOCKED 🔒",
+    "t1f3": "1 Standard Template. Basic PDF Ingestion",
+    "t2f1": "6 CVs per Week (Daily Sync Cap: 3/day)",
+    "t2f2": "15 AI Keywords. LinkedIn Real-time Sync",
+    "t2f3": "4 Elite Templates (Visual & Minimal). Pro Palettes & Neural Meter",
+    "t3f1": "Unlimited Global Access. No Throttle / Full Priority",
+    "t3f2": "Unlimited Keywords. Full Neural Suggestion Engine",
+    "t3f3": "All 6 Premium Templates + Custom Branding. Cover Letter Generator",
+    "t3promo": "Neural Cover Letter Generator Included"
   }
 }

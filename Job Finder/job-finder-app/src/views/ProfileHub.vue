@@ -21,7 +21,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
-  'openAuth', 'openLinkedInModal', 'openManualForm', 'compileLatex', 'triggerFileUpload', 'handleFileUpload', 'saveProfile', 'removeField', 'addField', 'update:newField', 'openCVModal'
+  'openAuth', 'openLinkedInModal', 'openManualForm', 'compileLatex', 'triggerFileUpload', 'handleFileUpload', 'saveProfile', 'removeField', 'addField', 'update:newField', 'openCVModal', 'openAdminPanel', 'logout', 'openLegal'
 ])
 
 const hasCVData = computed(() => {
@@ -48,17 +48,25 @@ const hasCVData = computed(() => {
      </header>
      
       <div class="mt-4 flex-1 overflow-y-auto custom-scrollbar space-y-3 px-4 hub-scroller relative">
-         <!-- GLOBAL PRIVACY LOCK (PROFILE GUEST MODE) -->
-         <div v-if="!isAuthenticated" class="absolute inset-x-0 inset-y-0 z-[100] flex flex-col items-center justify-center px-8 text-center bg-[#0A2647]/40 backdrop-blur-md rounded-[3rem] h-[calc(100%-110px)] top-1 mx-4">
-            <div class="w-full max-w-[280px] bg-[#0A2647] border border-white/10 rounded-[2.5rem] p-8 shadow-3xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-500">
-               <div class="w-12 h-12 bg-[#C1A172]/10 rounded-2xl flex items-center justify-center border border-[#C1A172]/20">
-                  <ShieldCheck class="w-6 h-6 text-[#C1A172]" />
+         <!-- PROFESSIONAL ACCESS PROMPT (GUEST MODE) -->
+         <div v-if="!isAuthenticated" class="absolute inset-x-0 inset-y-0 z-[100] flex flex-col items-center justify-center px-8 text-center bg-[#0A2647]/20 backdrop-blur-lg rounded-[3rem] h-[calc(100%-110px)] top-1 mx-4">
+            <div class="w-full max-w-[280px] bg-[#0A2647]/80 border border-white/5 rounded-[2.5rem] p-8 shadow-3xl flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
+               <div class="w-full relative">
+                  <!-- CLOSE ESCAPE PATH -->
+                  <button @click="$emit('returnToDashboard')" class="absolute -top-4 -right-4 p-2 bg-white/5 rounded-full hover:bg-white/10 text-white/40 transition-all active:scale-90">
+                     <X class="w-4 h-4" />
+                  </button>
+
+                  <div class="flex flex-col gap-6 w-full">
+                     <div class="space-y-2">
+                        <h3 class="text-[14px] font-black text-white uppercase tracking-[0.2em]">Professional Identity</h3>
+                        <p class="text-[9px] font-medium text-white/30 uppercase tracking-[0.1em] leading-relaxed px-4">Sign in to sync your AI profile and career telemetry.</p>
+                     </div>
+                     <button @click="$emit('openAuth', 'login')" class="w-full py-4 bg-[#C1A172] rounded-2xl text-[11px] font-black text-[#0A2647] uppercase tracking-[0.1em] shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                        Sign In to Continue
+                     </button>
+                  </div>
                </div>
-               <div class="space-y-1">
-                  <h3 class="text-[11px] font-black text-white uppercase tracking-[0.2em]">IDENTITY HUB LOCKED</h3>
-                  <p class="text-[8px] font-black text-white/30 uppercase tracking-[0.1em] leading-relaxed">Personal data ingestion and AI profiling are restricted to authorized users.</p>
-               </div>
-               <button @click="$emit('openAuth', 'login')" class="mt-2 w-full py-3 bg-[#C1A172] rounded-xl text-[9px] font-black text-[#0A2647] uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">Unlock Master Access</button>
             </div>
          </div>
 
@@ -174,9 +182,83 @@ const hasCVData = computed(() => {
            <span class="text-[11.5px] font-black text-[#0A2647] uppercase tracking-[0.2em] relative z-10">{{ isSavingProfile ? 'UPDATING...' : 'SAVE EXPERT IDENTITY' }}</span>
            <ShieldCheck v-if="!isSavingProfile" class="w-3.5 h-3.5 text-[#0A2647]/40" />
         </button>
-     </div>
+
+        <!-- GOVERNANCE SYSTEM (MULTI-CARD) -->
+        <div class="mt-12 mb-20 space-y-5 px-2">
+           
+           <!-- SECTION 1: GENERAL STRATEGY -->
+           <div class="bg-white/5 rounded-[2.2rem] p-5 border border-white/5 backdrop-blur-md shadow-2xl">
+              <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 block px-1">{{ t('governance.general') }}</span>
+              <button @click="$emit('openLegal', 'pricing')" class="w-full flex items-center justify-between py-4 border-b border-white/5 group">
+                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors">{{ t('governance.pricing') }}</span>
+                 <ArrowRight class="w-4 h-4 text-white/20 group-hover:text-[#C1A172] transition-all" />
+              </button>
+              <button @click="$emit('openLegal', 'about')" class="w-full flex items-center justify-between py-4 group">
+                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors">{{ t('governance.about') }}</span>
+                 <ArrowRight class="w-4 h-4 text-white/20 group-hover:text-[#C1A172] transition-all" />
+              </button>
+           </div>
+
+           <!-- SECTION 2: TRUST & GOVERNANCE -->
+           <div class="bg-white/5 rounded-[2.2rem] p-5 border border-white/5 backdrop-blur-md shadow-2xl">
+              <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 block px-1">{{ t('governance.legal') }}</span>
+              <div class="space-y-1">
+                 <button @click="$emit('openLegal', 'privacy')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.privacy') }}</span>
+                    <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
+                 </button>
+                 <button @click="$emit('openLegal', 'terms')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.terms') }}</span>
+                    <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
+                 </button>
+                 <button @click="$emit('openLegal', 'security')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.security') }}</span>
+                    <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
+                 </button>
+                 <button @click="$emit('openLegal', 'refund')" class="w-full flex items-center justify-between py-3.5 group">
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.refund') }}</span>
+                    <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
+                 </button>
+              </div>
+           </div>
+           
+           <!-- SECTION 3: NEURAL MASTER CONTROL (ADMIN ONLY) -->
+           <button v-if="userProfile?.isAdmin && userProfile?.email === 'amilawijayantha858@gmail.com'" 
+                   @click.stop="$emit('openAdminPanel')"
+                   class="w-full p-6 bg-gradient-to-r from-[#C1A172]/10 to-[#C1A172]/5 border border-dashed border-[#C1A172]/30 rounded-[2.5rem] flex items-center justify-between group transition-all hover:border-[#C1A172] shadow-xl shadow-[#C1A172]/5">
+              <div class="flex items-center gap-4">
+                 <div class="bg-[#C1A172] p-2.5 rounded-xl shadow-[0_0_20px_rgba(193,161,114,0.3)]">
+                    <ShieldCheck class="w-5 h-5 text-[#0A2647]" />
+                 </div>
+                 <div class="text-left">
+                    <span class="text-[13px] font-black text-[#C1A172] uppercase tracking-[0.15em] block">{{ t('governance.adminTitle') }}</span>
+                    <span class="text-[10px] font-bold text-[#C1A172]/50 uppercase tracking-widest">{{ t('governance.adminSub') }}</span>
+                 </div>
+              </div>
+              <Sparkles class="w-4 h-4 text-[#C1A172]/40 group-hover:rotate-45 transition-transform" />
+           </button>
+
+           <!-- SECTION 4: DEPLOYMENT STAMP & SUPPORT -->
+           <div class="pt-8 flex flex-col items-center space-y-7">
+              <button class="text-[12px] font-black text-white/40 uppercase tracking-[0.2em] hover:text-[#C1A172] transition-colors">
+                 {{ t('governance.support') }}
+              </button>
+
+              <button @click="$emit('logout')" class="w-[90%] py-4.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center gap-2 group hover:bg-red-500/20 transition-all active:scale-95">
+                 <span class="text-[11px] font-black text-red-500 uppercase tracking-[0.2em] group-hover:tracking-[0.3em] transition-all">{{ t('governance.logout') }}</span>
+              </button>
+
+              <div class="flex flex-col items-center opacity-30">
+                 <p class="text-[10px] font-black text-white uppercase tracking-[0.3em]">
+                    V7.0 {{ t('governance.version') }}
+                 </p>
+                 <div class="w-10 h-[1.5px] bg-white/20 mt-3"></div>
+              </div>
+           </div>
+        </div>
       </div>
-   </div>
+       </div>
+    </div>
 </template>
 
 <style scoped>

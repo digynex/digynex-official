@@ -75,5 +75,27 @@ export const profileService = {
         details: { company: job.c, role: job.r, timestamp: new Date().toISOString() }
       }
     ]);
+  },
+
+  /**
+   * Universal System Awareness: Fetches global maintenance/config flags.
+   */
+  async getSystemConfig() {
+    const { data, error } = await supabase.from('system_config').select('*');
+    if (error) throw error;
+    return data.reduce((acc, item) => {
+      acc[item.key] = item.value;
+      return acc;
+    }, {});
+  },
+
+  /**
+   * Owner Command: Updates global system flags (Admin only).
+   */
+  async updateSystemConfig(key, value) {
+    return await supabase
+      .from('system_config')
+      .update({ value, updated_at: new Date().toISOString() })
+      .eq('key', key);
   }
 };
