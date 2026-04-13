@@ -42,11 +42,13 @@ const handleDashboardAction = (action) => emit('handleAction', action)
     <div class="flex-1 overflow-y-auto px-4 pb-[115px] custom-scrollbar">
        
        <!-- Identity Hub -->
-       <div class="flex justify-between items-center mt-[5px] w-full px-1 font-jakarta transition-all duration-1000" :class="isRecalibrating ? 'scale-[1.02] blur-[1px]' : ''">
-         <h1 class="text-[24px] font-bold text-white tracking-tight leading-none pt-2 font-jakarta">
-            <span :class="isRecalibrating ? 'animate-pulse text-[#C1A172]' : 'neural-glow'">{{ isAuthenticated ? `Welcome back, ${displayName}` : (displayName === 'Expert' ? t('header.welcome') : `Welcome, ${displayName}`) }}</span>
-         </h1>
-         <!-- Avatar Unit -->
+        <div class="flex justify-between items-center mt-[5px] w-full px-1 font-jakarta transition-all duration-1000" :class="isRecalibrating ? 'scale-[1.02] blur-[1px]' : ''">
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[18px] font-bold text-white tracking-tight leading-none pt-2 font-jakarta truncate">
+               <span :class="isRecalibrating ? 'animate-pulse text-[#C1A172]' : 'neural-glow'">{{ isAuthenticated ? `Welcome back, ${displayName}` : (displayName === 'Expert' ? t('header.welcome') : `Welcome, ${displayName}`) }}</span>
+            </h1>
+          </div>
+          <!-- Avatar Unit -->
          <div class="w-11 h-11 rounded-full border-2 border-white/20 shadow-2xl overflow-hidden ring-1 ring-white/5 transition-all">
             <img src="https://i.pravatar.cc/150?u=amila" alt="P" class="w-full h-full object-cover" />
          </div>

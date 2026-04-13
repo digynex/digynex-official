@@ -7,8 +7,10 @@ import { ref } from 'vue'
 const props = defineProps({
   t: Function,
   searchQuery: String,
+  filteredMatches: Array,
   selectedCountriesArr: Array,
-  activeCountry: String
+  activeCountry: String,
+  activeFocusSlots: Object
 })
 
 const emit = defineEmits([
@@ -38,8 +40,20 @@ const handleDashboardAction = (action) => emit('handleAction', action)
           <p class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.3em] mt-1.5 opacity-80 animate-pulse">{{ t('matches.discoveryHub') }}</p>
        </div>
 
-       <div class="w-full px-1 space-y-4">
-          <!-- DRAGGABLE / SCROLLABLE COUNTRIES LIST WITH + AT THE END -->
+       <div class="w-full px-4 space-y-4">
+          <!-- FOCUS SLOTS TELEMETRY -->
+          <div v-if="activeFocusSlots" class="flex justify-between items-center bg-white/5 border border-white/5 rounded-2xl px-3 py-1.5 mx-1">
+             <div class="flex items-center gap-2">
+                <LayoutDashboard class="w-3 h-3 text-[#C1A172]" />
+                <span class="text-[8px] font-black text-white/60 uppercase tracking-widest">Active Discovery Slots</span>
+             </div>
+             <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-black text-white leading-none">{{ activeFocusSlots.used }}/{{ activeFocusSlots.total }}</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-[#C1A172] animate-pulse shadow-[0_0_8px_#C1A172]"></div>
+             </div>
+          </div>
+
+          <!-- DRAGGABLE / SCROLLABLE COUNTRIES LIST -->
           <div ref="countriesContainer" @scroll="handleScroll" class="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar scroll-smooth w-full px-0.5">
              <div v-for="(country, idx) in selectedCountriesArr" :key="country"
                    @click="$emit('update:activeCountry', country)"
@@ -67,12 +81,7 @@ const handleDashboardAction = (action) => emit('handleAction', action)
      </header>
 
      <div class="mt-4 flex-1 overflow-y-auto space-y-2 pb-[115px] px-4 custom-scrollbar">
-        <div v-for="(match, i) in [
-           {id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr'},
-           {id: 'm2', c: 'OpenAI', r: 'Language Model Eng', l: 'Remote, Global', m: 97, icon: Stars, color: '#000000', t: '5 hr'},
-           {id: 'm3', c: 'Apple', r: 'iOS Core Developer', l: 'Copenhagen, DK', m: 95, icon: LayoutDashboard, color: '#555555', t: '8 hr'},
-           {id: 'm4', c: 'Microsoft', r: 'Azure AI Architect', l: 'Oslo, NO', m: 92, icon: Briefcase, color: '#00A4EF', t: '1 d'}
-        ]" :key="i" 
+        <div v-for="(match, i) in filteredMatches" :key="match.id" 
         @click="openJobDetail(match)"
         class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-1.5 pb-2 border border-white shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] relative overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer select-none">
            

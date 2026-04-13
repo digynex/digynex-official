@@ -135,10 +135,13 @@ const allJobs = ref([
 ])
 
 const matches = ref([
-  { company: 'Google', title: 'Senior AI Engineer', location: 'Mountain View, CA', matchScore: 98, salary: '$180k - $250k', tags: ['AI', 'Python', 'Cloud'], logo: 'G' },
-  { company: 'Meta', title: 'Product Manager', location: 'Menlo Park, CA', matchScore: 95, salary: '$170k - $230k', tags: ['Product', 'Strategy'], logo: 'M' },
-  { company: 'Netflix', title: 'Distributed Systems Eng', location: 'Los Gatos, CA', matchScore: 92, salary: '$200k - $300k', tags: ['Distributed', 'Java'], logo: 'N' },
-  { company: 'Apple', title: 'Security Architect', location: 'Cupertino, CA', matchScore: 89, salary: '$190k - $260k', tags: ['Security', 'C++', 'Privacy'], logo: 'A' },
+  { id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr' },
+  { id: 'm2', c: 'Google', r: 'Senior AI Engineer', l: 'Zurich, CH', m: 98, icon: Zap, color: '#4285F4', t: '5 hr' },
+  { id: 'm3', c: 'Meta', r: 'Product Manager', l: 'Berlin, DE', m: 95, icon: LayoutDashboard, color: '#0668E1', t: '8 hr' },
+  { id: 'm4', c: 'Netflix', r: 'Distributed Systems Eng', l: 'Amsterdam, NL', m: 92, icon: Briefcase, color: '#E50914', t: '1 d' },
+  { id: 'm5', c: 'Spotify', r: 'Data Scientist', l: 'Stockholm, SE', m: 94, icon: Zap, color: '#1DB954', t: '4 hr' },
+  { id: 'm6', c: 'Zalando', r: 'Backend Eng', l: 'Berlin, DE', m: 88, icon: LayoutDashboard, color: '#FF6900', t: '2 d' },
+  { id: 'm7', c: 'Equinor', r: 'Energy Analyst', l: 'Oslo, NO', m: 85, icon: Briefcase, color: '#FF1243', t: '3 d' }
 ])
 
 const filteredJobs = computed(() => {
@@ -172,9 +175,26 @@ const filteredJobs = computed(() => {
 
 const filteredMatches = computed(() => {
     let result = matches.value;
+    
+    // 1. Country Filter Logic
+    if (activeCountry.value) {
+        const countryCodeMap = {
+            'Sweden': 'SE',
+            'Germany': 'DE',
+            'Norway': 'NO',
+            'Finland': 'FI',
+            'Denmark': 'DK'
+        };
+        const code = countryCodeMap[activeCountry.value];
+        if (code) {
+            result = result.filter(m => m.l.includes(code));
+        }
+    }
+    
+    // 2. Search Query Logic
     if (searchQuery.value) {
         const q = searchQuery.value.toLowerCase();
-        result = result.filter(m => m.company.toLowerCase().includes(q) || m.title.toLowerCase().includes(q));
+        result = result.filter(m => m.c.toLowerCase().includes(q) || m.r.toLowerCase().includes(q));
     }
     return result;
 })
@@ -231,6 +251,25 @@ const addField = () => {
 }
 
 const isCVModalOpen = ref(false)
+
+// --- NEURAL BRIDGE: Language-Country Synergy ---
+watch(locale, (newLocale) => {
+    const localeToCountryMap = {
+        'SW': 'Sweden',
+        'DE': 'Germany',
+        'NO': 'Norway',
+        'FI': 'Finland',
+        'DA': 'Denmark'
+    }
+    const suggestedCountry = localeToCountryMap[newLocale]
+    if (suggestedCountry && activeCountry.value !== suggestedCountry) {
+        // Automatically suggest/switch country slot based on language choice
+        activeCountry.value = suggestedCountry
+        toastMessage.value = `Focusing on ${suggestedCountry} matches`
+        showToast.value = true
+        setTimeout(() => showToast.value = false, 2000)
+    }
+})
 
 const saveProfile = async () => {
   if (isSavingProfile.value) return;
@@ -784,7 +823,9 @@ const handleNotificationClick = (notif) => {
           v-model:searchQuery="searchQuery"
           v-model:activeCountry="activeCountry"
           :t="t"
+          :filteredMatches="filteredMatches"
           :selectedCountriesArr="selectedCountriesArr"
+          :activeFocusSlots="activeFocusSlots"
           @openJobDetail="openJobDetail"
           @handleAction="handleDashboardAction"
           @openCountrySelector="showCountrySelector = true"
