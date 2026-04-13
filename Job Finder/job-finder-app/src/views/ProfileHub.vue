@@ -1,12 +1,14 @@
 <script setup>
+import { computed } from 'vue'
 import { 
-  ShieldCheck, Sparkles, Linkedin, User, FileText, Zap, X, ArrowRight
+  ShieldCheck, Sparkles, Linkedin, User, FileText, Zap, X, ArrowRight, Lock
 } from 'lucide-vue-next'
 
 const props = defineProps({
   t: Function,
   isAuthenticated: Boolean,
   userProfile: Object,
+  masterProfile: Object,
   uploadedFileName: String,
   activeFocusSlots: Object,
   fieldsOfInterest: Array,
@@ -21,6 +23,11 @@ const props = defineProps({
 const emit = defineEmits([
   'openAuth', 'openLinkedInModal', 'openManualForm', 'compileLatex', 'triggerFileUpload', 'handleFileUpload', 'saveProfile', 'removeField', 'addField', 'update:newField', 'openCVModal'
 ])
+
+const hasCVData = computed(() => {
+  return (props.uploadedFileName && props.uploadedFileName !== 'No CV Uploaded') || 
+         (props.masterProfile?.basic?.fullName);
+})
 
 </script>
 
@@ -97,14 +104,19 @@ const emit = defineEmits([
         </div>
 
         <!-- CV MANAGEMENT (MATCHED ARCHITECTURE) -->
-        <div class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-2 pb-2.5 shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] border border-white relative overflow-hidden group">
+        <div :class="uploadedFileName !== 'No CV Uploaded' ? 'border-[#C1A172]/30 shadow-[0_30px_60px_-15px_rgba(193,161,114,0.15)] ring-1 ring-[#C1A172]/10' : 'border-white'" 
+             class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-2 pb-2.5 shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] border relative overflow-hidden group transition-all duration-500">
            <div class="flex items-center justify-between mb-4">
               <div class="flex flex-col">
-                 <span class="text-[9px] font-black text-[#0A2647]/50 uppercase tracking-[0.2em] mb-1">Legacy CV Core</span>
+                 <div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-[9px] font-black text-[#0A2647]/50 uppercase tracking-[0.2em]">Legacy CV Core</span>
+                    <div v-if="uploadedFileName !== 'No CV Uploaded'" class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+                 </div>
                  <p class="text-[14px] font-black text-[#0A2647] tracking-tight truncate w-40">{{ uploadedFileName }}</p>
               </div>
-              <div class="bg-[#0A2647] p-2.5 rounded-xl shadow-lg transform group-hover:rotate-6 transition-transform">
-                 <FileText class="w-5 h-5 text-[#C1A172]" />
+              <div :class="uploadedFileName !== 'No CV Uploaded' ? 'bg-[#C1A172]' : 'bg-[#0A2647]'"
+                   class="p-2.5 rounded-xl shadow-lg transform group-hover:rotate-6 transition-all duration-500">
+                 <FileText :class="uploadedFileName !== 'No CV Uploaded' ? 'text-white' : 'text-[#C1A172]'" class="w-5 h-5" />
               </div>
            </div>
            
@@ -118,16 +130,20 @@ const emit = defineEmits([
                  <div class="h-full bg-gradient-to-r from-[#2C74B3] to-[#C1A172] rounded-full transition-all duration-1000 shadow-sm" :style="`width: ${(activeFocusSlots.used / activeFocusSlots.total) * 100}%`"></div>
               </div>
            </div>
-
+ 
            <div class="space-y-3">
-              <input type="file" @change="$emit('handleFileUpload', $event)" class="hidden" id="cv-upload-input" accept=".pdf,.doc,.docx" />
               <button @click="$emit('triggerFileUpload')" class="w-[88%] mx-auto bg-[#0A2647]/5 border border-[#0A2647]/10 py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all group/upload active:scale-95 hover:bg-[#0A2647]/10 shadow-sm">
-                 <Zap v-if="!isUploadingCV" class="w-4 h-4 text-[#0A2647]/20 group-hover/upload:text-[#2C74B3] transition-colors" />
+                 <Zap v-if="!isUploadingCV" :class="uploadedFileName !== 'No CV Uploaded' ? 'text-[#C1A172]' : 'text-[#0A2647]/20'" class="w-4 h-4 group-hover/upload:text-[#2C74B3] transition-colors" />
                  <div v-else class="w-4 h-4 rounded-full border-2 border-[#0A2647]/20 border-t-[#0A2647] animate-spin"></div>
-                 <span class="text-[11px] font-black text-[#0A2647]/40 group-hover/upload:text-[#0A2647] uppercase tracking-widest transition-colors">{{ isUploadingCV ? 'Syncing...' : 'Upload Professional CV' }}</span>
+                 <span class="text-[11px] font-black text-[#0A2647]/40 group-hover/upload:text-[#0A2647] uppercase tracking-widest transition-colors">
+                    {{ isUploadingCV ? 'Syncing...' : (uploadedFileName !== 'No CV Uploaded' ? 'REPLACE ACTIVE CV' : 'Upload Professional CV') }}
+                 </span>
               </button>
-              <button @click="$emit('openCVModal')" class="w-[88%] mx-auto bg-[#0A2647] py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#0A2647]/20">
-                 <span class="text-[11px] font-black text-white uppercase tracking-widest">SECURE VIEW ENGINE</span>
+              <button @click="hasCVData ? $emit('openCVModal') : null" 
+                      :class="hasCVData ? 'bg-[#0A2647] hover:scale-[1.02] shadow-xl shadow-[#0A2647]/20' : 'bg-[#0A2647]/20 cursor-not-allowed opacity-40'"
+                      class="w-[88%] mx-auto py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all">
+                 <span class="text-[11px] font-black text-white uppercase tracking-widest">{{ hasCVData ? 'SECURE VIEW ENGINE' : 'VIEW ENGINE LOCKED' }}</span>
+                 <Lock v-if="!hasCVData" class="w-3 h-3 text-white/40" />
               </button>
            </div>
         </div>

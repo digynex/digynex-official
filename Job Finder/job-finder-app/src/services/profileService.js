@@ -21,6 +21,7 @@ export const profileService = {
       selected_template: profileData.selectedTemplate,
       secret_keywords: profileData.secretKeywords,
       resume_data: profileData.resumeData, // FULL NEURAL SNAPSHOT
+      uploaded_cv_name: profileData.uploadedCvName,
       language_preference: profileData.languagePreference,
       name: profileData.name,
       email: user.email

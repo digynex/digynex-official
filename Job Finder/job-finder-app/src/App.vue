@@ -14,6 +14,7 @@ import { authService } from './services/authService'
 import { profileService } from './services/profileService'
 import { templateService } from './services/templateService'
 import { jobService } from './services/jobService'
+import { aiService } from './services/aiService'
 
 // --- VIEW LAYERS (FACE) ---
 import DashboardHub from './views/DashboardHub.vue'
@@ -281,9 +282,9 @@ const saveProfile = async () => {
       const { error } = await profileService.syncProfile(user, {
         primaryColor: userProfile.value.primaryColor,
         secondaryColor: userProfile.value.secondaryColor,
-        selectedTemplate: selectedTemplate.value,
         secretKeywords: masterProfile.value.secretKeywords,
         resumeData: masterProfile.value, // NEURAL MASTER SYNC
+        uploadedCvName: uploadedFileName.value,
         name: userProfile.value.name
       });
       
@@ -315,14 +316,42 @@ const handleFileUpload = async (event) => {
   if (!file) return;
   
   isUploadingCV.value = true;
+  toastMessage.value = `DigyNex AI: Extracting Intelligence from ${file.name}...`;
+  showToast.value = true;
+  
   try {
-    // Simulate real upload processing
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    uploadedFileName.value = file.name
+    // ENGINE CALL: Strategic data extraction
+    const response = await aiService.extractCVData(file);
+    
+    if (response.success && response.data) {
+       // NEURAL HYDRATION: Injecting AI-extracted data into the Master Profile
+       masterProfile.value = { 
+         ...masterProfile.value, 
+         basic: response.data.basic,
+         bio: response.data.bio,
+         experiences: response.data.experiences,
+         education: response.data.education,
+         skills: response.data.skills,
+         secretKeywords: response.data.secretKeywords
+       };
+       
+       // Sync names across the "Face"
+       if (masterProfile.value.basic.fullName) {
+          userProfile.value.name = masterProfile.value.basic.fullName;
+       }
+       
+       uploadedFileName.value = file.name;
+       toastMessage.value = 'Neural Extraction Complete: Profile Hydrated';
+       
+       // KINETIC SYNC: Auto-save to database
+       await saveProfile();
+    }
   } catch (err) {
-    console.error('Failed to sync CV:', err)
+    console.error('Failed to sync CV:', err);
+    toastMessage.value = 'Extraction Error: Link Unstable';
   } finally {
-    isUploadingCV.value = false
+    isUploadingCV.value = false;
+    setTimeout(() => { showToast.value = false }, 3000);
   }
 }
 
@@ -405,6 +434,7 @@ const isTemplatePreviewOpen = ref(false)
 const previewingTemplate = ref(null)
 const cvTemplates = ref([])
 const viewportHtml = ref('')
+const viewMode = ref('elite') // 'elite' or 'legacy'
 
 const refreshViewport = async () => {
     const colors = {
@@ -586,6 +616,7 @@ const fetchUserProfile = async () => {
                 secondaryColor: profile.secondary_color || '#64748b',
                 languagePreference: profile.language_preference || 'EN'
             };
+            uploadedFileName.value = profile.uploaded_cv_name || 'No CV Uploaded';
             selectedTemplate.value = profile.selected_template || 3;
             if (profile.secret_keywords) {
                 masterProfile.value.secretKeywords = profile.secret_keywords;
@@ -610,6 +641,9 @@ const fetchUserProfile = async () => {
     }
     // FLAGSHIP: Global Override (Ensures Owner always has Super User status in development)
     userProfile.value.isSuperUser = true;
+    
+    // NEURAL WAKE-UP: Prepare the specimen for instant preview
+    await refreshViewport();
 };
 
 onUnmounted(() => {
@@ -952,71 +986,67 @@ const handleNotificationClick = (notif) => {
             
             <!-- MODAL CARD -->
             <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl animate-in slide-in-from-bottom duration-300 flex flex-col max-h-[85vh]">
-               <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
-                  <div class="flex items-center gap-3">
-                     <div class="bg-[#2C74B3]/20 p-2 rounded-xl">
-                        <FileText class="w-5 h-5 text-[#2C74B3]" />
-                     </div>
-                     <div class="flex flex-col">
-                        <h3 class="text-xs font-black text-white/90 uppercase tracking-widest">Document Preview</h3>
-                        <p class="text-[9px] font-bold text-[#C1A172] uppercase tracking-[0.2em] mt-0.5 italic">Amila_Senior_CV.pdf (Masked)</p>
-                     </div>
-                  </div>
-                  <button @click="isCVModalOpen = false" class="p-2.5 bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-400 text-white/50 transition-colors">
-                     <X class="w-5 h-5" />
-                  </button>
-               </div>
+                <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
+                   <div class="flex items-center gap-3">
+                      <div class="bg-[#2C74B3]/20 p-2 rounded-xl">
+                         <FileText class="w-5 h-5 text-[#2C74B3]" />
+                      </div>
+                      <div class="flex flex-col">
+                         <h3 class="text-xs font-black text-white/90 uppercase tracking-widest">{{ viewMode === 'elite' ? 'Elite Neural Specimen' : 'Legacy CV Data' }}</h3>
+                         <p class="text-[9px] font-bold text-[#C1A172] uppercase tracking-[0.2em] mt-0.5 italic">Amila_Senior_CV.pdf ({{ viewMode.toUpperCase() }})</p>
+                      </div>
+                   </div>
+                   <div class="flex items-center gap-2">
+                       <!-- NEURAL COMPARISON TRIGGER -->
+                       <button @mousedown="viewMode = 'legacy'"
+                               @mouseup="viewMode = 'elite'"
+                               @mouseleave="viewMode = 'elite'"
+                               @touchstart.prevent="viewMode = 'legacy'"
+                               @touchend.prevent="viewMode = 'elite'"
+                               class="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all select-none group/compare active:scale-95">
+                          <Eye class="w-3.5 h-3.5 text-white/60 group-hover/compare:text-[#C1A172]" />
+                          <span class="text-[8px] font-black text-white/40 uppercase tracking-widest">Hold to Compare</span>
+                       </button>
+                       <button @click="isCVModalOpen = false" class="p-2.5 bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-400 text-white/50 transition-colors">
+                          <X class="w-4 h-4" />
+                       </button>
+                   </div>
+                </div>
+ 
+                <div class="p-4 flex-1 overflow-y-auto no-scrollbar relative w-full bg-white flex flex-col items-center min-h-[500px]">
+                   <!-- REAL NEURAL VIEWPORT ENGINE (THE WINNER) -->
+                   <div v-if="viewportHtml && viewMode === 'elite'" 
+                        v-html="viewportHtml" 
+                        class="w-full shadow-2xl origin-top animate-in zoom-in-95 duration-500"
+                        style="transform: scale(0.85); margin-bottom: -150px; min-height: 1000px;">
+                   </div>
+                   
+                   <!-- LEGACY CORE (THE PSYCHOLOGICAL LOSER) -->
+                   <div v-else-if="viewMode === 'legacy'" class="w-full h-full p-8 font-serif text-gray-800 animate-in fade-in duration-300">
+                      <div class="text-center mb-8">
+                         <h1 class="text-2xl font-bold border-b border-gray-300 pb-2">{{ masterProfile.basic.fullName || 'User Name' }}</h1>
+                         <p class="text-xs text-gray-500 mt-1">{{ masterProfile.basic.email }} | {{ masterProfile.basic.phone }}</p>
+                      </div>
+                      <div class="space-y-6">
+                         <div class="border-b border-gray-200 pb-1 font-bold text-sm uppercase">Experience</div>
+                         <div v-for="exp in masterProfile.experiences" :key="exp.company" class="text-xs">
+                            <div class="flex justify-between font-bold">
+                               <span>{{ exp.role }}</span>
+                               <span>{{ exp.start }} - {{ exp.end }}</span>
+                            </div>
+                            <div class="italic text-gray-600 mb-1">{{ exp.company }}</div>
+                            <p class="leading-relaxed">{{ exp.achievements }}</p>
+                         </div>
+                      </div>
+                   </div>
 
-               <div class="p-8 flex-1 overflow-y-auto no-scrollbar relative w-full bg-white">
-                  <!-- Privacy Overlay -->
-                  <div class="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 bg-black/60 backdrop-blur-[3px]">
-                     <div class="bg-[#0A2647] border border-red-500/30 px-6 py-4 rounded-3xl shadow-2xl text-center max-w-[280px]">
-                        <div class="mx-auto w-10 h-10 bg-red-500/10 flex items-center justify-center rounded-full mb-3">
-                           <FileText class="w-5 h-5 text-red-400" />
-                        </div>
-                        <h4 class="text-red-400 text-[11px] font-black uppercase tracking-widest mb-1.5">Privacy Lock Engaged</h4>
-                        <p class="text-[9.5px] font-medium text-white/60 leading-tight">For GDPR compliance and data protection, full document rendering is restricted in this environment. The raw PDF is securely stored.</p>
-                     </div>
-                  </div>
-                  
-                  <!-- Mock CV Lines (Blurred heavily) -->
-                  <div class="opacity-30 blur-sm pointer-events-none space-y-6">
-                     <!-- Header Mock -->
-                     <div class="border-b-2 border-gray-800 pb-4">
-                        <div class="h-6 w-48 bg-gray-600 rounded mb-2"></div>
-                        <div class="flex gap-2 mb-4">
-                           <div class="h-2 w-24 bg-gray-400 rounded"></div>
-                           <div class="h-2 w-32 bg-gray-400 rounded"></div>
-                           <div class="h-2 w-20 bg-gray-400 rounded"></div>
-                        </div>
-                     </div>
-                     <!-- Summary Mock -->
-                     <div class="space-y-1">
-                        <div class="h-4 w-32 bg-gray-700 rounded mb-2"></div>
-                        <div class="h-2 w-full bg-gray-400 rounded"></div>
-                        <div class="h-2 w-full bg-gray-400 rounded"></div>
-                        <div class="h-2 w-3/4 bg-gray-400 rounded"></div>
-                     </div>
-                     <!-- Experience Mock -->
-                     <div class="space-y-4">
-                        <div class="h-4 w-40 bg-gray-700 rounded mb-2"></div>
-                        <div class="space-y-1">
-                           <div class="h-3 w-48 bg-gray-600 rounded"></div>
-                           <div class="h-2 w-24 bg-gray-400 rounded mb-2"></div>
-                           <div class="h-2 w-full bg-gray-400 rounded"></div>
-                           <div class="h-2 w-5/6 bg-gray-400 rounded"></div>
-                           <div class="h-2 w-full bg-gray-400 rounded"></div>
-                        </div>
-                        <div class="space-y-1 mt-4">
-                           <div class="h-3 w-56 bg-gray-600 rounded"></div>
-                           <div class="h-2 w-32 bg-gray-400 rounded mb-2"></div>
-                           <div class="h-2 w-full bg-gray-400 rounded"></div>
-                           <div class="h-2 w-4/5 bg-gray-400 rounded"></div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
+                   <!-- FALLBACK: IF ENGINE IS CALIBRATING -->
+                   <div v-else class="flex flex-col items-center justify-center py-20 text-center gap-4">
+                      <div class="w-12 h-12 rounded-full border-4 border-[#0A2647]/5 border-t-[#C1A172] animate-spin"></div>
+                      <p class="text-[10px] font-black text-[#0A2647]/40 uppercase tracking-widest">Calibrating Neural Specimen...</p>
+                   </div>
+                </div>
+             </div>
          </div>
       </Transition>
 
@@ -1322,6 +1352,8 @@ const handleNotificationClick = (notif) => {
           </div>
        </Transition>
     </Teleport>
+    <!-- HIDDEN NEURAL INPUTS -->
+    <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" accept=".pdf,.doc,.docx" />
   </div>
 </template>
 
