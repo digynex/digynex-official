@@ -56,5 +56,21 @@ export const profileService = {
     return await supabase.from('user_activity').insert([
       { action: actionId, user_id: email }
     ]);
+  },
+
+  /**
+   * Strategically logs a job application to the persistent activity engine.
+   */
+  async submitApplication(user, job) {
+    if (!user) return { error: 'Unauthorized apply attempt' };
+    
+    // Log to global activity tracking for n8n/Supabase triggers
+    return await supabase.from('user_activity').insert([
+      { 
+        action: 'JOB_APPLY', 
+        user_id: user.email,
+        details: { company: job.c, role: job.r, timestamp: new Date().toISOString() }
+      }
+    ]);
   }
 };

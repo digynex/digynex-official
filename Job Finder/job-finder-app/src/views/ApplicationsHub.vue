@@ -6,10 +6,11 @@ import {
 const props = defineProps({
   t: Function,
   searchQuery: String,
-  filteredJobs: Array
+  filteredJobs: Array,
+  activeFilter: String
 })
 
-const emit = defineEmits(['openJobDetail', 'openActionSheet', 'update:searchQuery'])
+const emit = defineEmits(['openJobDetail', 'openActionSheet', 'update:searchQuery', 'update:activeFilter', 'loadMore'])
 
 const openJobDetail = (job) => emit('openJobDetail', job)
 const openActionSheet = (title, type) => emit('openActionSheet', title, type)
@@ -39,7 +40,8 @@ const openActionSheet = (title, type) => emit('openActionSheet', title, type)
         </div>
         <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
            <span v-for="cat in ['filterAll', 'filterPending', 'filterInterview', 'filterOffers', 'filterArchived']" :key="cat"
-                 :class="cat === 'filterAll' ? 'bg-white text-[#0A2647] font-black' : 'bg-white/5 text-white/40 font-bold border border-white/5'"
+                 @click="emit('update:activeFilter', cat)"
+                 :class="activeFilter === cat ? 'bg-white text-[#0A2647] font-black scale-105' : 'bg-white/5 text-white/40 font-bold border border-white/5'"
                  class="px-5 py-2 rounded-full text-[9px] uppercase tracking-widest whitespace-nowrap cursor-pointer hover:bg-white/10 transition-all active:scale-95">
              {{ t('apps.' + cat) }}
            </span>
@@ -96,7 +98,7 @@ const openActionSheet = (title, type) => emit('openActionSheet', title, type)
            </div>
         </div>
 
-        <button class="w-full bg-gradient-to-r from-[#C1A172] to-[#FFD700] py-2.5 rounded-[2rem] flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.98] transition-all group font-jakarta shadow-lg">
+        <button @click="emit('loadMore')" class="w-full bg-gradient-to-r from-[#C1A172] to-[#FFD700] py-2.5 rounded-[2rem] flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.98] transition-all group font-jakarta shadow-lg">
            <span class="text-[11px] font-black text-[#0A2647] uppercase tracking-[0.2em] transition-colors">{{ t('apps.loadMore') }}</span>
            <div class="w-6 h-6 rounded-full bg-[#0A2647]/10 flex items-center justify-center p-1.5 group-hover:rotate-180 transition-all">
               <ChevronDown class="w-3.5 h-3.5 text-[#0A2647]" />

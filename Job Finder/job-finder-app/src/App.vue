@@ -114,15 +114,24 @@ const otherLangs = [
 ]
 
 const selectedPipelineStep = ref('applied')
+const applicationsFilter = ref('filterAll')
+const visibleAppsCount = ref(4)
+
+const loadMoreApplications = async () => {
+    isRecalibrating.value = true;
+    await new Promise(r => setTimeout(r, 1200));
+    visibleAppsCount.value += 4;
+    isRecalibrating.value = false;
+}
 
 const allJobs = ref([
-  {c: 'TechCorp', r: 'Senior Scientist', s: '80%', d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', m: 80, desc: 'Lead our AI discovery division at high-scale.', step: 'applied'}, 
-  {c: 'Innovate', r: 'Product Manager', s: '50%', d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', m: 50, desc: 'Directing the next-gen SaaS product roadmap.', step: 'review'}, 
-  {c: 'Techwork', r: 'Senior Scientist', s: '60%', d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', m: 60, desc: 'Neural engineering and cloud-native optimization.', step: 'interview'},
-  {c: 'Spotify', r: 'Lead Dev', s: '92%', d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', m: 92, desc: 'Scaling global audio intelligence.', step: 'offer'},
-  {c: 'Google', r: 'AI Architect', s: '88%', d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', m: 88, desc: 'Next-gen LLM optimization.', step: 'applied'},
-  {c: 'Tesla', r: 'Autopilot Eng', s: '75%', d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', m: 75, desc: 'Real-time vision systems.', step: 'applied'},
-  {c: 'Amazon', r: 'Cloud Lead', s: '82%', d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', m: 82, desc: 'Scaling AWS core infrastructure.', step: 'applied'}
+  {c: 'TechCorp', r: 'Senior Scientist', s: 'applied', m: 80, d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', desc: 'Lead our AI discovery division at high-scale.', step: 'applied'}, 
+  {c: 'Innovate', r: 'Product Manager', s: 'review', m: 50, d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', desc: 'Directing the next-gen SaaS product roadmap.', step: 'review'}, 
+  {c: 'Techwork', r: 'Lead ML Engineer', s: 'interview', m: 60, d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', desc: 'Neural engineering and cloud-native optimization.', step: 'interview'},
+  {c: 'Spotify', r: 'Full Stack Dev', s: 'offer', m: 92, d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', desc: 'Scaling global audio intelligence.', step: 'offer'},
+  {c: 'Google', r: 'AI Architect', s: 'applied', m: 88, d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', desc: 'Next-gen LLM optimization.', step: 'applied'},
+  {c: 'Tesla', r: 'Autopilot Eng', s: 'interview', m: 75, d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', desc: 'Real-time vision systems.', step: 'interview'},
+  {c: 'Amazon', r: 'Cloud Lead', s: 'review', m: 82, d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', desc: 'Scaling AWS core infrastructure.', step: 'applied'}
 ])
 
 const matches = ref([
@@ -134,8 +143,25 @@ const matches = ref([
 
 const filteredJobs = computed(() => {
     let result = allJobs.value;
-    // Strictly filter by step to match the UI indicator boxes
-    result = result.filter(j => j.step === selectedPipelineStep.value);
+    
+    // 1. Applications Tab Logic
+    if (activeTab.value === 'applications') {
+        if (applicationsFilter.value !== 'filterAll') {
+            const filterMap = {
+                'filterPending': ['applied', 'review'],
+                'filterInterview': ['interview'],
+                'filterOffers': ['offer'],
+                'filterArchived': ['archived']
+            };
+            const activeSteps = filterMap[applicationsFilter.value] || [];
+            result = result.filter(j => activeSteps.includes(j.step));
+        }
+        // PAGINATION ENGINE: Slice results to current visible limit
+        return result.slice(0, visibleAppsCount.value);
+    } else {
+        // 2. Dashboard Logic
+        result = result.filter(j => j.step === selectedPipelineStep.value);
+    }
     
     if (searchQuery.value) {
         const q = searchQuery.value.toLowerCase();
@@ -445,6 +471,41 @@ const selectPreset = async (preset) => {
    isBrandingSyncing.value = false;
 }
 
+const handleApply = async (job) => {
+    if (!isAuthenticated.value) {
+        openAuth('login');
+        return;
+    }
+    
+    isRecalibrating.value = true;
+    toastMessage.value = `DigyNex Intelligence: Syncing Profile with ${job.c}...`;
+    showToast.value = true;
+    
+    try {
+        // Simulate high-fidelity sync delay
+        await new Promise(r => setTimeout(r, 2500));
+        
+        // PERSISTENCE ENGINE: Legally submit to database
+        const user = await authService.getUser();
+        await profileService.submitApplication(user, job);
+        
+        // Update local neural state
+        const target = allJobs.value.find(j => j.c === job.c && j.r === job.r);
+        if (target) {
+            target.step = 'applied';
+            target.s = 'applied';
+        }
+        
+        toastMessage.value = 'Strategic Sync Complete: Application Transmitted';
+    } catch (err) {
+        toastMessage.value = 'Sync Error: Neural Link Unstable';
+    } finally {
+        isRecalibrating.value = false;
+        isJobDetailOpen.value = false;
+        setTimeout(() => { showToast.value = false }, 3000);
+    }
+}
+
 const fetchUserProfile = async () => {
     const user = await authService.getUser();
     if (user) {
@@ -711,6 +772,9 @@ const handleNotificationClick = (notif) => {
           v-model:searchQuery="searchQuery"
           :t="t"
           :filteredJobs="filteredJobs"
+          :activeFilter="applicationsFilter"
+          @update:activeFilter="(f) => applicationsFilter = f"
+          @loadMore="loadMoreApplications"
           @openJobDetail="openJobDetail"
           @openActionSheet="openActionSheet"
        />
@@ -1098,6 +1162,7 @@ const handleNotificationClick = (notif) => {
         :isOpen="isJobDetailOpen"
         :job="selectedJob"
         @close="isJobDetailOpen = false"
+        @apply="handleApply"
       />
 
       <!-- NEURAL GLOW TOAST (REAL-TIME FEEDBACK) -->

@@ -20,7 +20,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'apply'])
 </script>
 
 <template>
@@ -111,7 +111,7 @@ const emit = defineEmits(['close'])
            <button class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-[#C1A172] transition-all active:scale-90">
               <Bookmark class="w-6 h-6" />
            </button>
-           <button class="flex-1 bg-[#C1A172] h-14 rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-[#0A2647] font-black uppercase tracking-widest text-[12px] group">
+           <button @click="emit('apply', job)" class="flex-1 bg-[#C1A172] h-14 rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-[#0A2647] font-black uppercase tracking-widest text-[12px] group">
               <span>Apply via DigyNex Sync</span>
               <ArrowUpRight class="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
            </button>
