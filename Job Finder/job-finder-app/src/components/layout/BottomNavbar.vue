@@ -36,9 +36,7 @@ const navItems = [
            </span>
         </div>
 
-        <!-- ACTIVE SYNC DOT (GOLD) -->
-        <div v-if="activeTab === item.id" 
-             class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3.5px] h-[3.5px] bg-[#C1A172] rounded-full shadow-[0_0_10px_#C1A172] animate-in zoom-in slide-in-from-bottom-1 duration-500"></div>
+
      </div>
   </nav>
 </template>

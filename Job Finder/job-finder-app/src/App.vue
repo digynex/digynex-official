@@ -924,6 +924,7 @@ const handleNotificationClick = (notif) => {
           @analyzeKeywords="analyzeAndSuggestKeywords"
           @selectPreset="selectPreset"
           @saveProfile="saveProfile"
+          @handleAction="handleDashboardAction"
           @unlockStealth="isStealthUnlocked = true"
        >
           <template #keyword-input>
