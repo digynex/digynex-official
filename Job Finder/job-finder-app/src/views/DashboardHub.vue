@@ -36,6 +36,7 @@ const handleDashboardAction = (action) => emit('handleAction', action)
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
+    <slot name="header"></slot>
     <!-- Scrolling Content Wrapper -->
     <div class="flex-1 overflow-y-auto px-4 pb-24 custom-scrollbar">
        

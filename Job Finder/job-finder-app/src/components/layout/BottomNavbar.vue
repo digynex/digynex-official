@@ -1,7 +1,6 @@
 <script setup>
 import { 
-  LayoutDashboard, FileText, Star, User, Search, 
-  MapPin, Settings, HelpCircle, Heart
+  LayoutDashboard, FileText, Star, User
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -9,41 +8,45 @@ const props = defineProps({
   activeTab: String
 })
 
-const emit = defineEmits(['setTab', 'openDiscovery'])
+const emit = defineEmits(['setTab'])
 
 const navItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'nav.dashboard' },
-  { id: 'applications', icon: Search, label: 'nav.tasks' },
-  { id: 'studio', icon: FileText, label: 'nav.studio' },
-  { id: 'saved', icon: Star, label: 'nav.saved' },
-  { id: 'profile', icon: User, label: 'nav.expert' }
+  { id: 'applications', icon: FileText, label: 'nav.applications' },
+  { id: 'matches', icon: Star, label: 'nav.matches' },
+  { id: 'profile', icon: User, label: 'nav.profile' }
 ]
 
 </script>
 
 <template>
-  <nav class="absolute bottom-6 left-6 right-6 h-[72px] bg-white/95 backdrop-blur-3xl rounded-[2.2rem] flex items-center justify-around px-4 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white z-[800] ring-1 ring-black/[0.03]">
+  <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] bg-[#0A2647]/90 backdrop-blur-3xl px-6 py-2 rounded-full flex items-center justify-around shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] z-[1000] border border-white/10 ring-1 ring-white/5 transition-all duration-500">
      <div v-for="item in navItems" :key="item.id"
           @click="emit('setTab', item.id)"
-          :class="activeTab === item.id ? 'text-[#0A2647] scale-110' : 'text-[#0A2647]/30 hover:text-[#0A2647]/60'"
-          class="flex flex-col items-center gap-1.5 transition-all duration-500 cursor-pointer group relative">
+          class="flex flex-col items-center gap-1.5 group cursor-pointer relative py-1 transition-all">
         
-        <div class="relative">
-           <component :is="item.icon" class="w-[22px] h-[22px] transition-all duration-500 group-active:scale-75" 
-                      :class="activeTab === item.id ? 'stroke-[2.5px]' : 'stroke-[1.8px]'" />
-           <div v-if="activeTab === item.id" class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#0A2647] rounded-full animate-in zoom-in duration-500"></div>
+        <div class="relative flex flex-col items-center">
+           <component :is="item.icon" 
+                      class="w-[18px] h-[18px] transition-all duration-300 group-hover:scale-110 active:scale-90" 
+                      :class="activeTab === item.id ? 'text-[#C1A172]' : 'text-white/20'" />
+           
+           <span class="text-[7.5px] font-black uppercase tracking-[0.2em] transition-all duration-300 mt-1 leading-none font-jakarta"
+                 :class="activeTab === item.id ? 'text-white' : 'text-white/20'">
+              {{ t(item.label) }}
+           </span>
         </div>
-        <span class="text-[7.5px] font-black uppercase tracking-[0.15em] transition-all duration-500"
-              :class="activeTab === item.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'">
-           {{ t(item.label) }}
-        </span>
-     </div>
 
-     <!-- FAB: Discovery Recalibration -->
-     <div @click="emit('openDiscovery')" class="absolute -top-8 left-1/2 -translate-x-1/2 w-14 h-14 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center shadow-[0_20px_40px_rgba(10,38,71,0.4)] border-4 border-[#BDDAFA]/20 cursor-pointer hover:scale-110 active:scale-90 transition-all group z-[900]">
-        <MapPin class="w-6 h-6 text-[#C1A172] group-hover:rotate-12 transition-transform" />
-        <!-- Floating Pulse Ring -->
-        <div class="absolute inset-0 rounded-full border border-white/20 animate-ping opacity-20"></div>
+        <!-- ACTIVE SYNC DOT (GOLD) -->
+        <div v-if="activeTab === item.id" 
+             class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3.5px] h-[3.5px] bg-[#C1A172] rounded-full shadow-[0_0_10px_#C1A172] animate-in zoom-in slide-in-from-bottom-1 duration-500"></div>
      </div>
   </nav>
 </template>
+
+<style scoped>
+/* Surgical Precision Layout Sync */
+nav {
+  -webkit-tap-highlight-color: transparent;
+}
+</style>
+
