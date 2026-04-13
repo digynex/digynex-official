@@ -110,23 +110,50 @@ const updateSelectedTemplate = (id) => emit('update:selectedTemplate', id)
             </div>
         </div>
 
-        <!-- 3. STEALTH STRATEGY (PREMIUM COMPACT) -->
+        <!-- 3. STEALTH STRATEGY (KINETIC INGESTION) -->
         <div class="bg-gradient-to-br from-[#0A2647] via-[#0D1B2A] to-black rounded-[2.2rem] p-5 border border-white/10 relative overflow-hidden group/stealth shadow-3xl">
            <div class="relative z-10">
-              <div class="flex justify-between items-center mb-2.5">
+              <div class="flex justify-between items-center mb-2">
                  <div class="flex flex-col">
                     <span class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Strategic Edge</span>
                     <h3 class="text-[14px] font-black text-white tracking-tight uppercase">AI Stealth Keywords</h3>
                  </div>
-                 <Lock class="w-4 h-4 text-white/30" />
+                 <div class="flex items-center gap-2">
+                    <span class="text-[8px] font-black text-blue-400/50 uppercase tracking-widest">{{ masterProfile.secretKeywords?.length || 0 }} Active</span>
+                    <Lock class="w-3.5 h-3.5 text-white/30" />
+                 </div>
               </div>
-              <p class="text-[10px] font-medium text-white/40 leading-relaxed mb-4 italic">Neural optimization for ATS rankings. Embed invisible, optimized keywords into your master structure.</p>
               
-              <button @click="handleDashboardAction('upgrade')" class="w-full py-3.5 bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black text-[#C1A172] uppercase tracking-widest hover:bg-[#C1A172]/10 transition-all flex items-center justify-center gap-2">
-                 <Zap class="w-3.5 h-3.5" />
-                 Upgrade to Elite Suite
-              </button>
+              <!-- Active Keyword Chips (High-Density) -->
+              <div v-if="masterProfile.secretKeywords?.length" class="flex flex-wrap gap-1.5 mb-4">
+                 <div v-for="k in masterProfile.secretKeywords" :key="k" 
+                      class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2 group/k cursor-pointer hover:bg-white/10 transition-all shadow-sm">
+                    <span class="text-[9px] font-black text-white/70">{{ k }}</span>
+                    <X @click="removeSecretKeyword(k)" class="w-2.5 h-2.5 text-white/20 hover:text-red-400 transition-colors" />
+                 </div>
+              </div>
+              
+              <div class="space-y-3">
+                 <!-- Slot Ingestion -->
+                 <slot name="keyword-input"></slot>
+                 
+                 <div class="grid grid-cols-2 gap-2">
+                    <button @click="analyzeAndSuggestKeywords" :disabled="isAnalyzingKeywords" 
+                            class="py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                       <RefreshCw v-if="isAnalyzingKeywords" class="w-3 h-3 animate-spin" />
+                       <Stars v-else class="w-3 h-3 text-blue-400" />
+                       {{ isAnalyzingKeywords ? 'Analyzing' : 'AI Suggester' }}
+                    </button>
+                    <button @click="handleDashboardAction('clear_keywords')" 
+                            class="py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all">
+                       Flush All
+                    </button>
+                 </div>
+              </div>
            </div>
+           
+           <!-- Subtle Shading Overlay -->
+           <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
         </div>
 
         <!-- 4. VISUAL BRANDING (SLIM-LINE DENSITY) -->

@@ -283,6 +283,7 @@ const saveProfile = async () => {
         secondaryColor: userProfile.value.secondaryColor,
         selectedTemplate: selectedTemplate.value,
         secretKeywords: masterProfile.value.secretKeywords,
+        resumeData: masterProfile.value, // NEURAL MASTER SYNC
         name: userProfile.value.name
       });
       
@@ -358,17 +359,26 @@ const masterProfileSyncStatus = ref('connected')
 const isStealthUnlocked = ref(false)
 const isAnalyzingKeywords = ref(false)
 
-const removeSecretKeyword = (keyword) => {
+const removeSecretKeyword = async (keyword) => {
    masterProfile.value.secretKeywords = masterProfile.value.secretKeywords.filter(k => k !== keyword)
+   await saveProfile(); // Neural Sync: Auto-persist change
 }
 
 const analyzeAndSuggestKeywords = async () => {
    if (isAnalyzingKeywords.value) return;
    isAnalyzingKeywords.value = true;
+   
+   // Logic First: Use Fields of Interest to generate specific suggestions
+   const context = fieldsOfInterest.value.join(', ');
+   console.log(`[DIGYNEX AI] Analyzing context: ${context}`);
+   
    // Simulate Neural Analysis Delay
    await new Promise(r => setTimeout(r, 2000));
    
-   const suggestions = ['Full-Stack Orchestration', 'Scalable Microservices', 'CI/CD Pipeline Design', 'Cloud Native Architecture'];
+   // AI Mock: Specific keywords based on interests
+   const basePool = ['Full-Stack Orchestration', 'Scalable Microservices', 'CI/CD Pipeline Design', 'Cloud Native Architecture', 'Neural Integration', 'SaaS Architecture'];
+   const suggestions = basePool.filter(() => Math.random() > 0.4);
+   
    suggestions.forEach(s => {
       if (!masterProfile.value.secretKeywords.includes(s)) {
          masterProfile.value.secretKeywords.push(s);
@@ -376,13 +386,15 @@ const analyzeAndSuggestKeywords = async () => {
    });
    
    isAnalyzingKeywords.value = false;
+   await saveProfile(); // Kinetic Sync: Persist AI results
 }
 
 const newSecretKeyword = ref('')
-const addSecretKeyword = () => {
+const addSecretKeyword = async () => {
    if (newSecretKeyword.value.trim() && !masterProfile.value.secretKeywords.includes(newSecretKeyword.value.trim())) {
       masterProfile.value.secretKeywords.push(newSecretKeyword.value.trim())
       newSecretKeyword.value = ''
+      await saveProfile(); // Neural Sync: Auto-persist change
    }
 }
 
@@ -578,6 +590,10 @@ const fetchUserProfile = async () => {
             if (profile.secret_keywords) {
                 masterProfile.value.secretKeywords = profile.secret_keywords;
             }
+            if (profile.resume_data && Object.keys(profile.resume_data).length > 0) {
+                // NEURAL RE-HYDRATION: Restoring the full professional core
+                masterProfile.value = { ...masterProfile.value, ...profile.resume_data };
+            }
             if (profile.language_preference) {
                 currentLang.value = profile.language_preference;
                 locale.value = profile.language_preference;
@@ -676,6 +692,15 @@ const handleDashboardAction = async (actionId) => {
         toastMessage.value = 'Analyzing real-time market trends...';
         showToast.value = true;
         setTimeout(() => { showToast.value = false }, 3000);
+        return;
+    }
+
+    if (actionId === 'clear_keywords') {
+        masterProfile.value.secretKeywords = [];
+        await saveProfile();
+        toastMessage.value = 'Neural Wipe: Standard Keywords Flushed';
+        showToast.value = true;
+        setTimeout(() => { showToast.value = false }, 2500);
         return;
     }
 
