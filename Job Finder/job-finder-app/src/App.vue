@@ -691,7 +691,7 @@ const handleNotificationClick = (notif) => {
                 @logout="logout"
              />
           </template>
-       </Da       <!-- MODULAR VIEW ENGINE (PHASE 2 - DECOUPLED) -->
+       </DashboardHub>
        <ApplicationsHub 
           v-else-if="activeTab === 'applications'"
           v-model:searchQuery="searchQuery"
@@ -737,11 +737,7 @@ const handleNotificationClick = (notif) => {
           @addField="addField"
           @openCVModal="isCVModalOpen = true"
        />
->
-            </button>
-         </div>
-      </div>
-   </div>
+
 
        <!-- CV STUDIO HUB (MAGIC CENTER) -->
        <StudioHub 
