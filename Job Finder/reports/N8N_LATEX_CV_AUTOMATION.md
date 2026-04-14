@@ -34,8 +34,16 @@ The Clean JSON is passed into an **HTML/LaTeX Template Node**.
 ### Step 4: Storage & UI Response
 - The generated PDF is saved to **Supabase Storage** under the user's unique path (`user_id/cv/latest.pdf`).
 - n8n returns a `200 OK` Webhook response containing the direct download URL.
-- The UI catches this and updates the state of `isUploadingCV`, automatically triggering the "Download LaTeX" button state or opening the CV Preview Modal.
+- **NEURAL GUARDRAIL**: Upon successful LaTeX compilation, n8n updates the `profiles.doc_status` to `Verified`, signaling the App that the candidate is ready for automated submission.
 
-## 3. Privacy & Compliance Layer
+## 3. Approval Synchronization (Mobile Interception)
+As per the updated **Neural Guardrail** rules, the LaTeX compilation is the final stage of the **Workflow D: Approval Cycle**.
+1. **Trigger**: User clicking `APPROVE` on WhatsApp/Telegram.
+2. **Logic**: n8n proceeds to Step 3 (Gotenberg Compilation).
+3. **Persistence**: The verified specimen is locked in Supabase and the Job Application is dispatched.
+
+---
+
+## 4. Privacy & Compliance Layer
 - All temporary JSON data generated during the LinkedIn extraction phase is strictly purged at the end of the n8n workflow execution.
 - Only the final PDF and the Supabase Storage link are persisted, ensuring alignment with GDPR documentation rules.
