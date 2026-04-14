@@ -100,4 +100,39 @@ All high-intent interactions are guarded by the `shieldCheck` engine logic.
 
 ---
 
+## 6. NEURAL MASTER CONTROL (ADMIN HUB)
+
+### A. Authentication Gate (Executive Access)
+| UI Element | Interaction | Neural Logic (Engine) |
+| :--- | :--- | :--- |
+| **Neural Pin Input** | Enter Pin | Sets `adminPin`. Enter Key triggers `authenticateAdmin()`. |
+| **Establish Link Button** | Click | Calls `authenticateAdmin()`. Validates against `neuralKey`. |
+| **Abort Protocol Button** | Click | Emits `setTab('profile')`. Safe exit to Profile Hub. |
+
+### B. Logistics Command Rail (Left)
+| UI Element | Interaction | Neural Logic (Engine) |
+| :--- | :--- | :--- |
+| **Maintenance Toggle** | Click | Emits `update:isMaintenanceMode`. Global app lockdown toggle. |
+| **Nuclear Broadcast** | Click | Triggers `handleQuickAction()`. Emits `sendNotification` to all users. |
+| **Master DB Purge** | Click | Triggers `handleQuickAction()`. Emits `purgeData` protocol. |
+| **Cloud Sync** | Click | Triggers `handleQuickAction()`. Force-syncs Supabase telemetry. |
+
+### C. Surgical Filter Bar
+| UI Element | Interaction | Neural Logic (Engine) |
+| :--- | :--- | :--- |
+| **Plan Selector Tiers** | Click | Sets `selectedTier`. UI scales to 'Elite', 'Pro', or 'Free'. |
+| **Date Range Presets** | Click | Sets `selectedRange` (Today, YD, 7D, All). Clears `customDays`. |
+| **Manual DAYS Input** | Type | Sets `selectedRange = 'Custom'`. Direct feed into `filteredUsers` date-math logic. |
+| **Recalibrate Button** | Click | UI Refresh trigger. Resets horizontal scroll to zero. |
+
+### D. User Specimen Directory
+| UI Element | Interaction | Neural Logic (Engine) |
+| :--- | :--- | :--- |
+| **Search Input** | Type | Reactive filtering via `userSearch` across `name` and `email` nodes. |
+| **Sparkle Icon** | Click | Triggers `updateTier(user.id, 'Elite')`. Immediate DB promotion. |
+| **Edit Icon (Edit3)** | Click | Opens `SpecimenOverlay`. Dynamic field modification (Planned). |
+| **Override Icon (Alert)** | Click | Triggers Suspension/Deletion confirm logic (Planned). |
+
+---
+
 **© 2026 DigyNex Official. Confidential Interaction Registry.**

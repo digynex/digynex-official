@@ -97,5 +97,48 @@ export const profileService = {
       .from('system_config')
       .update({ value, updated_at: new Date().toISOString() })
       .eq('key', key);
+  },
+
+  /**
+   * Executive Command: Fetches every user specimen for the Admin Hub.
+   */
+  async fetchAllProfiles() {
+    return await supabase
+      .from('profiles')
+      .select('id, name, email, plan_type, last_seen, created_at')
+      .order('created_at', { ascending: false });
+  },
+
+  /**
+   * Executive Command: Forces a tier override for a specimen.
+   */
+  async updateUserTier(userId, tier) {
+    return await supabase
+      .from('profiles')
+      .update({ plan_type: tier })
+      .eq('id', userId);
+  },
+
+  /**
+   * Executive Command: Elevates or revokes the Neural Shield (Admin status).
+   */
+  async updateAdminStatus(userId, isAdmin) {
+    return await supabase
+      .from('profiles')
+      .update({ is_admin: isAdmin })
+      .eq('id', userId);
+  },
+
+  /**
+   * Logistical Command: Triggers a global administrative action (Broadcast/Purge/Sync).
+   */
+  async triggerAdminGlobalAction(adminEmail, actionId, details = {}) {
+    return await supabase.from('user_activity').insert([
+      { 
+        action: `ADMIN_${actionId.toUpperCase()}`, 
+        user_id: adminEmail,
+        details: { ...details, timestamp: new Date().toISOString() }
+      }
+    ]);
   }
 };

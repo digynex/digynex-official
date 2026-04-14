@@ -1,64 +1,126 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { profileService } from '../services/profileService'
 import { 
-  ShieldCheck, Zap, Lock, Users, DollarSign, Activity, 
-  ArrowRight, Search, Edit3, Trash2, Bell, AlertTriangle, 
-  ChevronRight, Sparkles, TrendingUp, PieChart, RefreshCw, X
+    Users, ShieldCheck, Sparkles, Edit3, AlertTriangle, 
+    Lock, RefreshCw, Bell, Trash2, ChevronRight, X, TrendingUp, DollarSign, Zap
 } from 'lucide-vue-next'
-import { Line, Doughnut } from 'vue-chartjs'
-import {
-  Chart as ChartJS, Title, Tooltip, Legend, LineElement, 
-  LinearScale, PointElement, CategoryScale, ArcElement, Filler
+import { Line } from 'vue-chartjs'
+import { 
+    Chart as ChartJS, Title, Tooltip, Legend, LineElement, 
+    PointElement, CategoryScale, LinearScale, Filler 
 } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, ArcElement, Filler)
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler)
 
-const props = defineProps({
-  t: Function,
-  userProfile: Object,
-  isMaintenanceMode: Boolean
-})
-
-const emit = defineEmits(['update:isMaintenanceMode', 'setTab', 'sendNotification', 'purgeData', 'updateUserTier'])
+const props = defineProps(['isMaintenanceMode'])
+const emit = defineEmits(['setTab', 'update:isMaintenanceMode', 'sendNotification', 'purgeData'])
 
 // --- AUTHENTICATION GATE ---
 const isAdminAuthenticated = ref(false)
 const adminPin = ref('')
-const neuralKey = 'master333'
+const neuralKey = '8580' // MASTER OVERRIDE KEY
 const authError = ref('')
+const userSearch = ref('')
+const selectedTier = ref('All')
+const selectedRange = ref('All')
+const customDays = ref('')
+const users = ref([])
+
+onMounted(async () => {
+    try {
+        const { data, error } = await profileService.fetchAllProfiles()
+        if (error) throw error
+        users.value = data.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            tier: u.plan_type || 'Free',
+            lastSeen: u.last_seen || 'New',
+            joined: u.created_at
+        }))
+    } catch (err) {
+        console.error("Neural Fetch Failed:", err)
+    }
+})
 
 const authenticateAdmin = () => {
     if (adminPin.value === neuralKey) {
         isAdminAuthenticated.value = true
         authError.value = ''
     } else {
-        authError.value = 'NEURAL KEY REJECTED. IDENTITY NOT VERIFIED.'
+        authError.value = 'NEURAL ACCESS DENIDED: IDENTITY UNVERIFIED'
         adminPin.value = ''
     }
 }
 
-// --- TELEMETRY MOCK DATA ---
-const stats = ref([
-    { id: 'revenue', label: 'Total Revenue', value: '$12,450', trend: '+12%', icon: DollarSign, color: '#C1A172' },
-    { id: 'users', label: 'Active Users', value: '1,280', trend: '+5%', icon: Users, color: '#38BDF8' },
-    { id: 'tokens', label: 'AI Burn (Tokens)', value: '8.4M', trend: '-2%', icon: Zap, color: '#F472B6' }
-])
-
-const userSearch = ref('')
-const users = ref([
-    { id: 1, name: 'Amila W.', email: 'amilawijayantha858@gmail.com', tier: 'Elite', lastSeen: 'Today', joined: '2026-01-10' },
-    { id: 2, name: 'Sven Svensson', email: 'sven@example.se', tier: 'Pro', lastSeen: '2h ago', joined: '2026-03-22' },
-    { id: 3, name: 'Alpha Tester', email: 'test@digynex.se', tier: 'Free', lastSeen: '1d ago', joined: '2026-04-01' }
-])
+const stats = [
+    { id: 1, label: 'Total Revenue', value: '$12,450', trend: '+12%', color: '#C1A172', icon: DollarSign },
+    { id: 2, label: 'Active Users', value: '1,280', trend: '+5%', color: '#38BDF8', icon: Users },
+    { id: 3, label: 'AI Burn (Tokens)', value: '8.4M', trend: '-2%', color: '#F472B6', icon: Zap },
+]
 
 const filteredUsers = computed(() => {
-    return users.value.filter(u => 
-        u.name.toLowerCase().includes(userSearch.value.toLowerCase()) || 
-        u.email.toLowerCase().includes(userSearch.value.toLowerCase())
+    let result = users.value.filter(u => 
+        (u.name && u.name.toLowerCase().includes(userSearch.value.toLowerCase())) || 
+        (u.email && u.email.toLowerCase().includes(userSearch.value.toLowerCase()))
     )
+    
+    if (selectedTier.value !== 'All') {
+        result = result.filter(u => u.tier === selectedTier.value)
+    }
+    
+    if (selectedRange.value !== 'All') {
+        const systemNow = new Date('2026-04-14')
+        const oneDay = 24 * 60 * 60 * 1000
+        result = result.filter(u => {
+            const joinedDate = new Date(u.joined)
+            const diffInDays = Math.floor((systemNow - joinedDate) / oneDay)
+            if (selectedRange.value === 'Custom' && customDays.value) return diffInDays <= customDays.value
+            if (selectedRange.value === 'Today') return diffInDays === 0
+            if (selectedRange.value === 'YD') return diffInDays === 1
+            if (selectedRange.value === '7D') return diffInDays <= 7
+            return true
+        })
+    }
+    return result
 })
 
-// --- CHART CONFIGS ---
+// --- EXECUTIVE OVERRIDES ---
+const updateTier = async (userId, newTier) => {
+    try {
+        const { error } = await profileService.updateUserTier(userId, newTier)
+        if (error) throw error
+        const user = users.value.find(u => u.id === userId)
+        if (user) user.tier = newTier
+        emit('sendNotification', `SPECIMEN ${user.name} PROMOTED TO ${newTier.toUpperCase()}`)
+    } catch (err) {
+        emit('sendNotification', 'SURGICAL OVERRIDE FAILED')
+    }
+}
+
+const handlePromoteAdmin = async (userId) => {
+    try {
+        const { error } = await profileService.updateAdminStatus(userId, true)
+        if (error) throw error
+        emit('sendNotification', 'NEURAL SHIELD GRANTED: ADMIN ACCESS ACTIVE')
+    } catch (err) {
+        emit('sendNotification', 'EXECUTIVE ELEVATION FAILED')
+    }
+}
+
+const handleQuickAction = async (action) => {
+    try {
+        await profileService.triggerAdminGlobalAction('admin@digynex.com', action.l)
+        if (action.l.includes('Broadcast')) emit('sendNotification', 'GLOBAL STRATEGY PULSE SENT')
+        if (action.l.includes('Purge')) emit('purgeData')
+        if (action.l.includes('Sync')) emit('sendNotification', 'NEURAL CLOUD CORES RE-SYNCED')
+    } catch (err) {
+        emit('sendNotification', 'LOGISTICAL INTERRUPT DETECTED')
+    }
+}
+
+// --- CHART OPTIONS (Simplified for UI Density) ---
 const growthData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr'],
     datasets: [{
@@ -74,36 +136,11 @@ const growthData = {
     }]
 }
 
-const distributionData = {
-    labels: ['Elite', 'Pro', 'Free'],
-    datasets: [{
-        data: [15, 25, 60],
-        backgroundColor: ['#C1A172', '#38BDF8', '#64748B'],
-        borderWidth: 0,
-        hoverOffset: 10
-    }]
-}
-
 const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-    scales: {
-        x: { display: false },
-        y: { display: false }
-    }
-}
-
-// --- OVERRIDE UTILS ---
-const updateTier = (userId, newTier) => {
-    const user = users.value.find(u => u.id === userId)
-    if (user) user.tier = newTier
-}
-
-const handleQuickAction = (action) => {
-    if (action.l.includes('Broadcast')) emit('sendNotification', 'Global Strategy Update Broadcasted')
-    if (action.l.includes('Purge')) emit('purgeData')
-    if (action.l.includes('Sync')) emit('sendNotification', 'Cloud Telemetry Synchronized')
+    scales: { x: { display: false }, y: { display: false } }
 }
 
 </script>
@@ -129,39 +166,41 @@ const handleQuickAction = (action) => {
         </button>
      </div>
 
-     <!-- AUTHENTICATION GATE -->
-     <div v-if="!isAdminAuthenticated" class="flex-1 flex flex-col items-center justify-center p-8 text-center relative z-20 animate-in fade-in zoom-in duration-700">
-        <div class="w-24 h-24 bg-gradient-to-br from-[#0A2647] to-[#051124] rounded-[2.5rem] border border-white/10 flex items-center justify-center shadow-3xl mb-8 relative group">
-           <div class="absolute inset-0 bg-[#C1A172]/10 rounded-full blur-2xl group-hover:bg-[#C1A172]/20 transition-all duration-1000"></div>
-           <Lock class="w-10 h-10 text-[#C1A172] animate-pulse" />
-        </div>
-        
-        <div class="max-w-xs w-full space-y-6">
-           <div class="space-y-2">
-              <h2 class="text-[20px] font-black text-white uppercase tracking-widest">Master Identity</h2>
-              <p class="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Enter Neural Key to establish control</p>
-           </div>
+      <!-- AUTHENTICATION GATE -->
+      <div v-if="!isAdminAuthenticated" class="flex-1 flex flex-col items-center justify-center p-8 text-center relative z-20 animate-in fade-in zoom-in duration-700">
+         <div class="w-14 h-14 bg-gradient-to-br from-[#0A2647] to-[#051124] rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl mb-4 relative group">
+            <div class="absolute inset-0 bg-[#C1A172]/10 rounded-full blur-xl group-hover:bg-[#C1A172]/20 transition-all duration-1000"></div>
+            <Lock class="w-6 h-6 text-[#C1A172] animate-pulse" />
+         </div>
+         
+         <div class="max-w-xs w-full space-y-4">
+            <div class="space-y-1">
+               <h2 class="text-[14px] font-black text-white uppercase tracking-[0.2em]">Master Identity</h2>
+               <p class="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Enter Neural Key to establish control</p>
+            </div>
 
-           <div class="space-y-4">
-              <div class="relative">
-                 <input v-model="adminPin" 
-                        type="password" 
-                        placeholder="••••••••" 
-                        @keyup.enter="authenticateAdmin"
-                        class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-center text-[22px] font-black text-[#C1A172] tracking-[0.5em] focus:outline-none focus:border-[#C1A172]/50 transition-all placeholder:text-white/10" />
-                 <p v-if="authError" class="text-[9px] font-black text-red-400 uppercase mt-2 animate-bounce">{{ authError }}</p>
-              </div>
-              
-              <button @click="authenticateAdmin" class="w-full py-4 bg-[#C1A172] text-[#0A2647] text-[12px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">
-                 Establish Neural Link
-              </button>
-              
-              <button @click="emit('setTab', 'profile')" class="text-[10px] font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors pt-2">
-                 Abort Protocol
-              </button>
-           </div>
-        </div>
-     </div>
+            <div class="space-y-3">
+               <div class="relative group">
+                  <input v-model="adminPin" type="password" placeholder="••••••••" 
+                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-center text-[18px] tracking-[0.5em] text-[#C1A172] focus:outline-none focus:border-[#C1A172]/50 transition-all placeholder:text-white/10"
+                         @keyup.enter="authenticateAdmin" />
+               </div>
+               
+               <button @click="authenticateAdmin" 
+                       class="w-full py-2.5 bg-[#C1A172] text-[#0A2647] rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-[#C1A172]/20 hover:scale-[1.02] active:scale-95 transition-all">
+                  Establish Neural Link
+               </button>
+               
+               <button @click="emit('setTab', 'profile')" class="text-[9px] font-bold text-white/40 uppercase tracking-widest hover:text-white transition-colors pt-3 block w-full">
+                  Abort Protocol
+               </button>
+
+               <div v-if="authError" class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 mt-2">
+                  <p class="text-[8px] font-black text-red-400 uppercase tracking-widest">{{ authError }}</p>
+               </div>
+            </div>
+         </div>
+      </div>
 
      <!-- SYSTEM DASHBOARD -->
      <div v-else class="flex-1 overflow-y-auto no-scrollbar p-6 pb-32 space-y-6 relative z-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
@@ -174,7 +213,7 @@ const handleQuickAction = (action) => {
                     <component :is="stat.icon" class="w-3.5 h-3.5" :style="`color: ${stat.color}`" />
                  </div>
                  <div class="flex flex-col">
-                    <span class="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] leading-none mb-1">{{ stat.label }}</span>
+                    <span class="text-[8px] font-black text-white/60 uppercase tracking-[0.2em] leading-none mb-1">{{ stat.label }}</span>
                     <p class="text-[20px] font-black text-white tracking-tighter leading-none">{{ stat.value }}</p>
                  </div>
               </div>
@@ -188,7 +227,7 @@ const handleQuickAction = (action) => {
         <!-- VISUAL ANALYTICS (Full Width Impulse + Horizontal Tiers) -->
         <div class="w-full bg-white/5 border border-white/5 rounded-[2.5rem] p-6 flex flex-col">
            <div class="flex items-center justify-between mb-4">
-              <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">User Growth Impulse (Global)</span>
+              <span class="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">User Growth Impulse (Global)</span>
               <div class="flex items-center gap-4">
                  <div class="flex items-center gap-1.5">
                     <div class="w-1.5 h-1.5 rounded-full bg-[#C1A172]"></div>
@@ -275,9 +314,10 @@ const handleQuickAction = (action) => {
            </div>
         </div>
 
-        <!-- USER SPECIMEN MANAGEMENT (Refined Header & Guarded Boundaries) -->
-        <div class="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-           <div class="p-3 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+        <!-- USER SPECIMEN MANAGEMENT (Refined Header & Surgical Filters) -->
+        <div class="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl space-y-px">
+           <!-- Header Rail -->
+           <div class="p-3 flex items-center justify-between bg-white/[0.02]">
               <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.15em]">ACTIVE SPECIMENS ({{ filteredUsers.length }})</span>
               
               <div class="relative flex items-center gap-2">
@@ -287,11 +327,48 @@ const handleQuickAction = (action) => {
                  </div>
               </div>
            </div>
+
+           <!-- Surgical Filter Bar (High-Visibility Rail) -->
+           <div class="px-3 pb-3 flex items-center gap-3 overflow-x-auto no-scrollbar bg-white/[0.01]">
+              <!-- Plan Selector -->
+              <div class="flex items-center p-1 bg-white/10 border border-white/10 rounded-xl gap-1 shrink-0 shadow-inner">
+                 <button v-for="t in ['All', 'Free', 'Pro', 'Elite']" :key="t"
+                         @click="selectedTier = t"
+                         :class="selectedTier === t ? 'bg-[#C1A172] text-[#0A2647] shadow-[0_0_10px_rgba(193,161,114,0.3)] scale-105' : 'text-white/50 hover:text-white hover:bg-white/5'"
+                         class="px-2.5 py-1 rounded-lg text-[8.5px] font-black uppercase tracking-widest transition-all duration-300">
+                    {{ t }}
+                 </button>
+              </div>
+
+              <!-- Date Range (Refined Surgical Rail) -->
+              <div class="flex items-center p-1 bg-white/10 border border-white/10 rounded-xl gap-1 shrink-0 shadow-inner">
+                 <button v-for="d in ['Today', 'YD', '7D', 'All']" :key="d"
+                         @click="selectedRange = d; customDays = ''"
+                         :class="selectedRange === d ? 'bg-white text-[#0A2647] shadow-white/20' : 'text-white/50 hover:text-white hover:bg-white/5'"
+                         class="px-2 py-1 rounded-lg text-[8.5px] font-black uppercase tracking-widest transition-all duration-300">
+                    {{ d }}
+                 </button>
+                 
+                 <!-- Custom Days Input -->
+                 <div class="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/10 ml-1">
+                    <input v-model.number="customDays" type="number" placeholder="DAYS" 
+                           class="bg-transparent text-[8.5px] font-black text-[#C1A172] focus:outline-none w-8 placeholder:text-white/20"
+                           @input="selectedRange = 'Custom'" />
+                 </div>
+              </div>
+
+              <div class="flex-1"></div>
+              
+              <!-- Recalibrate Button -->
+              <button class="w-8 h-8 flex items-center justify-center bg-white/10 border border-white/10 rounded-xl hover:bg-white/20 group transition-all shrink-0">
+                 <RefreshCw class="w-3.5 h-3.5 text-white/50 group-hover:text-white group-hover:rotate-180 transition-all duration-700" />
+              </button>
+           </div>
            
            <div class="overflow-x-auto no-scrollbar">
               <table class="w-full text-left border-collapse">
                  <thead>
-                    <tr class="border-b border-white/5 bg-white/[0.01]">
+                    <tr class="border-y border-white/5 bg-white/[0.02]">
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Specimen</th>
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Tier</th>
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em] text-right pr-5">Actions</th>
@@ -302,7 +379,7 @@ const handleQuickAction = (action) => {
                        <td class="px-3 py-2">
                           <div class="flex flex-col">
                              <span class="text-[11px] font-bold text-white leading-tight">{{ user.name }}</span>
-                             <span class="text-[8px] font-medium text-white/20 truncate max-w-[90px]">{{ user.email }}</span>
+                             <span class="text-[8px] font-medium text-white/50 truncate max-w-[130px]">{{ user.email }}</span>
                           </div>
                        </td>
                        <td class="px-3 py-2">
@@ -316,8 +393,16 @@ const handleQuickAction = (action) => {
                        </td>
                        <td class="px-3 py-2 pr-5">
                           <div class="flex items-center justify-end gap-1">
-                             <button @click="updateTier(user.id, 'Elite')" class="w-6.5 h-6.5 bg-white/10 rounded-lg flex items-center justify-center text-white/40 hover:text-[#C1A172] hover:bg-[#C1A172]/20 transition-all">
+                             <!-- Elite Promotion (Full Access) -->
+                             <button @click="updateTier(user.id, 'Elite')" class="w-6.5 h-6.5 bg-white/10 rounded-lg flex items-center justify-center text-white/40 hover:text-[#C1A172] hover:bg-[#C1A172]/20 transition-all group/btn relative">
                                 <Sparkles class="w-3 h-3" />
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded">Make Elite</span>
+                             </button>
+                             
+                             <!-- Admin Promotion -->
+                             <button @click="handlePromoteAdmin(user.id)" class="w-6.5 h-6.5 bg-white/10 rounded-lg flex items-center justify-center text-white/40 hover:text-green-400 hover:bg-green-500/20 transition-all group/btn relative">
+                                <Shield class="w-3 h-3" />
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded">Make Admin</span>
                              </button>
                              <button class="w-6.5 h-6.5 bg-white/10 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/20 transition-all">
                                 <Edit3 class="w-3 h-3" />
