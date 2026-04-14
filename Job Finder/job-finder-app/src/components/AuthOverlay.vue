@@ -36,6 +36,8 @@ watch(() => props.mode, (newMode) => {
 // Clear ALL fields when the overlay is opened/closed to prevent ghost data
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
+        // FORCE SYNC: Ensure the internal mode matches what the parent requested
+        internalMode.value = props.mode
         email.value = ''
         password.value = ''
         fullName.value = ''
