@@ -106,7 +106,7 @@ export const profileService = {
   async fetchAllProfiles() {
     return await supabase
       .from('profiles')
-      .select('id, name, email, plan_type, last_seen, created_at')
+      .select('id, name, email, plan_type, is_admin, is_suspended, doc_status, last_seen, created_at')
       .order('created_at', { ascending: false });
   },
 
@@ -139,6 +139,51 @@ export const profileService = {
         action: `ADMIN_${actionId.toUpperCase()}`, 
         user_id: adminEmail,
         details: { ...details, timestamp: new Date().toISOString() }
+      }
+    ]);
+  },
+
+  /**
+   * STEP 6: HEADLESS BROADCAST ENGINE (KINETIC SIGNAL)
+   * Dispatches a signal to the n8n/Playwright logic for automated job applications.
+   */
+  async triggerHeadlessBroadcast(user, job, synthesisData) {
+    if (!user) return { error: 'Unauthorized broadcast' };
+    
+    // IDENTITY LOGIC: Prioritize applicationEmail for professional consistency
+    const professionalEmail = user.applicationEmail || user.email;
+
+    return await supabase.from('user_activity').insert([
+      { 
+        action: 'HEADLESS_BROADCAST_SIGNAL', 
+        user_id: user.email,
+        details: { 
+          company: job.c, 
+          role: job.r, 
+          apply_email: professionalEmail,
+          synthesis: synthesisData,
+          timestamp: new Date().toISOString() 
+        }
+      }
+    ]);
+  },
+
+  /**
+   * STEP 6: MANUAL ASSIST SIGNAL (TIER B)
+   * Tracks when a user opens the 1-click toolkit for manual portal submission.
+   */
+  async submitManualAssistSignal(user, job) {
+    if (!user) return { error: 'Unauthorized signal' };
+    
+    return await supabase.from('user_activity').insert([
+      { 
+        action: 'MANUAL_ASSIST_TOOLKIT_SYNC', 
+        user_id: user.email,
+        details: { 
+          company: job.c, 
+          role: job.r, 
+          timestamp: new Date().toISOString() 
+        }
       }
     ]);
   },

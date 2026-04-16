@@ -1,6 +1,6 @@
-# 🎮 DigyNex Job Finder: UI Interactive Master Catalog (V11.0)
-**Doc Ref:** DASHBOARD_ENGINE_INTERACTIVITY_v11.0 (Neural Master Sync)
-**Status:** PRODUCTION COMPLETE
+# 🎮 DigyNex Job Finder: UI Interactive Master Catalog (V13.1)
+**Doc Ref:** DASHBOARD_ENGINE_INTERACTIVITY_v13.0 (Neural Master Sync)
+**Status:** PRODUCTION COMPLETE — V13.1 STABILIZED
 
 This document serves as the single source of truth for every interactive component within the DigyNex universe. It maps every button, card, and trigger to its technical logic and backend Ripple Effect.
 
@@ -17,6 +17,11 @@ This document serves as the single source of truth for every interactive compone
 - **UI:** Central dispatcher in `App.vue`.
 - **Logic:** Every major button (Apply, Tailor, Sync) passes an `actionId` through this controller.
 - **Enforcement:** Checks `plan_type` quotas (Weekly/Daily) from the backend `masterConfig` before dispatching signals.
+    - <details><summary>Under the Hood</summary>
+      - Calls `quotaService.canPerformAction(userProfile, actionId)`.
+      - If rejected, triggers a Neural Toast with the specific reason (e.g., "WEEKLY_LIMIT").
+      - If accepted, emits n8n signal `DISPATCH_SIGNAL` with job payload.
+      </details>
 
 ---
 
@@ -39,6 +44,19 @@ This document serves as the single source of truth for every interactive compone
 - **Bell Icon:** Toggles the "Signal Pulse" popup.
 - **Item Click:** Navigation trigger. If it's a job alert, it deep-links directly to the `JobDetailOverlay`.
 
+### D. Global Country Selector (Discovery Slot)
+- **UI:** Floating "Flag" icon / Map trigger.
+- **Logic:** Filters `filteredMatches` based on target country code (SE, DE, etc.).
+- **Marketing Hook:** "World-Class Ingestion" - demonstrates platform's ability to pivot globally without reloading.
+
+### E. Manual Assist Toolkit (Step 6)
+- **UI:** Conditional green button in `JobDetailOverlay.vue` if `applyType === 'manual'`.
+- **Logic:** `handleDashboardAction('manual_toolkit')`.
+- **Ripple:** 
+    1. Triggers **Neural Synthesis** (2s delay).
+    2. Opens `ManualToolkitOverlay.vue`.
+    3. Provides 1-click downloads (CV/Letter) and Professional ID copy.
+
 ---
 
 ## 🎨 3. CV Studio: Identity Orchestration
@@ -58,6 +76,17 @@ This document serves as the single source of truth for every interactive compone
 - **UI:** Auto-scaling A4 preview.
 - **Logic:** Real-time HTML→PDF simulation using Gotenberg architecture.
 - **Button: Export PDF:** Triggers `pdfService.js`. Checks tier permissions before compilation.
+    - <details><summary>Export Flow Specs</summary>
+      - Checks `quotaService.canPerformAction('CV_EXPORT')`.
+      - Captures `iframe.srcdoc` content.
+      - Injects 1px ATS keywords if Tier 2+.
+      - Dispatches browser-native print or Gotenberg headless render.
+      </details>
+
+### D. Multi-Locale Strategy Switcher
+- **UI:** Dropdown for 16 Economic Hubs.
+- **Logic:** Re-hydrates `masterProfile.cvLanguage` and triggers `refreshViewport`.
+- **Result:** Instant localized branding and terminology without losing profile data.
 
 ---
 
@@ -78,6 +107,18 @@ This document serves as the single source of truth for every interactive compone
 - **Button: Tier Override (Sparkles):** Opens mini-popup to promote users to Pro/Elite.
 - **Button: Identity Edit:** Manual profile override.
 - **Button: Freeze Specimen:** Toggles account suspension.
+- **Access Control:** All row actions are locked behind `Tier Alpha (8580)` access. Testers see a `Lock` icon.
+
+### D. Strategic Engine Config (Marketing Dash V7.0)
+- **UI:** Interactive Quota Sliders and Price Editors.
+- **Logic:** Directly modifies `tiered_quotas` in Supabase.
+- **Real-time Broadcaster:** Uses `broadcastChannel` to notify all users to "Recalibrate" their local engines.
+- **Hierarchy:** 🛡️ **SUPER-ADMIN ONLY (8580)**.
+
+### E. 👑 Revenue Engine: Founder's Pass
+- **UI:** High-contrast Gold/Navy banner in the Identity/Pricing Hub.
+- **Logic:** `isFounderPassOpen = true` trigger.
+- **Strategic Impact:** Captured in the "Elite Marketing" vision as the ultimate "Lifetime Global Access" hook.
 
 ---
 
@@ -94,5 +135,16 @@ This document serves as the single source of truth for every interactive compone
 
 ---
 
+---
+
+## 🧙‍♂️ 6. Expert Profile Wizard (The Identity Vault)
+
+### A. 4-Step Master Stepper
+- **UI:** Multi-stage questionnaire (Identity → Experience → Skills → Finalize).
+- **Auto-Sync LinkedIn:** Dispatches scraper signal to n8n; returns hydrated JSON profile.
+- **AI Polish Wand:** Triggers `aiService.js` to refine text into high-impact executive summaries.
+
+---
+
 **Authority:** DigyNex Strategic Oversight | **Prepared By:** Antigravity AI
-**Strict Rules:** Verified Modular Separation | **Engine Version:** V11.0 Neural Sync
+**Strict Rules:** Verified Modular Separation | **Engine Version:** V13.1 Neural Master Sync

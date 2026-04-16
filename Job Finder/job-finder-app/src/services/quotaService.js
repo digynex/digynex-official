@@ -6,13 +6,14 @@
 import { supabase } from '../lib/supabase';
 
 export const quotaService = {
-  // ... existing TIERS ...
+  // Fallback defaults if offline
   TIERS: {
     0: {
       name: 'Tier 1 (Free)',
       cv_weekly_limit: 2,
       max_life_days: 14,
       keyword_limit: 5,
+      country_slots: 1,
       features: ['Basic Templates', 'PDF Ingestion']
     },
     1: {
@@ -20,18 +21,99 @@ export const quotaService = {
       cv_weekly_limit: 6,
       cv_daily_limit: 3,
       keyword_limit: 15,
+      country_slots: 3,
       features: ['Pro Templates', 'LinkedIn Sync', 'Aesthetic Presets']
     },
     2: {
       name: 'Tier 3 ($49)',
-      cv_weekly_limit: Infinity,
-      cv_daily_limit: Infinity,
-      keyword_limit: Infinity,
+      cv_weekly_limit: 9999,
+      cv_daily_limit: 9999,
+      keyword_limit: 9999,
+      country_slots: 10,
+      price: 49,
       features: ['Unlimited Everything', 'All Templates', 'Neural Suggester', 'Cover Letter AI']
     }
   },
 
-  // ... existing checkLockoutStatus ...
+  updateTiersFromBackend(backendData) {
+    if (!backendData) return;
+
+    // WHY: DB may store data in two formats:
+    //   Format A (named): { free:{...}, pro:{...}, elite:{...} } — saved by AdminHub
+    //   Format B (numeric): { "0":{...}, "1":{...}, "2":{...} } — legacy format in DB
+    // We normalize both so the quota engine always works correctly.
+
+    // --- Format A: Named keys (AdminHub format) ---
+    if (backendData.free) {
+      if (backendData.free.cv_per_week !== undefined) this.TIERS[0].cv_weekly_limit = backendData.free.cv_per_week;
+      if (backendData.free.day_cap !== undefined) this.TIERS[0].cv_daily_limit = backendData.free.day_cap;
+      if (backendData.free.price !== undefined) this.TIERS[0].price = backendData.free.price;
+      if (backendData.free.ai_magic !== undefined) this.TIERS[0].ai_magic = backendData.free.ai_magic;
+    }
+    if (backendData.pro) {
+      if (backendData.pro.cv_per_week !== undefined) this.TIERS[1].cv_weekly_limit = backendData.pro.cv_per_week;
+      if (backendData.pro.day_cap !== undefined) this.TIERS[1].cv_daily_limit = backendData.pro.day_cap;
+      if (backendData.pro.price !== undefined) this.TIERS[1].price = backendData.pro.price;
+      if (backendData.pro.ai_magic !== undefined) this.TIERS[1].ai_magic = backendData.pro.ai_magic;
+    }
+    if (backendData.elite) {
+      if (backendData.elite.cv_per_week !== undefined) this.TIERS[2].cv_weekly_limit = backendData.elite.cv_per_week;
+      if (backendData.elite.day_cap !== undefined) this.TIERS[2].cv_daily_limit = backendData.elite.day_cap;
+      if (backendData.elite.price !== undefined) this.TIERS[2].price = backendData.elite.price;
+      if (backendData.elite.ai_magic !== undefined) this.TIERS[2].ai_magic = backendData.elite.ai_magic;
+    }
+
+    // --- Format B: Numeric keys (legacy DB format {0,1,2}) ---
+    const numericMap = { '0': 0, '1': 1, '2': 2 };
+    for (const [key, tierIndex] of Object.entries(numericMap)) {
+      const src = backendData[key];
+      if (!src) continue;
+      if (src.cv_weekly_limit !== undefined) this.TIERS[tierIndex].cv_weekly_limit = src.cv_weekly_limit;
+      if (src.cv_daily_limit !== undefined) this.TIERS[tierIndex].cv_daily_limit = src.cv_daily_limit;
+      if (src.price !== undefined) this.TIERS[tierIndex].price = src.price;
+      if (src.ai_magic !== undefined) this.TIERS[tierIndex].ai_magic = src.ai_magic;
+    }
+  },
+
+  async init() {
+    try {
+      // 1. Initial Fetch
+      const { data, error } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'tiered_quotas')
+        .single();
+        
+      if (data && data.value) {
+        this.updateTiersFromBackend(data.value);
+        console.log('[QUOTA ENGINE] Migrated configs from Backend Hub');
+      }
+
+      // 2. Real-time Realignment
+      supabase.channel('system_config_quota_changes')
+        .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'system_config', 
+            filter: "key=eq.tiered_quotas" 
+        }, (payload) => {
+          if (payload.new && payload.new.value) {
+            this.updateTiersFromBackend(payload.new.value);
+            window.dispatchEvent(new CustomEvent('quota-prices-updated'));
+            console.log('[QUOTA ENGINE] Real-time limits updated via Portal');
+          }
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('[QUOTA ENGINE] Failed to sync with Backend. Using local strict rules.');
+    }
+  },
+
+  getCountryLimit(planType) {
+    const pType = (planType !== undefined) ? planType : 0;
+    return this.TIERS[String(pType)]?.country_slots || this.TIERS[pType]?.country_slots || 1;
+  },
+
   async checkLockoutStatus(profile) {
     if (!profile || profile.plan_type !== 0) return false;
     if (!profile.created_at) return false;

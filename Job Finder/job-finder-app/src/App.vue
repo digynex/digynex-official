@@ -39,6 +39,7 @@ import ClassicElite from './components/templates/ClassicElite.vue'
 import SidebarModern from './components/templates/SidebarModern.vue'
 import AdminHub from './views/AdminHub.vue'
 import FounderPassOverlay from './components/FounderPassOverlay.vue'
+import ManualToolkitOverlay from './components/ManualToolkitOverlay.vue'
 
 const TEMPLATE_MAP = {
   1: ClassicElite,
@@ -72,7 +73,17 @@ const fetchSystemConfig = async () => {
         const { data } = await supabase.from('system_config').select('key, value');
         if (data) {
             const quotas = data.find(i => i.key === 'tiered_quotas');
-            if (quotas) masterConfig.value = quotas.value;
+            if (quotas) {
+                masterConfig.value = quotas.value;
+
+                // WHY: Sync proPrice / elitePrice directly from DB config.
+                // This runs on mount AND on real-time admin commits so the pricing
+                // page always reflects what the admin set — no stale values.
+                const v = quotas.value;
+                if (v.free?.price !== undefined)  freePrice.value  = v.free.price;
+                if (v.pro?.price !== undefined)   proPrice.value   = v.pro.price;
+                if (v.elite?.price !== undefined)  elitePrice.value = v.elite.price;
+            }
 
             const maintenance = data.find(i => i.key === 'maintenance_mode');
             if (maintenance) {
@@ -95,6 +106,11 @@ const langContainer = ref(null)
 const notificationContainer = ref(null)
 const isNotificationsOpen = ref(false)
 const searchQuery = ref('') // Mission-critical state for global filtering
+
+// Quota engine UI Reactivity
+const proPrice = ref(19)
+const elitePrice = ref(49)
+const freePrice = ref(0)
 
 // --- GLOBAL REACTIVE STATE (Neural Core) ---
 const activeTab = ref('dashboard')
@@ -195,6 +211,9 @@ const matches = ref([
 
 // --- SYNTHESIS & TRACKING (V12.0 ENGINE) ---
 const isSynthesisReviewOpen = ref(false)
+const isManualToolkitOpen = ref(false);
+const isTemplatePreviewOpen = ref(false);
+const previewingTemplate = ref(null);
 const isTrackingLabOpen = ref(false)
 const isDispatching = ref(false)
 const synthesisData = ref({ job: null, letter: '', summary: '' })
@@ -259,7 +278,9 @@ const filteredJobs = computed(() => {
         const q = searchQuery.value.toLowerCase();
         result = result.filter(j => j.c.toLowerCase().includes(q) || j.r.toLowerCase().includes(q));
     }
-    return result;
+    
+    // NEURAL RANKING: Sort by highest match score (Strategic Hierarchy)
+    return [...result].sort((a, b) => (b.m || 0) - (a.m || 0));
 })
 
 const filteredMatches = computed(() => {
@@ -285,7 +306,9 @@ const filteredMatches = computed(() => {
         const q = searchQuery.value.toLowerCase();
         result = result.filter(m => m.c.toLowerCase().includes(q) || m.r.toLowerCase().includes(q));
     }
-    return result;
+    
+    // NEURAL RANKING: Sort by highest match percentage (Premium Discovery)
+    return [...result].sort((a, b) => (b.m || 0) - (a.m || 0));
 })
 
 const getStepCount = (step) => {
@@ -596,8 +619,6 @@ const handleUpdateCoverLetter = async (text) => {
 const isCompilingLatex = ref(false)
 const isManualFormOpen = ref(false)
 const isCVPreviewOpen = ref(false)
-const isTemplatePreviewOpen = ref(false)
-const previewingTemplate = ref(null)
 const cvTemplates = ref([])
 const viewportHtml = ref('')
 const viewMode = ref('elite')
@@ -626,7 +647,15 @@ const refreshViewport = async () => {
     }
 }
 
-watch([selectedTemplate, previewMode, coverLetterText, () => userProfile.value.primaryColor, () => userProfile.value.secondaryColor], () => {
+watch([
+    selectedTemplate, 
+    previewMode, 
+    coverLetterText, 
+    () => userProfile.value.primaryColor, 
+    () => userProfile.value.secondaryColor,
+    () => masterProfile.value.cvLanguage,  // V13.2 RE-RENDER SYNC
+    locale                             // GLOBAL LOCALE SYNC
+], () => {
     refreshViewport();
 })
 
@@ -908,6 +937,7 @@ const fetchUserProfile = async () => {
             userProfile.value = {
                 email: user.email,
                 name: profile.name || user.user_metadata?.full_name || 'Expert',
+                plan_type: profile.plan_type ?? 0, // WHY: Critical for quota enforcement — must come from DB
                 primaryColor: profile.primary_color || '#0A2647',
                 secondaryColor: profile.secondary_color || '#64748b',
                 languagePreference: profile.language_preference || 'EN',
@@ -950,6 +980,28 @@ const fetchUserProfile = async () => {
     // NEURAL WAKE-UP: Prepare the specimen for instant preview
     await refreshViewport();
 };
+
+onMounted(async () => {
+    // Phase 1 Backend Quota Sync
+    await fetchSystemConfig();
+    await quotaService.init();
+    
+    // Initial set
+    if (quotaService.TIERS[1] && quotaService.TIERS[1].price !== undefined) proPrice.value = quotaService.TIERS[1].price;
+    if (quotaService.TIERS[2] && quotaService.TIERS[2].price !== undefined) elitePrice.value = quotaService.TIERS[2].price;
+    
+    // Listen for live config pushes
+    window.addEventListener('quota-prices-updated', () => {
+         if (quotaService.TIERS[1] && quotaService.TIERS[1].price !== undefined) proPrice.value = quotaService.TIERS[1].price;
+         if (quotaService.TIERS[2] && quotaService.TIERS[2].price !== undefined) elitePrice.value = quotaService.TIERS[2].price;
+    })
+    
+    // Check for existing session natively
+    const user = await authService.getUser();
+    if (user) {
+        await fetchUserProfile();
+    }
+});
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
@@ -1289,6 +1341,17 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         return;
     }
 
+    if (actionId === 'open_country_selector' || actionId === 'openCountrySelector') {
+        const limit = quotaService.getCountryLimit(userProfile.value.plan_type);
+        if (selectedCountriesArr.value.length >= limit && !userProfile.value.isSuperUser) {
+            toastMessage.value = `Quota Reached: Tier limit is ${limit} countries.`;
+            showToast.value = true;
+            setTimeout(() => { showToast.value = false }, 3000);
+            return;
+        }
+        showCountrySelector.value = true;
+    }
+    
     if (actionId === 'purge') {
         toastMessage.value = 'Neural Wipe: Purging System Residue...';
         showToast.value = true;
@@ -1299,6 +1362,47 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         setTimeout(() => { showToast.value = false }, 4000);
         return;
     }
+    if (actionId === 'manual_toolkit') {
+        const job = data;
+        if (!job) return;
+
+        // 1. Quota Check
+        const quota = await quotaService.canPerformAction(userProfile.value, 'CV_EXPORT');
+        if (!quota.can) {
+            toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}`;
+            showToast.value = true;
+            setTimeout(() => { showToast.value = false }, 3000);
+            return;
+        }
+
+        // 2. Synthesis (Neural Tailoring)
+        toastMessage.value = 'Neural Hub: Synthesizing Toolkit Specimens...';
+        showToast.value = true;
+        
+        const tailoredLetter = profileService.generateCoverLetter({
+           name: userProfile.value.name,
+           resume_data: masterProfile.value,
+           secret_keywords: masterProfile.value.secretKeywords,
+           job: job
+        });
+
+        synthesisData.value = {
+            job: job,
+            letter: tailoredLetter,
+            summary: `Expert results-driven candidate with deep expertise in ${job.r} and strategic alignment with ${job.c}.`
+        };
+
+        // 3. Log Signal (Engine Phase)
+        await profileService.submitManualAssistSignal(userProfile.value, job);
+        
+        await new Promise(r => setTimeout(r, 2000));
+        
+        // 4. Open UI (Face Phase)
+        isManualToolkitOpen.value = true;
+        showToast.value = false;
+        return;
+    }
+
     // Generic Action Wrapper for n8n/Supabase Logging
     toastMessage.value = `Dispatching Signal: ${actionId}...`;
     showToast.value = true;
@@ -1447,7 +1551,7 @@ const handleNotificationClick = (notif) => {
           :activeFocusSlots="activeFocusSlots"
           @openJobDetail="openJobDetail"
           @handleAction="handleDashboardAction"
-          @openCountrySelector="showCountrySelector = true"
+          @openCountrySelector="handleDashboardAction('openCountrySelector')"
        />
 
        <ProfileHub 
@@ -2069,7 +2173,7 @@ const handleNotificationClick = (notif) => {
                             <p class="text-[10px] font-bold text-[#C1A172]/60 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier2Sub') }}</p>
                          </div>
                          <div class="text-right">
-                            <span class="text-[22px] font-black text-white tracking-tighter">$19</span>
+                            <span class="text-[22px] font-black text-white tracking-tighter">${{ proPrice }}</span>
                             <p class="text-[9px] font-black text-white/30 uppercase">{{ $t('pricing.priceMonthly') }}</p>
                          </div>
                       </div>
@@ -2100,7 +2204,7 @@ const handleNotificationClick = (notif) => {
                             <p class="text-[10px] font-bold text-indigo-400/60 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier3Sub') }}</p>
                          </div>
                          <div class="text-right">
-                            <span class="text-[20px] font-black text-white tracking-tighter">$49</span>
+                            <span class="text-[20px] font-black text-white tracking-tighter">${{ elitePrice }}</span>
                             <p class="text-[9px] font-black text-white/30 uppercase">{{ $t('pricing.priceMonthly') }}</p>
                          </div>
                       </div>

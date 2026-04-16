@@ -42,15 +42,37 @@ const isSavingConfig = ref(false)
 const fetchConfig = async () => {
     try {
         const { data } = await supabase.from('system_config').select('value').eq('key', 'tiered_quotas').single()
-        if (data && data.value) configData.value = data.value
+        if (data && data.value) {
+            const v = data.value;
+
+            // WHY: DB may have numeric-key format {0,1,2} from old saves.
+            // We normalize to named {free,pro,elite} for the AdminHub UI inputs.
+            if (v.free !== undefined || v.pro !== undefined || v.elite !== undefined) {
+                // Already in named format — use directly
+                configData.value = {
+                    free:  { cv_per_week: v.free?.cv_per_week ?? 2,   day_cap: v.free?.day_cap ?? 3,   price: v.free?.price ?? 0,  ai_magic: v.free?.ai_magic ?? false },
+                    pro:   { cv_per_week: v.pro?.cv_per_week ?? 6,    day_cap: v.pro?.day_cap ?? 3,    price: v.pro?.price ?? 19,  ai_magic: v.pro?.ai_magic ?? true  },
+                    elite: { cv_per_week: v.elite?.cv_per_week ?? 999, day_cap: v.elite?.day_cap ?? 999, price: v.elite?.price ?? 49, ai_magic: v.elite?.ai_magic ?? true }
+                }
+            } else {
+                // Numeric-key format — map to named format
+                configData.value = {
+                    free:  { cv_per_week: v[0]?.cv_weekly_limit ?? 2,   day_cap: v[0]?.cv_daily_limit ?? 3,   price: v[0]?.price ?? 0,  ai_magic: v[0]?.ai_magic ?? false },
+                    pro:   { cv_per_week: v[1]?.cv_weekly_limit ?? 6,   day_cap: v[1]?.cv_daily_limit ?? 3,   price: v[1]?.price ?? 19, ai_magic: v[1]?.ai_magic ?? true  },
+                    elite: { cv_per_week: v[2]?.cv_weekly_limit ?? 999, day_cap: v[2]?.cv_daily_limit ?? 999, price: v[2]?.price ?? 49, ai_magic: v[2]?.ai_magic ?? true }
+                }
+            }
+        }
     } catch (err) {
-        console.error('Config Fetch Interrupt')
+        console.error('[ADMIN] Config Fetch Interrupt:', err)
     }
 }
 
 const saveConfig = async () => {
     isSavingConfig.value = true
     try {
+        // WHY: Always save in named {free,pro,elite} format with all fields.
+        // quotaService.updateTiersFromBackend() and fetchConfig() both handle this format.
         const { error } = await supabase.from('system_config').upsert({ key: 'tiered_quotas', value: configData.value })
         if (error) throw error
         emit('sendNotification', 'STRATEGIC ENGINE UPDATED: CHANGES LIVE')
@@ -67,19 +89,26 @@ onMounted(async () => {
         const { data, error } = await profileService.fetchAllProfiles()
         if (error) throw error
         
-        const tierMap = { 0: 'Free', 1: 'Pro', 2: 'Elite' }
+        // Handle BOTH formats: numeric (0,1,2) and string ('free','pro','elite','growth')
+        const normalizeTier = (pt) => {
+            if (pt === 0 || pt === '0' || pt === 'free')   return 'Free'
+            if (pt === 1 || pt === '1' || pt === 'pro')    return 'Pro'
+            if (pt === 2 || pt === '2' || pt === 'elite')  return 'Elite'
+            if (pt === 'growth')                            return 'Pro' // legacy alias
+            return 'Free'
+        }
         
         if (data && data.length > 0) {
             users.value = data.map(u => ({
                 id: u.id,
                 name: u.name || 'Anonymous',
                 email: u.email || 'No Email',
-                tier: u.plan_type !== undefined ? tierMap[u.plan_type] || 'Free' : 'Free',
+                tier: normalizeTier(u.plan_type),
                 doc_status: u.doc_status || 'Draft',
                 lastSeen: u.last_seen || 'New',
                 joined: u.created_at || new Date().toISOString(),
-                isAdmin: false,
-                isSuspended: false
+                isAdmin: u.is_admin || false,
+                isSuspended: u.is_suspended || false
             }))
         } else {
             throw new Error("No profiles found, using mocks")
@@ -88,10 +117,10 @@ onMounted(async () => {
         console.warn("Neural Fetch Failed or Empty, loading mock specimens:", err)
         // Inject fake data for testing so the UI is not empty
         users.value = [
-            { id: 'usr_1', name: 'Alex T.', email: 'alex@example.com', tier: 'Free', lastSeen: '10 mins ago', joined: '2026-04-10', isAdmin: false, isSuspended: false },
-            { id: 'usr_2', name: 'Sarah G.', email: 'sarah.g@mail.com', tier: 'Pro', lastSeen: '2 hours ago', joined: '2026-04-12', isAdmin: true, isSuspended: false },
-            { id: 'usr_3', name: 'Amila M.', email: 'amila@digynex.com', tier: 'Elite', lastSeen: 'Just now', joined: '2026-04-15', isAdmin: false, isSuspended: false },
-            { id: 'usr_4', name: 'John D.', email: 'john.d@web.co', tier: 'Free', lastSeen: '1 day ago', joined: '2026-04-05', isAdmin: false, isSuspended: true },
+            { id: 'usr_1', name: 'Alex T.', email: 'alex@example.com', tier: 'Free', doc_status: 'Draft', lastSeen: '10 mins ago', joined: '2026-04-10', isAdmin: false, isSuspended: false },
+            { id: 'usr_2', name: 'Sarah G.', email: 'sarah.g@mail.com', tier: 'Pro', doc_status: 'Verified', lastSeen: '2 hours ago', joined: '2026-04-12', isAdmin: true, isSuspended: false },
+            { id: 'usr_3', name: 'Amila M.', email: 'amila@digynex.com', tier: 'Elite', doc_status: 'Pending_Approval', lastSeen: 'Just now', joined: '2026-04-15', isAdmin: false, isSuspended: false },
+            { id: 'usr_4', name: 'John D.', email: 'john.d@web.co', tier: 'Free', doc_status: 'Draft', lastSeen: '1 day ago', joined: '2026-04-05', isAdmin: false, isSuspended: true },
         ]
     }
 })
@@ -189,13 +218,17 @@ const filteredUsers = computed(() => {
 
 const updateTier = async (userId, newTier) => {
     try {
-        const reverseTierMap = { 'Free': 0, 'Pro': 1, 'Elite': 2 }
-        const numericTier = reverseTierMap[newTier] !== undefined ? reverseTierMap[newTier] : 0
-        const { error } = await profileService.updateUserTier(userId, numericTier)
+        // Save lowercase string to match DB format ('free','pro','elite')
+        const dbTierValue = newTier.toLowerCase()
+        const { error } = await profileService.updateUserTier(userId, dbTierValue)
         if (error) throw error
-        const user = users.value.find(u => u.id === userId)
-        if (user) user.tier = newTier
-        emit('sendNotification', `SPECIMEN ${user.name} PROMOTED TO ${newTier.toUpperCase()}`)
+        const userIndex = users.value.findIndex(u => u.id === userId)
+        if (userIndex !== -1) {
+            users.value[userIndex].tier = newTier
+            // Force deep reactivity
+            users.value = [...users.value]
+        }
+        emit('sendNotification', `SPECIMEN ${users.value[userIndex]?.name || ''} PROMOTED TO ${newTier.toUpperCase()}`)
     } catch (err) {
         emit('sendNotification', 'SURGICAL OVERRIDE FAILED')
     }
@@ -536,19 +569,31 @@ const chartOptions = {
                  <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                        <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">CV Limit (Week)</label>
-                       <input v-model.number="cfg.cv_per_week" type="number" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
+                       <input
+                         type="text" inputmode="numeric" pattern="[0-9]*"
+                         :value="cfg.cv_per_week"
+                         @input="cfg.cv_per_week = Number($event.target.value.replace(/[^0-9]/g,'')) || 0"
+                         class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
                     </div>
                     <div class="space-y-1">
                        <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">Daily Cap</label>
-                       <input v-model.number="cfg.day_cap" type="number" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
+                       <input
+                         type="text" inputmode="numeric" pattern="[0-9]*"
+                         :value="cfg.day_cap"
+                         @input="cfg.day_cap = Number($event.target.value.replace(/[^0-9]/g,'')) || 0"
+                         class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
                     </div>
                     <div class="space-y-1">
                        <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">Price ($)</label>
-                       <input v-model.number="cfg.price" type="number" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[#C1A172] text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
+                       <input
+                         type="text" inputmode="numeric" pattern="[0-9]*"
+                         :value="cfg.price"
+                         @input="cfg.price = Number($event.target.value.replace(/[^0-9]/g,'')) || 0"
+                         class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[#C1A172] text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
                     </div>
                     <div class="flex items-center justify-between pt-4">
                        <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">AI Magic</label>
-                       <button @click="cfg.ai_magic = !cfg.ai_magic" 
+                       <button @click="cfg.ai_magic = !cfg.ai_magic"
                                :class="cfg.ai_magic ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'"
                                class="px-2 py-1 border rounded-md text-[7px] font-black uppercase tracking-widest transition-all">
                           {{ cfg.ai_magic ? 'ACTIVE' : 'LOCKED' }}
@@ -560,7 +605,7 @@ const chartOptions = {
         </div>
 
         <!-- USER SPECIMEN MANAGEMENT (Refined Header & Surgical Filters) -->
-        <div class="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl space-y-px">
+        <div class="bg-white/[0.02] border border-white/5 rounded-3xl shadow-2xl space-y-px overflow-hidden">
            <!-- Header Rail -->
            <div class="p-3 flex items-center justify-between bg-white/[0.02]">
               <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.15em]">ACTIVE SPECIMENS ({{ filteredUsers.length }})</span>
@@ -610,7 +655,7 @@ const chartOptions = {
               </button>
            </div>
            
-           <div class="overflow-x-auto no-scrollbar">
+           <div class="overflow-x-auto min-h-[280px] no-scrollbar pb-10">
               <table class="w-full text-left border-collapse">
                  <thead>
                     <tr class="border-y border-white/5 bg-white/[0.02]">
@@ -622,15 +667,12 @@ const chartOptions = {
                  </thead>
                  <tbody class="divide-y divide-white/[0.02]">
                     <tr v-for="user in filteredUsers" :key="user.id" 
-                        :class="[
-                          user.isSuspended ? 'bg-red-500/10 hover:bg-red-500/15' : 
-                          (user.isAdmin ? 'bg-green-500/10 hover:bg-green-500/15 border-l-2 border-green-500' : 'hover:bg-white/[0.04]')
-                        ]"
-                        class="transition-colors group/row">
+                        :style="user.isSuspended ? 'background:rgba(239,68,68,0.08)' : (user.isAdmin ? 'background:rgba(34,197,94,0.08); border-left: 2px solid rgba(34,197,94,0.6)' : '')"
+                        class="transition-colors group/row hover:brightness-125">
                        <td class="px-3 py-2">
                           <div class="flex flex-col">
                              <span class="text-[11px] font-bold text-white leading-tight">{{ user.name }}</span>
-                             <span class="text-[8px] font-medium text-white/50 truncate max-w-[130px]">{{ user.email }}</span>
+                             <span class="text-[8px] font-medium text-white/50 truncate max-w-[80px]">{{ user.email }}</span>
                           </div>
                        </td>
                        <td class="px-3 py-2">
@@ -642,25 +684,32 @@ const chartOptions = {
                              {{ user.tier }}
                           </div>
                        </td>
-                       <td class="px-3 py-2">
+                       <td class="pl-0 pr-1 py-2">
                           <div :class="{
                             'bg-green-500/20 text-green-400': user.doc_status === 'Verified',
                             'bg-blue-500/20 text-blue-400': user.doc_status === 'Pending_Approval',
                             'bg-white/10 text-white/40': user.doc_status === 'Draft'
-                          }" class="px-2 py-0.5 rounded text-[8p                        <td class="px-3 py-2 pr-5">
-                          <div v-if="isSuperAdmin" class="flex items-center justify-end gap-1.5 relative">
+                          }" class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest inline-flex">
+                             {{ user.doc_status === 'Pending_Approval' ? 'Pending' : user.doc_status }}
+                          </div>
+                       </td>
+                       <td class="pl-1 pr-3 py-2">
+                          <div v-if="isSuperAdmin" class="flex items-center justify-end gap-1 relative">
                              <!-- QUICK TIER SELECTOR (The Star Action) -->
                              <div class="relative">
                                 <button @click="activeTierSelector = activeTierSelector === user.id ? null : user.id" 
                                         :class="user.tier !== 'Free' ? 'text-[#C1A172] bg-[#C1A172]/10 border-[#C1A172]/20' : 'text-white/40 bg-white/5 border-white/10'"
-                                        class="w-7 h-7 rounded-lg flex items-center justify-center border hover:bg-white/10 transition-all group/btn">
-                                   <Sparkles class="w-3.5 h-3.5" />
+                                        class="w-6 h-6 rounded-md flex items-center justify-center border hover:bg-white/10 transition-all group/btn">
+                                   <Sparkles class="w-3 h-3" />
                                    <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">Tier Override</span>
                                 </button>
 
+                                <!-- CLICK OUTSIDE OVERLAY -->
+                                <div v-if="activeTierSelector === user.id" @click.stop="activeTierSelector = null" class="fixed inset-0 z-[90]"></div>
+                                
                                 <!-- MINI POPUP SELECTOR -->
                                 <div v-if="activeTierSelector === user.id" 
-                                     class="absolute right-0 bottom-full mb-2 bg-[#051124] border border-white/10 rounded-xl p-1.5 shadow-2xl flex flex-col gap-1 z-[60] animate-in slide-in-from-bottom-2 duration-200 min-w-[80px]">
+                                     class="absolute right-0 top-full mt-1 z-[999] bg-[#051124] border border-[#C1A172]/30 rounded-xl p-1.5 shadow-2xl flex flex-col gap-1 animate-in slide-in-from-top-2 duration-200 min-w-[90px]">
                                    <button v-for="t in ['Free', 'Pro', 'Elite']" :key="t"
                                            @click="updateTier(user.id, t); activeTierSelector = null"
                                            :class="user.tier === t ? 'bg-[#C1A172] text-[#0A2647]' : 'text-white/60 hover:bg-white/5'"
@@ -671,29 +720,25 @@ const chartOptions = {
                              </div>
                              
                              <!-- Admin Toggle (Shield) -->
-                             <button @click="handlePromoteAdmin(user.id)" :class="user.isAdmin ? 'bg-green-500/30 text-green-400 border-green-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-7 h-7 rounded-lg flex items-center justify-center border hover:text-green-400 hover:bg-green-500/20 transition-all group/btn relative">
-                                <ShieldCheck class="w-3.5 h-3.5" />
+                             <button @click="handlePromoteAdmin(user.id)" :class="user.isAdmin ? 'bg-green-500/30 text-green-400 border-green-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-6 h-6 rounded-md flex items-center justify-center border hover:text-green-400 hover:bg-green-500/20 transition-all group/btn relative">
+                                <ShieldCheck class="w-3 h-3" />
                                 <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isAdmin ? 'Revoke Admin' : 'Grant Admin' }}</span>
                              </button>
 
                              <!-- Full Edit -->
-                             <button @click="editingUser = JSON.parse(JSON.stringify(user))" class="w-7 h-7 bg-white/10 border border-white/5 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/20 transition-all group/btn relative">
-                                <Edit3 class="w-3.5 h-3.5" />
+                             <button @click="editingUser = JSON.parse(JSON.stringify(user))" class="w-6 h-6 bg-white/10 border border-white/5 rounded-md flex items-center justify-center text-white/40 hover:text-white hover:bg-white/20 transition-all group/btn relative">
+                                <Edit3 class="w-3 h-3" />
                                 <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">Deep Edit</span>
                              </button>
 
                              <!-- Suspension Toggle -->
-                             <button @click="handleSuspendUser(user.id)" :class="user.isSuspended ? 'bg-red-500/30 text-red-500 border-red-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-7 h-7 rounded-lg flex items-center justify-center border hover:text-red-400 hover:bg-red-500/20 transition-all group/btn relative">
-                                <AlertTriangle class="w-3.5 h-3.5" />
+                             <button @click="handleSuspendUser(user.id)" :class="user.isSuspended ? 'bg-red-500/30 text-red-500 border-red-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-6 h-6 rounded-md flex items-center justify-center border hover:text-red-400 hover:bg-red-500/20 transition-all group/btn relative">
+                                <AlertTriangle class="w-3 h-3" />
                                 <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isSuspended ? 'Revoke Freeze' : 'Freeze Specimen' }}</span>
                              </button>
                           </div>
                           <div v-else class="text-right pr-2">
                              <Lock class="w-3 h-3 text-white/10 inline-block" />
-                          </div>
-                       </td>
-nt-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isSuspended ? 'Revoke Freeze' : 'Freeze Specimen' }}</span>
-                             </button>
                           </div>
                        </td>
                     </tr>
@@ -705,7 +750,7 @@ nt-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isSuspended ? 'Revoke
    </div>
 
    <!-- ─── IDENTITY EDIT MODAL (NEURAL INTERFACE) ─── -->
-   <div v-if="editingUser" class="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+   <div v-if="editingUser" class="fixed inset-0 z-[99999] flex items-center justify-center p-6 sm:p-0">
       <div class="absolute inset-0 bg-[#0A2647]/90 backdrop-blur-xl animate-in fade-in duration-500" @click="editingUser = null"></div>
       
       <div class="w-full max-w-md bg-[#0A2647] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] relative z-10 animate-in zoom-in slide-in-from-bottom-10 duration-500">
