@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titan Professional - Global Elite V12.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cv-primary: {{#if primaryColor}}{{primaryColor}}{{else}}#0A213D{{/if}};
+            --cv-secondary: #C1A172;
+            --cv-text-dark: #0f172a;
+            --cv-text-gray: #334155;
+            --cv-accent: rgba(193, 161, 114, 0.15);
+        }
+
+        @page { margin: 0; size: A4; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-print-color-adjust: exact; 
+            background: #fff; 
+            color: var(--cv-text-dark);
+            margin: 0; padding: 0;
+        }
+
+        .page { 
+            width: 210mm; 
+            min-height: 297mm; 
+            margin: 0 auto; 
+            display: flex; 
+            position: relative; 
+            overflow: hidden;
+        }
+
+        /* SIDEBAR - DEEP EXECUTIVE DARK */
+        .sidebar { 
+            width: 75mm; 
+            background-color: var(--cv-primary); 
+            color: white; 
+            padding: 12mm 8mm; 
+            display: flex; 
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 4px solid var(--cv-secondary);
+        }
+
+        .main-content { 
+            flex: 1; 
+            padding: 12mm 15mm; 
+            background: white;
+        }
+
+        /* TYPOGRAPHY */
+        .serif-heading { font-family: 'Playfair Display', serif; }
+        
+        h2.section-title { 
+            font-family: 'Playfair Display', serif;
+            font-size: 16px; 
+            font-weight: 900; 
+            color: var(--cv-primary); 
+            border-bottom: 2px solid var(--cv-secondary); 
+            padding-bottom: 5px; 
+            margin-bottom: 15px;
+            margin-top: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .job-title { font-size: 14px; font-weight: 800; color: var(--cv-primary); }
+        .company-name { font-size: 11px; font-weight: 700; color: var(--cv-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        .bullet-list li { 
+            position: relative; 
+            padding-left: 15px; 
+            font-size: 10px; 
+            line-height: 1.5; 
+            color: var(--cv-text-gray); 
+            margin-bottom: 5px; 
+        }
+        .bullet-list li::before { content: "▪"; position: absolute; left: 0; color: var(--cv-secondary); }
+
+        /* STEALTH DIVIDER */
+        .stealth-divider-container { position: relative; margin: 20px 0; height: 1px; }
+        .stealth-keywords { color: var(--cv-secondary); font-size: 0.1pt; letter-spacing: -1px; opacity: 1; position: absolute; top: 0; left: 0; user-select: none; pointer-events: none; white-space: nowrap; overflow: hidden; width: 100%; }
+        .visible-line { border: none; border-top: 1px solid #e2e8f0; margin: 0; }
+
+        .skill-node {
+            background: var(--cv-accent);
+            border-left: 2px solid var(--cv-secondary);
+            padding: 4px 10px;
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--cv-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <aside class="sidebar">
+            <div class="header-block text-center mb-10">
+                <div class="w-28 h-28 rounded-2xl overflow-hidden border-4 border-white/10 mx-auto mb-6 rotate-3 shadow-2xl">
+                    {{#if photoUrl}}<img src="{{photoUrl}}" class="w-full h-full object-cover">{{else}}<div class="w-full h-full bg-white/5 flex items-center justify-center text-white/20 text-4xl font-black">TP</div>{{/if}}
+                </div>
+                <h1 class="serif-heading text-2xl font-black text-white uppercase tracking-tighter leading-none mb-2">{{name}}</h1>
+                <div class="h-0.5 w-12 bg-secondary mx-auto mb-3"></div>
+                <p class="text-[9px] font-bold text-[#C1A172] tracking-[0.2em] uppercase italic">{{headline}}</p>
+            </div>
+
+            <div class="sidebar-sections space-y-8" style="flex-grow: 1;">
+                <div>
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4">Registry Info</h3>
+                    <div class="space-y-3 text-[9.5px]">
+                        {{#if location}}<div class="flex gap-3 text-white/80"><span>📍</span> {{location}}</div>{{/if}}
+                        {{#if email}}<div class="flex gap-3 text-white/80"><span>📧</span> {{email}}</div>{{/if}}
+                        {{#if phone}}<div class="flex gap-3 text-white/80"><span>📞</span> {{phone}}</div>{{/if}}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4">Academic Credentials</h3>
+                    {{{educationHTML}}}
+                </div>
+
+                <div>
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4">Neural Linguistics</h3>
+                    {{{languagesHTML}}}
+                </div>
+            </div>
+
+            {{#if qrCodeUrl}}
+            <div class="flex flex-col items-center pt-8 border-t border-white/5">
+                <img src="{{qrCodeUrl}}" class="w-14 h-14 bg-white p-1 rounded-lg">
+                <span class="text-[7px] font-black text-white/30 uppercase mt-3 tracking-[0.5em]">Titan Sync</span>
+            </div>
+            {{/if}}
+        </aside>
+
+        <main class="main-content">
+            {{#if bio}}
+            <section class="mb-8">
+                <h2 class="section-title" style="margin-top: 0;">Executive Summary</h2>
+                <p class="text-[11px] leading-relaxed text-slate-700 text-justify font-medium">{{bio}}</p>
+            </section>
+            {{/if}}
+
+            <div class="stealth-divider-container">
+                <div class="stealth-keywords">{{stealthKeywords}}</div>
+                <hr class="visible-line">
+            </div>
+
+            <section>
+                <h2 class="section-title">Strategic Experience</h2>
+                {{{experienceHTML}}}
+            </section>
+
+            <section>
+                <h2 class="section-title">Core Specimen Skills</h2>
+                <div class="flex flex-wrap">
+                    {{#each skills}}<span class="skill-node">{{this}}</span>{{/each}}
+                </div>
+            </section>
+
+            <section>
+                {{{technicalSkillsHTML}}}
+            </section>
+
+            <footer class="mt-auto pt-10 border-t border-slate-100 flex justify-between items-end">
+                <div class="max-w-[70%]">
+                    <p class="text-[8px] font-bold text-slate-300 uppercase tracking-widest leading-relaxed">
+                        {{#if declaration}}{{declaration}}{{else}}I hereby declare that the info provided is true and correct to the best of my knowledge and belief.{{/if}}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[7.5px] font-black text-slate-200 uppercase tracking-[0.2em] mb-1">Titan Professional Engine V12.0</p>
+                    <p class="text-[7.5px] font-black text-slate-300 uppercase">SPECIMEN REF: {{referenceId}}</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

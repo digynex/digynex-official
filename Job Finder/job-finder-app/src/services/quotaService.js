@@ -3,10 +3,10 @@
  * Enforces the 3-Tier subscription model and daily/weekly usage caps.
  */
 
-import { profileService } from './profileService';
+import { supabase } from '../lib/supabase';
 
 export const quotaService = {
-  // CONFIGURATION SYNCED WITH PM REQUEST: plan_type logic (0, 1, 2)
+  // ... existing TIERS ...
   TIERS: {
     0: {
       name: 'Tier 1 (Free)',
@@ -31,40 +31,57 @@ export const quotaService = {
     }
   },
 
-  /**
-   * Checks if a user is currently locked out (Tier 0 > 14 days).
-   */
+  // ... existing checkLockoutStatus ...
   async checkLockoutStatus(profile) {
     if (!profile || profile.plan_type !== 0) return false;
-    
-    // Safety check if created_at is missing
     if (!profile.created_at) return false;
-
     const createdAt = new Date(profile.created_at);
     const now = new Date();
     const diffTime = Math.abs(now - createdAt);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     return diffDays > this.TIERS[0].max_life_days;
   },
 
   /**
-   * Calculates usage stats based on activity logs.
-   * Note: bridge to Supabase 'user_activity' table.
+   * Calculates usage stats based on activity logs from Supabase.
    */
-  async getUsageStats(userId) {
+  async getUsageStats(userEmail) {
+    if (!userEmail) return { weeklyCount: 0, dailyCount: 0 };
+    
     try {
-        // Here we will eventually connect to supabase.
-        // For now, returning safe defaults. The PM will sync this with n8n.
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000)).toISOString();
+        const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+
+        // 1. Weekly Count
+        const { count: weeklyCount, error: weekError } = await supabase
+            .from('user_activity')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userEmail)
+            .eq('action', 'CV_EXPORT')
+            .gt('created_at', oneWeekAgo);
+
+        if (weekError) throw weekError;
+
+        // 2. Daily Count
+        const { count: dailyCount, error: dayError } = await supabase
+            .from('user_activity')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userEmail)
+            .eq('action', 'CV_EXPORT')
+            .gt('created_at', oneDayAgo);
+
+        if (dayError) throw dayError;
+
+        console.log(`[QUOTA ENGINE] Real-time usage for ${userEmail}: ${dailyCount}d / ${weeklyCount}w`);
+
         return {
-          weeklyCount: 0, 
-          dailyCount: 0,
-          lastUsage: null
+          weeklyCount: weeklyCount || 0, 
+          dailyCount: dailyCount || 0
         };
     } catch (error) {
-        console.error('Error fetching usage stats:', error);
-        // Fail-safe to allow action if DB is unreachable to prevent hard blocker
-        return { weeklyCount: 0, dailyCount: 0, lastUsage: null };
+        console.error('Error fetching real-time usage stats:', error);
+        return { weeklyCount: 0, dailyCount: 0 };
     }
   },
 
@@ -88,7 +105,8 @@ export const quotaService = {
       }
     }
 
-    const stats = await this.getUsageStats(profile.id);
+    // Check real usage from database (using email as ID)
+    const stats = await this.getUsageStats(profile.email);
     const tier = this.TIERS[planType] || this.TIERS[0];
 
     // Weekly Check

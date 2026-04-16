@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specimen - Titan Flagship (T5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cv-primary: #0f172a;
+            --cv-secondary: #C1A172;
+            --cv-text-dark: #1e1e24;
+            --cv-text-gray: #4b5563;
+            --cv-bg: #ffffff;
+        }
+
+        @page { margin: 0; size: A4; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-print-color-adjust: exact; 
+            background: #f1f5f9; 
+            color: var(--cv-text-dark);
+            margin: 0; padding: 0;
+        }
+
+        .page { 
+            width: 210mm; 
+            min-height: 297mm; 
+            padding: 15mm 20mm; 
+            margin: 0 auto; 
+            background: white; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* HEADER */
+        header.flagship-header {
+            text-align: center;
+            border-bottom: 5px solid var(--cv-primary);
+            padding-bottom: 30px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        header.flagship-header::after {
+            content: "";
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--cv-secondary);
+        }
+
+        .avatar-box {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 0 auto 15px;
+            border: 3px solid #f8fafc;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transform: rotate(-2deg);
+        }
+
+        .name { 
+            font-family: 'Playfair Display', serif;
+            font-size: 44px; 
+            font-weight: 950; 
+            color: var(--cv-primary); 
+            letter-spacing: -0.04em; 
+            line-height: 1; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+        }
+        .headline { 
+            font-size: 13px; 
+            font-weight: 900; 
+            color: var(--cv-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.4em; 
+            margin-bottom: 20px;
+        }
+        
+        .contact-grid { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            gap: 10px 25px; 
+        }
+        .contact-item { 
+            font-size: 9px; 
+            font-weight: 800; 
+            color: var(--cv-text-gray); 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em; 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* SECTIONS */
+        h2.section-title { 
+            font-family: 'Playfair Display', serif;
+            font-size: 14px; 
+            font-weight: 950; 
+            text-transform: uppercase; 
+            letter-spacing: 0.2em; 
+            color: var(--cv-primary); 
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            margin-top: 35px;
+        }
+        h2.section-title span { background: white; padding-right: 15px; position: relative; z-index: 1; }
+        h2.section-title::after { content: ""; flex: 1; height: 1.5px; background: #f1f5f9; }
+
+        .summary-box {
+            background: #f8fafc;
+            border-left: 5px solid var(--cv-secondary);
+            padding: 15px 25px;
+            font-size: 11.5px;
+            line-height: 1.6;
+            color: var(--cv-text-gray);
+            font-style: italic;
+            text-align: justify;
+            margin-bottom: 10px;
+        }
+
+        /* EXPERIENCE */
+        .experience-item { margin-bottom: 28px; break-inside: avoid; position: relative; padding-left: 20px; }
+        .experience-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #f1f5f9; }
+        
+        .job-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        .job-title { font-size: 15px; font-weight: 900; color: var(--cv-primary); text-transform: uppercase; }
+        .job-date { font-size: 10px; font-weight: 800; color: var(--cv-secondary); font-family: monospace; }
+        .company-name { font-size: 12px; font-weight: 700; color: var(--cv-text-gray); margin-bottom: 10px; font-style: italic; }
+        
+        .bullet-list { list-style-type: none; padding-left: 0; }
+        .bullet-list li { 
+            font-size: 11px; 
+            line-height: 1.6; 
+            color: var(--cv-text-gray); 
+            margin-bottom: 6px; 
+            position: relative;
+            padding-left: 15px;
+        }
+        .bullet-list li::before { content: "▪"; position: absolute; left: 0; color: var(--cv-secondary); font-size: 10px; }
+
+        /* MULTI-COLUMN SECTIONS (SKILLS, EDU, LANGS) */
+        .bottom-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; margin-top: 20px; }
+
+        .skill-tag { 
+            display: inline-block; 
+            background: #fff; 
+            border: 1.5px solid #edf2f7; 
+            padding: 4px 12px; 
+            border-radius: 6px; 
+            margin-right: 6px; 
+            margin-bottom: 6px; 
+            font-size: 9px; 
+            font-weight: 800; 
+            color: var(--cv-primary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .watermark { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); 
+            font-size: 100px; font-weight: 900; color: rgba(0,0,0,0.012); pointer-events: none; z-index: 100; text-transform: uppercase; white-space: nowrap; 
+        }
+
+        footer { margin-top: auto; padding-top: 30px; border-top: 1px solid #f1f5f9; text-align: center; }
+        .footer-logo { font-size: 8px; font-weight: 900; color: #cbd5e0; letter-spacing: 0.5em; text-transform: uppercase; }
+
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="watermark">TITAN FLAGSHIP</div>
+
+        <!-- CENTERED HEADER -->
+        <header class="flagship-header">
+            <div class="avatar-box">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TitanFlagship" class="w-full h-full object-cover">
+            </div>
+            <h1 class="name">[FULL_NAME]</h1>
+            <p class="headline">[HEADLINE]</p>
+            <div class="contact-grid">
+                <span class="contact-item">📍 [LOCATION]</span>
+                <span class="contact-item">📧 [EMAIL]</span>
+                <span class="contact-item">📞 [PHONE]</span>
+                <span class="contact-item">🔗 LinkedIn</span>
+            </div>
+        </header>
+
+        <main style="flex-grow: 1;">
+            <!-- BIO -->
+            <section>
+                <div class="summary-box">
+                    {{BIO}}
+                </div>
+            </section>
+
+            <!-- EXPERIENCE -->
+            <section>
+                <h2 class="section-title"><span>Professional Trajectory</span></h2>
+                <div class="experience-flow">
+                    {{EXPERIENCE_LIST}}
+                </div>
+            </section>
+
+            <!-- PROJECTS -->
+            <section>
+                <h2 class="section-title"><span>Signature Projects</span></h2>
+                <div class="grid grid-cols-2 gap-x-10">
+                    {{PROJECTS_LIST}}
+                </div>
+            </section>
+
+            <!-- BOTTOM GRID (SKILLS, EDU, LANGS) -->
+            <div class="bottom-grid">
+                <section>
+                    <h2 class="section-title"><span>Knowledge Base</span></h2>
+                    <div class="flex flex-wrap" style="gap: 2px;">
+                        {{SKILLS_GRID}}
+                    </div>
+                </section>
+
+                <div>
+                    <section>
+                        <h2 class="section-title"><span>Academic Excellence</span></h2>
+                        {{EDUCATION_LIST}}
+                    </section>
+
+                    <section>
+                        <h2 class="section-title"><span>Linguistic Mastery</span></h2>
+                        {{LANGUAGES_LIST}}
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            <p class="text-[9px] font-black text-slate-200 tracking-[0.2em] mb-4 italic uppercase">
+                CERTIFIED AUTHENTIC SPECIMEN - DIGYNEX NEURAL ENGINE V12.7
+            </p>
+            <div class="flex justify-between items-center">
+                <span class="footer-logo">Titan Elite Edition</span>
+                <span class="text-[8px] text-slate-300">Page 1 of 1</span>
+                <span class="footer-logo">Specimen ID: T5</span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

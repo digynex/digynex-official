@@ -14,6 +14,7 @@ import { supabase } from './lib/supabase'
 import { authService } from './services/authService'
 import { profileService } from './services/profileService'
 import { templateService } from './services/templateService'
+import i18n from './i18n'
 import { jobService } from './services/jobService'
 import { aiService } from './services/aiService'
 import { quotaService } from './services/quotaService'
@@ -55,7 +56,7 @@ const { t, locale } = useI18n()
 const currentLang = ref('EN')
 const isLangOpen = ref(false)
 
-// --- BACKEND-DRIVEN NEURAL CONFIG (V6.5) ---
+// --- BACKEND-DRIVEN NEURAL CONFIG (V12.0) ---
 const masterConfig = ref({
     free: { cv_per_week: 2, day_cap: 2, price: 0, ai_magic: false, retention_days: 14 },
     pro: { cv_per_week: 6, day_cap: 3, price: 19, ai_magic: true, retention_days: 14 },
@@ -111,7 +112,9 @@ const userProfile = ref({
 
 const masterProfile = ref({
    basic: { fullName: '', email: '', phone: '', location: '', headline: '' },
-   targetLanguage: 'Smart Localization', // NEW: AI Strategy logic
+   targetLanguage: 'Smart Localization', // AI Strategy logic
+   cvLanguage: 'EN', // NEW: V13.1 Strategic CV Locale
+   targetRegion: 'Sweden', // NEW: V13.1 Geographic Target
    bio: '',
    socialLinks: [
       { platform: 'LinkedIn', url: '' },
@@ -132,6 +135,8 @@ const masterProfile = ref({
       soft: ['Leadership', 'Agile'],
       tools: ['VS Code', 'Git']
    },
+   applicationEmail: '', // NEW: Professional Application Override
+   emailVerified: false, 
    secondaryEmail: '',
    secretKeywords: ['PROJECT', 'MANAGER', 'TELECOM', '5G', 'PMP', 'SWEDEN', 'ARTHA', 'TESHAN', 'DIALOG', 'PMO', 'AI', 'CLOUD', 'PYTHON', 'JAVA', 'SCRUM', 'AGILE', 'NFV', 'SDN']
 })
@@ -154,9 +159,7 @@ const otherLangs = [
   { name: 'العربية', code: 'AR' },
   { name: '日本語', code: 'JP' },
   { name: '中文', code: 'CN' },
-  { name: '한국어', code: 'KR' },
-  { name: 'हिन्दी', code: 'HI' },
-  { name: 'தமிழ்', code: 'TA' }
+  { name: '한국어', code: 'KR' }
 ]
 
 const selectedPipelineStep = ref('applied')
@@ -171,26 +174,26 @@ const loadMoreApplications = async () => {
 }
 
 const allJobs = ref([
-  {c: 'TechCorp', r: 'Senior Scientist', s: 'applied', m: 80, d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', desc: 'Lead our AI discovery division at high-scale.', step: 'applied'}, 
-  {c: 'Innovate', r: 'Product Manager', s: 'review', m: 50, d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', desc: 'Directing the next-gen SaaS product roadmap.', step: 'review'}, 
-  {c: 'Techwork', r: 'Lead ML Engineer', s: 'interview', m: 60, d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', desc: 'Neural engineering and cloud-native optimization.', step: 'interview'},
-  {c: 'Spotify', r: 'Full Stack Dev', s: 'offer', m: 92, d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', desc: 'Scaling global audio intelligence.', step: 'offer'},
-  {c: 'Google', r: 'AI Architect', s: 'applied', m: 88, d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', desc: 'Next-gen LLM optimization.', step: 'applied'},
-  {c: 'Tesla', r: 'Autopilot Eng', s: 'interview', m: 75, d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', desc: 'Real-time vision systems.', step: 'interview'},
-  {c: 'Amazon', r: 'Cloud Lead', s: 'review', m: 82, d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', desc: 'Scaling AWS core infrastructure.', step: 'applied'}
+  {c: 'TechCorp', r: 'Senior Scientist', s: 'applied', m: 80, d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', desc: 'Lead our AI discovery division at high-scale.', step: 'applied', applyType: 'auto'}, 
+  {c: 'Innovate', r: 'Product Manager', s: 'review', m: 50, d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', desc: 'Directing the next-gen SaaS product roadmap.', step: 'review', applyType: 'manual'}, 
+  {c: 'Techwork', r: 'Lead ML Engineer', s: 'interview', m: 60, d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', desc: 'Neural engineering and cloud-native optimization.', step: 'interview', applyType: 'auto'},
+  {c: 'Spotify', r: 'Full Stack Dev', s: 'offer', m: 92, d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', desc: 'Scaling global audio intelligence.', step: 'offer', applyType: 'auto'},
+  {c: 'Google', r: 'AI Architect', s: 'applied', m: 88, d: '10/03/24', l: 'Zurich, CH', icon: Zap, color: '#4285F4', desc: 'Next-gen LLM optimization.', step: 'applied', applyType: 'manual'},
+  {c: 'Tesla', r: 'Autopilot Eng', s: 'interview', m: 75, d: '18/03/24', l: 'Oslo, NO', icon: Zap, color: '#E81C23', desc: 'Real-time vision systems.', step: 'interview', applyType: 'auto'},
+  {c: 'Amazon', r: 'Cloud Lead', s: 'review', m: 82, d: '20/03/24', l: 'Madrid, ES', icon: Cloud, color: '#FF9900', desc: 'Scaling AWS core infrastructure.', step: 'applied', applyType: 'manual'}
 ])
 
 const matches = ref([
-  { id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr', desc: 'Accelerating AI computing and hardware integration.' },
-  { id: 'm2', c: 'Google', r: 'Senior AI Engineer', l: 'Zurich, CH', m: 98, icon: Zap, color: '#4285F4', t: '5 hr', desc: 'Developing next-gen cloud AI models and LLM scaling.' },
-  { id: 'm3', c: 'Meta', r: 'Product Manager', l: 'Berlin, DE', m: 95, icon: LayoutDashboard, color: '#0668E1', t: '8 hr', desc: 'Directing the roadmap for social AI interaction.' },
-  { id: 'm4', c: 'Netflix', r: 'Distributed Systems Eng', l: 'Amsterdam, NL', m: 92, icon: Briefcase, color: '#E50914', t: '1 d', desc: 'Architecting ultra-scale low latency content delivery.' },
-  { id: 'm5', c: 'Spotify', r: 'Data Scientist', l: 'Stockholm, SE', m: 94, icon: Zap, color: '#1DB954', t: '4 hr' },
-  { id: 'm6', c: 'Zalando', r: 'Backend Eng', l: 'Berlin, DE', m: 88, icon: LayoutDashboard, color: '#FF6900', t: '2 d' },
-  { id: 'm7', c: 'Equinor', r: 'Energy Analyst', l: 'Oslo, NO', m: 85, icon: Briefcase, color: '#FF1243', t: '3 d' }
+  { id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr', desc: 'Accelerating AI computing and hardware integration.', applyType: 'auto' },
+  { id: 'm2', c: 'Google', r: 'Senior AI Engineer', l: 'Zurich, CH', m: 98, icon: Zap, color: '#4285F4', t: '5 hr', desc: 'Developing next-gen cloud AI models and LLM scaling.', applyType: 'auto' },
+  { id: 'm3', c: 'Meta', r: 'Product Manager', l: 'Berlin, DE', m: 95, icon: LayoutDashboard, color: '#0668E1', t: '8 hr', desc: 'Directing the roadmap for social AI interaction.', applyType: 'manual' },
+  { id: 'm4', c: 'Netflix', r: 'Distributed Systems Eng', l: 'Amsterdam, NL', m: 92, icon: Briefcase, color: '#E50914', t: '1 d', desc: 'Architecting ultra-scale low latency content delivery.', applyType: 'auto' },
+  { id: 'm5', c: 'Spotify', r: 'Data Scientist', l: 'Stockholm, SE', m: 94, icon: Zap, color: '#1DB954', t: '4 hr', applyType: 'auto' },
+  { id: 'm6', c: 'Zalando', r: 'Backend Eng', l: 'Berlin, DE', m: 88, icon: LayoutDashboard, color: '#FF6900', t: '2 d', applyType: 'manual' },
+  { id: 'm7', c: 'Equinor', r: 'Energy Analyst', l: 'Oslo, NO', m: 85, icon: Briefcase, color: '#FF1243', t: '3 d', applyType: 'manual' }
 ])
 
-// --- SYNTHESIS & TRACKING (V6.5 ENGINE) ---
+// --- SYNTHESIS & TRACKING (V12.0 ENGINE) ---
 const isSynthesisReviewOpen = ref(false)
 const isTrackingLabOpen = ref(false)
 const isDispatching = ref(false)
@@ -213,6 +216,11 @@ const handleDownloadPdf = async () => {
             tier: userProfile.value.plan_type || 0,
             primaryColor: userProfile.value.primaryColor
         });
+        
+        // n8n Signal: Log export activity
+        if (isAuthenticated.value && userProfile.value.email) {
+            await profileService.logActivity(userProfile.value.email, 'CV_EXPORT', { method: 'specimen_viewport' });
+        }
         
         toastMessage.value = 'Neural PDF Exported Successfully';
     } catch (err) {
@@ -365,7 +373,8 @@ const saveProfile = async () => {
         resumeData: masterProfile.value, // NEURAL MASTER SYNC
         uploadedCvName: uploadedFileName.value,
         name: userProfile.value.name,
-        coverLetterText: coverLetterText.value
+        coverLetterText: coverLetterText.value,
+        selectedTemplate: selectedTemplate.value
       });
       
       if (error) throw error;
@@ -593,6 +602,11 @@ const cvTemplates = ref([])
 const viewportHtml = ref('')
 const viewMode = ref('elite')
 
+const getCVLabels = (lang) => {
+    const msg = i18n.global.getLocaleMessage(lang || 'EN');
+    return msg?.studio?.cv_labels || i18n.global.getLocaleMessage('EN').studio.cv_labels;
+};
+
 const refreshViewport = async () => {
     const colors = {
         primary: userProfile.value.primaryColor,
@@ -601,11 +615,13 @@ const refreshViewport = async () => {
     
     console.log(`[DIGYNEX AI] Refreshing Viewport - Mode: ${previewMode.value}`);
     
+
     if (previewMode.value === 'letter') {
         const html = await templateService.getCoverLetterHtml(coverLetterText.value || '', colors, masterProfile.value);
         viewportHtml.value = html || '<html><body>Render Error</body></html>';
     } else {
-        const html = await templateService.getSpecimenHtml(selectedTemplate.value, colors, masterProfile.value);
+        const labels = getCVLabels(masterProfile.value.cvLanguage);
+        const html = await templateService.getSpecimenHtml(selectedTemplate.value, colors, masterProfile.value, labels);
         viewportHtml.value = html || '<html><body>Render Error</body></html>';
     }
 }
@@ -625,7 +641,7 @@ watch(activeTab, (newTab) => {
 onMounted(async () => {
   await fetchSystemConfig();
   
-  // Real-time Neural Sync (V6.5)
+  // Real-time Neural Sync (V12.0)
   supabase
     .channel('system_changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' }, (payload) => {
@@ -675,13 +691,23 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
 })
 
-const selectTemplate = (template) => {
+const selectTemplate = async (template) => {
    if (template.id > 4 && !userProfile.value.isSuperUser) {
       handleDashboardAction('upgrade')
       return;
    }
    previewingTemplate.value = template;
-   isTemplatePreviewOpen.value = true;
+   selectedTemplate.value = template.id; // Kinetic Sync: UI first
+   
+   // Strategic Persistence: Ensure the choice "sticks" in the database
+   try {
+     const user = await authService.getUser(); // Await the authenticated identity
+     if (user) {
+       await templateService.setSelectedTemplate(user, template.id);
+     }
+   } catch (e) { console.warn('Persistence background sync failed', e); }
+
+   // isTemplatePreviewOpen.value = true; // Disabled modal for StudioHub gallery to prevent UX friction
 }
 
 const finalizeTemplateSelection = async () => {
@@ -719,7 +745,9 @@ const compileLatex = async () => {
     try {
         // Get HD HTML from template service for the current selected template
         const colors = { primary: userProfile.value.primaryColor, secondary: userProfile.value.secondaryColor };
-        const cvHtml = await templateService.getSpecimenHtml(selectedTemplate.value, colors, masterProfile.value);
+        const labels = getCVLabels(masterProfile.value.cvLanguage);
+        
+        const cvHtml = await templateService.getSpecimenHtml(selectedTemplate.value, colors, masterProfile.value, labels);
 
         // Build professional filename
         const fileName = pdfService.buildFileName(
@@ -1071,30 +1099,11 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         const targetJob = jobData || selectedJob.value;
         if (!targetJob) return;
 
-        // --- DYNAMIC QUOTA LOGIC (V6.5 - BACKEND DRIVEN) ---
-        const today = new Date().toLocaleDateString();
-        const startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - 7);
+        // --- UNIFIED QUOTA ENGINE (V11.5) ---
+        const quota = await quotaService.canPerformAction(userProfile.value, 'QUICK_APPLY');
 
-        const countToday = allJobs.value.filter(j => (j.s === 'applied' || j.s === 'queued') && j.d === today).length;
-        const countThisWeek = allJobs.value.filter(j => (j.s === 'applied' || j.s === 'queued') && new Date(j.d) >= startOfWeek).length;
-
-        const tierKey = userProfile.value.plan_type === 2 ? 'elite' : (userProfile.value.plan_type === 1 ? 'pro' : 'free');
-        const tierConfig = masterConfig.value[tierKey];
-
-        let quotaExceeded = false;
-        let quotaMessage = '';
-
-        if (countToday >= tierConfig.day_cap) {
-            quotaExceeded = true;
-            quotaMessage = `${tierKey.toUpperCase()} Tier: Daily Cap (${tierConfig.day_cap}) Reached. Queued.`;
-        } else if (countThisWeek >= tierConfig.cv_per_week) {
-            quotaExceeded = true;
-            quotaMessage = `${tierKey.toUpperCase()} Tier: Weekly Cap (${tierConfig.cv_per_week}) Reached. Queued.`;
-        }
-
-        if (quotaExceeded) {
-           toastMessage.value = quotaMessage;
+        if (!quota.can) {
+           toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}. Queued.`;
            showToast.value = true;
            
            allJobs.value.unshift({
@@ -1102,19 +1111,20 @@ const handleDashboardAction = async (actionId, jobData = null) => {
                r: targetJob.r,
                s: 'queued',
                m: targetJob.m,
-               d: today,
+               d: new Date().toLocaleDateString(),
                l: targetJob.l,
                icon: Briefcase,
                color: targetJob.color,
                step: 'queued'
            });
 
-           await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { job: targetJob.c, reason: 'quota' });
+           await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { job: targetJob.c, reason: quota.reason });
            setTimeout(() => { showToast.value = false }, 3000);
            return;
         }
 
         // WITHIN QUOTA: Instant Dispatch
+        const today = new Date().toLocaleDateString();
         toastMessage.value = `Neural Pulse: Dispatching to ${targetJob.c}...`;
         showToast.value = true;
         
@@ -1144,10 +1154,48 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         return;
     }
 
+    if (actionId === 'manual_toolkit') {
+        const targetJob = jobData || selectedJob.value;
+        toastMessage.value = `Manual Assist: Preparing assets for ${targetJob.c}...`;
+        showToast.value = true;
+        
+        // n8n Signal: Log manual application intent
+        await profileService.logActivity(userProfile.value.email, 'MANUAL_ASSIST_START', { job: targetJob.c });
+        
+        setTimeout(() => {
+            toastMessage.value = 'Tailored CV & Cover Letter Ready for Download';
+            isCVPreviewOpen.value = true; // Show the preview overlay so they can export
+        }, 2000);
+        return;
+    }
+
+    if (actionId === 'submit_for_audit') {
+        toastMessage.value = 'Neural Audit: Strategy Submission Initiated...';
+        showToast.value = true;
+        
+        try {
+            await profileService.updateProfile(userProfile.value.email, { 
+                doc_status: 'Pending_Approval' 
+            });
+            userProfile.value.doc_status = 'Pending_Approval';
+            
+            await profileService.logActivity(userProfile.value.email, 'STRATEGY_AUDIT_REQUESTED', {
+                timestamp: new Date().toISOString()
+            });
+            
+            toastMessage.value = 'Audit Active: Professional Strategy Dispatched';
+        } catch (err) {
+            toastMessage.value = 'Audit Sync Error. Retrying...';
+        }
+        
+        setTimeout(() => { showToast.value = false }, 3000);
+        return;
+    }
+
     if (actionId === 'tailor_cv') {
         if (!selectedJob.value) return;
 
-        // --- DYNAMIC TIER CHECK: AI Magic (V6.5) ---
+        // --- DYNAMIC TIER CHECK: AI Magic (V12.0) ---
         const tierKey = userProfile.value.plan_type === 2 ? 'elite' : (userProfile.value.plan_type === 1 ? 'pro' : 'free');
         if (!masterConfig.value[tierKey]?.ai_magic) {
             toastMessage.value = `${tierKey.toUpperCase()} Tier: AI Magic LOCKED 🔒 Upgrade to Synch`;
@@ -1183,19 +1231,28 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         const targetJob = synthesisData.value.job;
         if (!targetJob) return;
 
-        // --- QUOTA CHECK FOR APPROVAL (SYNCED WITH QUICK_APPLY) ---
-        const today = new Date().toLocaleDateString();
-        const startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - 7);
-        const countToday = allJobs.value.filter(j => (j.s === 'applied' || j.s === 'queued') && j.d === today).length;
-        const countThisWeek = allJobs.value.filter(j => (j.s === 'applied' || j.s === 'queued') && new Date(j.d) >= startOfWeek).length;
+        // --- UNIFIED QUOTA ENGINE (V11.5) ---
+        const quota = await quotaService.canPerformAction(userProfile.value, 'CV_EXPORT');
 
-        if (userProfile.value.plan_type === 0 && countThisWeek >= 2) {
-             toastMessage.value = 'Weekly Quota Reached: Added to Queue';
+        if (!quota.can) {
+             toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}. Queued.`;
              showToast.value = true;
              // Logic to queue... (same as quick_apply)
+             allJobs.value.unshift({
+                c: targetJob.c,
+                r: targetJob.r,
+                s: 'queued',
+                m: targetJob.m,
+                d: new Date().toLocaleDateString(),
+                l: targetJob.l,
+                icon: Briefcase,
+                color: '#0A2647',
+                step: 'queued'
+            });
+            await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { job: targetJob.c, reason: quota.reason });
+            setTimeout(() => { showToast.value = false }, 3000);
+            return;
         }
-        // ... continuing below in actual file ...
         isDispatching.value = true;
         
         await profileService.logActivity(userProfile.value.email, 'AUTO_APPLY_EXECUTED', {
@@ -1462,6 +1519,7 @@ const handleNotificationClick = (notif) => {
           @saveProfile="saveProfile"
           @handleAction="handleDashboardAction"
           @unlockStealth="isStealthUnlocked = true"
+          @download-pdf="handleDownloadPdf"
        >
           <template #keyword-input>
              <input v-model="newSecretKeyword" @keyup.enter="addSecretKeyword" 
@@ -2120,19 +2178,21 @@ const handleNotificationClick = (notif) => {
                        </div>
                        <div class="p-10 border border-dashed border-white/10 rounded-[2.5rem] text-center flex flex-col items-center gap-4">
                           <RefreshCw class="w-8 h-8 text-[#C1A172]/20 animate-spin" />
-                          <p class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Awaiting Legal Sync</p>
+                          <p class="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">
+                    DIGYNEX CAREERNEXUS ENGINE V12.0 NEURAL HUB
+                  </p>
                        </div>
                     </div>
                  </div>
 
                  <div class="p-6 bg-white/5 border-t border-white/5 flex justify-center">
-                   <p class="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">DigyNex Identity Hub • Master V7.0</p>
+                   <p class="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">DigyNex Identity Hub • Master V12.0</p>
                 </div>
              </div>
           </div>
        </Transition>
     </Teleport>
-    <!-- ─── SYNTHESIS REVIEW MODAL (V6.5) ─── -->
+    <!-- ─── SYNTHESIS REVIEW MODAL (V12.0) ─── -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="isSynthesisReviewOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-0">
@@ -2193,7 +2253,7 @@ const handleNotificationClick = (notif) => {
       </Transition>
     </Teleport>
 
-    <!-- ─── NEURAL TRACKING LAB (V6.5) ─── -->
+    <!-- ─── NEURAL TRACKING LAB (V12.0) ─── -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="isTrackingLabOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-0">

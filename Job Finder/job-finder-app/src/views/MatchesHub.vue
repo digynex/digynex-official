@@ -80,7 +80,7 @@ const handleDashboardAction = (action, jobData) => emit('handleAction', action, 
         @click="openJobDetail(match)"
         class="bg-gradient-to-br from-[#BDDAFA]/25 via-[#F1F5F9] to-[#EDF2F7] rounded-[2.5rem] px-5 pt-1.5 pb-2 border border-white shadow-[0_50px_120px_-40px_rgba(0,0,0,0.25)] relative overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer select-none">
            
-           <!-- SUPREME SYMMETRY CONTAINER (V6.5 - ALPHA SYNC) -->
+           <!-- SUPREME SYMMETRY CONTAINER (V12.0 - ALPHA SYNC) -->
            <div class="flex items-start justify-between relative z-10 mb-1.5 min-h-[58px] pt-1.5">
               <!-- LEFT: IDENTITY UNIT -->
               <div class="flex items-start gap-3.5 h-full">
@@ -106,7 +106,7 @@ const handleDashboardAction = (action, jobData) => emit('handleAction', action, 
               </div>
            </div>
 
-           <!-- TIER 3: LOCATION & INTELLIGENCE HUB (V6.5 TIGHTENED) -->
+           <!-- TIER 3: LOCATION & INTELLIGENCE HUB (V12.0 TIGHTENED) -->
            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-black/[0.03] mx-0.5">
               <div class="flex items-center gap-2 font-jakarta opacity-85 px-[0.75px] hover:opacity-100 transition-opacity">
                  <Globe class="w-3 h-3 text-[#0A2647]" />
@@ -132,10 +132,10 @@ const handleDashboardAction = (action, jobData) => emit('handleAction', action, 
                  <button @click.stop="handleDashboardAction('save_match', match)" class="bg-white/5 border border-white/10 text-white/30 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/10 hover:text-white transition-all active:scale-90 group-hover:border-white/20">
                     <Star class="w-3 h-3" />
                  </button>
-                 <button @click.stop="handleDashboardAction('tailor_cv', match)" class="bg-black/10 text-[#0A2647]/60 border border-black/5 w-[80px] py-1 rounded-xl text-[8px] font-black uppercase tracking-[0.05em] hover:bg-black/20 hover:text-[#0A2647] active:scale-95 transition-all font-jakarta text-center">
+                 <button @click.stop="handleDashboardAction('tailor_cv', match)" class="bg-black/10 text-[#0A2647]/60 border border-black/5 w-16 py-1 rounded-xl text-[7.5px] font-black uppercase tracking-[0.05em] hover:bg-black/20 hover:text-[#0A2647] active:scale-95 transition-all font-jakarta text-center">
                     Tailor
                  </button>
-                 <button @click.stop="handleDashboardAction('quick_apply', match)" class="bg-[#C1A172] text-[#0A2647] w-[95px] py-1 rounded-xl text-[8px] font-black uppercase tracking-[0.05em] shadow-[0_8px_15px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all font-jakarta relative overflow-hidden text-center group/apply">
+                 <button @click.stop="handleDashboardAction('quick_apply', match)" class="bg-[#C1A172] text-[#0A2647] w-[78px] py-1 rounded-xl text-[7.5px] font-black uppercase tracking-[0.05em] shadow-[0_8px_15px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all font-jakarta relative overflow-hidden text-center group/apply">
                     <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover/apply:translate-x-full transition-transform duration-1000"></div>
                     Apply Now
                  </button>

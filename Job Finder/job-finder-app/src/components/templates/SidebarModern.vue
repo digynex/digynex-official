@@ -50,7 +50,7 @@ defineProps({
       </div>
 
       <div class="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] border-t border-white/5 pt-6 text-center">
-        REF: DIGYNEX-SIDE-V6.5
+        REF: DIGYNEX-SIDE-V12.0
       </div>
     </aside>
 

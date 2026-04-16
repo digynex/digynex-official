@@ -15,8 +15,6 @@ import ar from './locales/ar.json'
 import jp from './locales/jp.json'
 import cn from './locales/cn.json'
 import kr from './locales/kr.json'
-import hi from './locales/hi.json'
-import ta from './locales/ta.json'
 
 const i18n = createI18n({
   legacy: false,
@@ -38,9 +36,7 @@ const i18n = createI18n({
     AR: ar,
     JP: jp,
     CN: cn,
-    KR: kr,
-    HI: hi,
-    TA: ta
+    KR: kr
   }
 })
 

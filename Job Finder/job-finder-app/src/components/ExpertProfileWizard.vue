@@ -179,6 +179,25 @@ const finalizeManualCV = async () => {
                         <input v-model="manualBasic.phone" type="tel" placeholder="+94 77 ..." class="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-[12px] text-white focus:outline-none focus:ring-1 focus:ring-[#C1A172]" />
                      </div>
                   </div>
+
+                  <!-- NEURAL IDENTITY OVERRIDE (V13.0) -->
+                  <div class="p-5 bg-[#2C74B3]/5 border border-[#2C74B3]/10 rounded-2xl space-y-3 relative overflow-hidden group/apply">
+                     <div class="flex items-center justify-between relative z-10">
+                        <div class="flex flex-col">
+                           <span class="text-[8px] font-black text-[#2C74B3] uppercase tracking-[0.2em] mb-0.5 italic">Application Identity</span>
+                           <h4 class="text-[10px] font-black text-white uppercase tracking-tight leading-none">Job Board Sync Email</h4>
+                        </div>
+                        <div v-if="props.profile.emailVerified" class="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-1">
+                           <Check class="w-2 h-2 text-green-400" />
+                           <span class="text-[6px] font-black text-green-400 uppercase">Verified</span>
+                        </div>
+                     </div>
+                     <div class="flex gap-2 relative z-10">
+                        <input v-model="props.profile.applicationEmail" type="email" :placeholder="manualBasic.email || 'Application Email override...'" class="flex-1 bg-black/20 border border-white/5 rounded-xl px-4 py-2.5 text-[11px] text-white/80 focus:outline-none focus:ring-1 focus:ring-[#2C74B3]/40" />
+                        <button class="px-3 bg-[#2C74B3] rounded-xl text-[8px] font-black text-white uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Verify</button>
+                     </div>
+                     <p class="text-[7.5px] font-black text-white/20 uppercase tracking-widest leading-none">* Decouple your application identity from your login credentials</p>
+                  </div>
                   <div class="grid grid-cols-2 gap-3">
                      <div class="space-y-1">
                         <label class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Location (City, Country)</label>

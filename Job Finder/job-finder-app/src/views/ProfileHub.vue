@@ -251,7 +251,7 @@ const hasCVData = computed(() => {
 
               <div class="flex flex-col items-center opacity-30">
                  <p class="text-[10px] font-black text-white uppercase tracking-[0.3em]">
-                    V7.0 {{ t('governance.version') }}
+                    V12.0 {{ t('governance.version') }}
                  </p>
                  <div class="w-10 h-[1.5px] bg-white/20 mt-1.5"></div>
               </div>

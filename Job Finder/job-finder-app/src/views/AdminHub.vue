@@ -31,7 +31,7 @@ const customDays = ref('')
 const users = ref([])
 const activeTierSelector = ref(null)
 
-// --- SYSTEM CONFIG ENGINE (NEW V6.5) ---
+// --- SYSTEM CONFIG ENGINE (NEW V12.0) ---
 const configData = ref({
     free: { cv_per_week: 2, day_cap: 3, price: 0, ai_magic: false },
     pro: { cv_per_week: 6, day_cap: 3, price: 19, ai_magic: true },
@@ -75,6 +75,7 @@ onMounted(async () => {
                 name: u.name || 'Anonymous',
                 email: u.email || 'No Email',
                 tier: u.plan_type !== undefined ? tierMap[u.plan_type] || 'Free' : 'Free',
+                doc_status: u.doc_status || 'Draft',
                 lastSeen: u.last_seen || 'New',
                 joined: u.created_at || new Date().toISOString(),
                 isAdmin: false,
@@ -225,7 +226,8 @@ const confirmEdit = async () => {
         const { error } = await profileService.adminUpdateProfile(editingUser.value.id, {
             name: editingUser.value.name,
             email: editingUser.value.email,
-            plan_type: reverseTierMap[editingUser.value.tier]
+            plan_type: reverseTierMap[editingUser.value.tier],
+            doc_status: editingUser.value.doc_status
         })
         
         if (error) throw error
@@ -460,7 +462,7 @@ const chartOptions = {
         <!-- SYSTEM LOGISTICS (Ultra-Extreme Pack View) -->
         <div class="space-y-2">
            <!-- Maintenance Rail (Enhanced Visibility) -->
-           <div class="px-4 py-2 bg-[#C1A172]/10 border border-[#C1A172]/20 rounded-[1.8rem] flex items-center justify-between group transition-all hover:bg-[#C1A172]/15">
+           <div v-if="isSuperAdmin" class="px-4 py-2 bg-[#C1A172]/10 border border-[#C1A172]/20 rounded-[1.8rem] flex items-center justify-between group transition-all hover:bg-[#C1A172]/15">
               <div class="flex items-center gap-3">
                  <div class="w-9 h-9 bg-[#C1A172]/20 rounded-[1.2rem] flex items-center justify-center border border-[#C1A172]/40">
                     <AlertTriangle class="w-3.5 h-3.5 text-[#C1A172]" />
@@ -502,7 +504,7 @@ const chartOptions = {
            </div>
         </div>
 
-        <!-- STRATEGIC ENGINE CONFIG (V6.5) -->
+        <!-- STRATEGIC ENGINE CONFIG (V12.0) -->
         <div v-if="isSuperAdmin" class="bg-[#0A2647]/50 border border-[#C1A172]/20 rounded-[2.5rem] p-6 space-y-6 relative overflow-hidden group">
            <div class="absolute -right-20 -top-20 w-60 h-60 bg-[#C1A172]/5 blur-[100px] rounded-full group-hover:bg-[#C1A172]/10 transition-all duration-1000"></div>
            
@@ -614,6 +616,7 @@ const chartOptions = {
                     <tr class="border-y border-white/5 bg-white/[0.02]">
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Specimen</th>
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Tier</th>
+                       <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Status</th>
                        <th class="px-3 py-3 text-[8px] font-black text-white/30 uppercase tracking-[0.2em] text-right pr-5">Actions</th>
                     </tr>
                  </thead>
@@ -639,8 +642,13 @@ const chartOptions = {
                              {{ user.tier }}
                           </div>
                        </td>
-                       <td class="px-3 py-2 pr-5">
-                          <div class="flex items-center justify-end gap-1.5 relative">
+                       <td class="px-3 py-2">
+                          <div :class="{
+                            'bg-green-500/20 text-green-400': user.doc_status === 'Verified',
+                            'bg-blue-500/20 text-blue-400': user.doc_status === 'Pending_Approval',
+                            'bg-white/10 text-white/40': user.doc_status === 'Draft'
+                          }" class="px-2 py-0.5 rounded text-[8p                        <td class="px-3 py-2 pr-5">
+                          <div v-if="isSuperAdmin" class="flex items-center justify-end gap-1.5 relative">
                              <!-- QUICK TIER SELECTOR (The Star Action) -->
                              <div class="relative">
                                 <button @click="activeTierSelector = activeTierSelector === user.id ? null : user.id" 
@@ -664,7 +672,7 @@ const chartOptions = {
                              
                              <!-- Admin Toggle (Shield) -->
                              <button @click="handlePromoteAdmin(user.id)" :class="user.isAdmin ? 'bg-green-500/30 text-green-400 border-green-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-7 h-7 rounded-lg flex items-center justify-center border hover:text-green-400 hover:bg-green-500/20 transition-all group/btn relative">
-                                <Shield class="w-3.5 h-3.5" />
+                                <ShieldCheck class="w-3.5 h-3.5" />
                                 <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isAdmin ? 'Revoke Admin' : 'Grant Admin' }}</span>
                              </button>
 
@@ -678,6 +686,13 @@ const chartOptions = {
                              <button @click="handleSuspendUser(user.id)" :class="user.isSuspended ? 'bg-red-500/30 text-red-500 border-red-500/40' : 'bg-white/10 text-white/40 border-white/5'" class="w-7 h-7 rounded-lg flex items-center justify-center border hover:text-red-400 hover:bg-red-500/20 transition-all group/btn relative">
                                 <AlertTriangle class="w-3.5 h-3.5" />
                                 <span class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[7px] pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity uppercase font-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isSuspended ? 'Revoke Freeze' : 'Freeze Specimen' }}</span>
+                             </button>
+                          </div>
+                          <div v-else class="text-right pr-2">
+                             <Lock class="w-3 h-3 text-white/10 inline-block" />
+                          </div>
+                       </td>
+nt-black whitespace-nowrap rounded shadow-xl z-50">{{ user.isSuspended ? 'Revoke Freeze' : 'Freeze Specimen' }}</span>
                              </button>
                           </div>
                        </td>
@@ -723,6 +738,18 @@ const chartOptions = {
                           class="py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
                      {{ t }}
                   </button>
+               </div>
+
+               <div class="space-y-1.5 pt-2">
+                  <span class="text-[8px] font-black text-white/30 uppercase tracking-widest pl-1">Document Status</span>
+                  <div class="grid grid-cols-3 gap-2">
+                     <button v-for="s in ['Draft', 'Pending_Approval', 'Verified']" :key="s"
+                             @click="editingUser.doc_status = s"
+                             :class="editingUser.doc_status === s ? 'bg-white text-[#0A2647] shadow-lg' : 'bg-white/5 text-white/40 hover:bg-white/10'"
+                             class="py-2.5 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all">
+                        {{ s === 'Pending_Approval' ? 'Pending' : s }}
+                     </button>
+                  </div>
                </div>
             </div>
 

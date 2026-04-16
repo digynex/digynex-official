@@ -1,6 +1,8 @@
 <script setup>
+import { ref } from 'vue'
 import { 
-  Sparkles, Check, Lock, X, RefreshCw, ArrowRight, Stars, Zap, DownloadCloud
+  Sparkles, Check, Lock, X, RefreshCw, ArrowRight, Stars, Zap, DownloadCloud, ShieldCheck, 
+  Globe, Languages, ChevronDown
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -32,6 +34,21 @@ const saveProfile = () => emit('saveProfile')
 const handleDashboardAction = (action) => emit('handleAction', action)
 const updateSelectedTemplate = (id) => emit('update:selectedTemplate', id)
 const generateCoverLetter = () => emit('generateCoverLetter')
+
+// V13.0 Interactive Engine Documentation
+const activeTip = ref(null)
+const toggleTip = (id) => {
+  activeTip.value = activeTip.value === id ? null : id
+}
+
+const engineTips = {
+  gallery: "Specimen Matrix: These templates are synchronized in real-time. V12.9.1 guarantees 100% data fidelity across source and public directories.",
+  viewport: "Neural Rendering: Our A4 scaling engine automatically adjusts font weight and spacing (V12.9.2 Density Balancer) to ensure a professional 2-page hard limit.",
+  stealth: "Stealth Mode: Injects a 1px hidden keyword line into section dividers. This ensures a 99% ATS match without altering the visual professional look.",
+  broadcast: "Broadcast Stealth: Using Playwright-Automated Headless Browsers & Residential Proxies (V13.0) to simulate human application behavior on LinkedIn/Indeed.",
+  branding: "Aesthetic Core: Presets are curated for industry standards (Tech/Finance/Creative). Colors adjust dynamically based on your Tier status.",
+  letter: "Letter Synthesis: Generates a high-fidelity narrative using your master profile context, tailored specifically to the currently active job description."
+}
 </script>
 
 <template>
@@ -40,25 +57,38 @@ const generateCoverLetter = () => emit('generateCoverLetter')
 
     <div class="mt-2.5 flex-1 overflow-y-auto space-y-4 px-4 hub-scroller custom-scrollbar">
         
-        <!-- 1. TEMPLATE GALLERY (PREMIUM DENSITY) -->
-        <div class="bg-gradient-to-br from-white/10 to-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-6 border border-white/10 shadow-3xl overflow-visible group relative">
+        <!-- 1. TEMPLATE GALLERY (ELITE DENSITY) -->
+        <div class="bg-gradient-to-br from-white/10 to-white/[0.02] backdrop-blur-3xl rounded-[2.2rem] p-5 border border-white/10 shadow-3xl overflow-visible group relative">
            <div class="flex justify-between items-end mb-5">
-              <div class="flex flex-col">
-                 <span class="text-[10px] font-black text-[#C1A172] uppercase tracking-[0.3em] mb-1.5">Neural Specimens</span>
-                 <h3 class="text-[16px] font-black text-white tracking-tight uppercase">Template Gallery</h3>
-              </div>
-              <div class="px-3 py-1 bg-white/5 rounded-full border border-white/10">
+               <div class="flex flex-col">
+                  <div class="flex items-center gap-2 mb-1.5">
+                    <span class="text-[10px] font-black text-[#C1A172] uppercase tracking-[0.3em]">Neural Specimens</span>
+                    <button @click="toggleTip('gallery')" class="p-1 rounded-full bg-white/5 hover:bg-[#C1A172]/20 transition-colors">
+                      <ShieldCheck class="w-2.5 h-2.5 text-[#C1A172]" />
+                    </button>
+                  </div>
+                  <h3 class="text-[16px] font-black text-white tracking-tight uppercase">Template Gallery</h3>
+               </div>
+              <div class="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 flex items-center justify-center whitespace-nowrap shadow-sm">
                  <span class="text-[9px] font-black text-white/40 uppercase tracking-widest">{{ cvTemplates.length }} Elite Styles</span>
               </div>
            </div>
            
            <div class="flex flex-nowrap gap-5 overflow-x-auto pb-10 -mx-6 px-6 snap-x snap-mandatory scroll-smooth min-h-[240px] custom-horizontal-scrollbar">
               <div v-for="t in cvTemplates" :key="t.id" 
-                   @click="updateSelectedTemplate(t.id)"
+                   @click="updateSelectedTemplate(t.id); selectTemplate(t)"
                    class="w-[160px] h-[210px] bg-gradient-to-br from-white/5 to-white/[0.02] rounded-[2.2rem] shrink-0 border-2 transition-all duration-700 cursor-pointer flex flex-col items-center justify-center relative overflow-hidden group/thumb snap-center"
                    :class="selectedTemplate === t.id ? 'scale-[1.04]' : 'border-white/5 hover:border-white/20 hover:scale-[1.02]'"
-                   :style="selectedTemplate === t.id ? { borderColor: userProfile.primaryColor, boxShadow: `0 25px 60px ${userProfile.primaryColor}40` } : {}">
+                    :style="selectedTemplate === t.id ? { borderColor: userProfile.primaryColor, boxShadow: `0 25px 60px ${userProfile.primaryColor}40` } : {}">
                  
+                 <!-- Tooltip Overlay -->
+                 <Transition name="fade">
+                   <div v-if="activeTip === 'gallery'" class="absolute inset-0 z-[100] bg-[#0A2647]/90 backdrop-blur-md p-6 flex flex-col justify-center text-center animate-in zoom-in-95 duration-500">
+                     <p class="text-[10px] font-black text-[#C1A172] uppercase tracking-widest leading-relaxed">{{ engineTips.gallery }}</p>
+                     <button @click.stop="activeTip = null" class="mt-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Acknowledge</button>
+                   </div>
+                 </Transition>
+
                  <div class="absolute inset-0 w-full h-full overflow-hidden">
                     <img :src="t.image" class="w-full h-full object-top opacity-40 group-hover/thumb:opacity-90 group-hover/thumb:scale-110 transition-all duration-1000 ease-out"
                          :style="{ filter: `hue-rotate(${userProfile.primaryColor === '#0A2647' ? '0deg' : '180deg'}) saturate(1.4)` }" />
@@ -80,14 +110,46 @@ const generateCoverLetter = () => emit('generateCoverLetter')
            </div>
         </div>
 
+        <!-- 1.5 STRATEGY AUDIT (NEW V11.5) -->
+        <div class="bg-gradient-to-br from-white/10 to-white/[0.02] rounded-[2.2rem] p-4 border border-white/10 flex items-center justify-between shadow-2xl transition-all hover:bg-white/[0.05]">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-xl border transition-all duration-500" 
+                     :class="userProfile.doc_status === 'Verified' ? 'bg-green-500/10 border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : (userProfile.doc_status === 'Pending_Approval' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-[#C1A172]/10 border-[#C1A172]/20')">
+                    <ShieldCheck v-if="userProfile.doc_status === 'Verified'" class="w-4.5 h-4.5 text-green-400" />
+                    <RefreshCw v-else-if="userProfile.doc_status === 'Pending_Approval'" class="w-4.5 h-4.5 text-blue-400 animate-spin" />
+                    <Lock v-else class="w-4.5 h-4.5 text-[#C1A172]" />
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] leading-none mb-1">Neural Strategy Audit</span>
+                    <span class="text-[11px] font-black text-white uppercase tracking-tight">
+                        {{ userProfile.doc_status === 'Verified' ? 'Surgical Specimen Verified' : (userProfile.doc_status === 'Pending_Approval' ? 'Audit in Progress...' : 'Strategy Audit Pending') }}
+                    </span>
+                </div>
+            </div>
+            <button v-if="userProfile.doc_status === 'Draft' || !userProfile.doc_status" 
+                    @click="$emit('handleAction', 'submit_for_audit')"
+                    class="px-4 py-2.5 bg-[#C1A172] rounded-xl text-[9px] font-black text-[#0A2647] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#C1A172]/20">
+                Verify Strategy
+            </button>
+            <div v-else-if="userProfile.doc_status === 'Verified'" class="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                <Check class="w-2.5 h-2.5 text-green-400 shrink-0" />
+                <span class="text-[8px] font-black text-green-400 uppercase tracking-widest">Active</span>
+            </div>
+        </div>
+
         <!-- 2. HD LIVE VIEWPORT (PREMIUM DENSITY) -->
         <div class="p-4 bg-white/[0.04] backdrop-blur-3xl rounded-[2.5rem] border border-white/10 relative z-10 flex flex-col gap-4 transition-all hover:bg-white/[0.06] shadow-2xl">
            <div class="flex flex-col gap-4 px-1">
               <div class="flex justify-between items-center">
-                 <div class="flex flex-col">
-                    <span class="text-[10px] font-black text-[#73BBA3] uppercase tracking-[0.3em] leading-none mb-1.5 italic">High-Fidelity Engine</span>
-                    <span class="text-[11px] font-black text-white/50 uppercase tracking-tight">Active Neural Rendering</span>
-                 </div>
+                  <div class="flex flex-col">
+                     <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-[10px] font-black text-[#73BBA3] uppercase tracking-[0.3em] leading-none italic">High-Fidelity Engine</span>
+                        <button @click="toggleTip('viewport')" class="p-1 rounded-full bg-white/5 hover:bg-[#73BBA3]/20 transition-colors">
+                           <ShieldCheck class="w-2.5 h-2.5 text-[#73BBA3]" />
+                        </button>
+                     </div>
+                     <span class="text-[11px] font-black text-white/50 uppercase tracking-tight">Active Neural Rendering</span>
+                  </div>
                  <div class="flex gap-2.5 items-center px-3 py-1.5 bg-black/40 rounded-full border border-white/5">
                     <div class="w-2.5 h-2.5 rounded-full bg-[#73BBA3] animate-pulse shadow-[0_0_12px_#73BBA3]"></div>
                     <span class="text-[9px] font-black text-[#73BBA3] uppercase tracking-widest">Live Preview active</span>
@@ -112,7 +174,7 @@ const generateCoverLetter = () => emit('generateCoverLetter')
                  </button>
                  <button @click="$emit('setPreviewMode', 'letter')"
                          class="relative z-10 flex-1 h-full text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500"
-                         :class="previewMode === 'letter' ? 'text-[#0A2647]' : 'text-white/25 group-hover/toggle:text-white/50'">
+                         :class="previewMode === 'cv' ? 'text-[#0A2647]' : 'text-white/25 group-hover/toggle:text-white/50'">
                     LETTER
                  </button>
               </div>
@@ -147,10 +209,15 @@ const generateCoverLetter = () => emit('generateCoverLetter')
         <div class="bg-gradient-to-br from-[#0A2647] via-[#0D1B2A] to-black rounded-[2.2rem] p-5 border border-white/10 relative overflow-hidden group/stealth shadow-3xl">
            <div class="relative z-10">
               <div class="flex justify-between items-center mb-2">
-                 <div class="flex flex-col">
-                    <span class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Strategic Edge</span>
-                    <h3 class="text-[14px] font-black text-white tracking-tight uppercase">AI Stealth Keywords</h3>
-                 </div>
+                  <div class="flex flex-col">
+                     <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">Strategic Edge</span>
+                        <button @click="toggleTip('stealth')" class="p-1 rounded-full bg-white/5 hover:bg-blue-400/20 transition-colors">
+                           <ShieldCheck class="w-2.5 h-2.5 text-blue-400" />
+                        </button>
+                     </div>
+                     <h3 class="text-[14px] font-black text-white tracking-tight uppercase">AI Stealth Keywords</h3>
+                  </div>
                  <div class="flex items-center gap-2">
                     <span class="text-[8px] font-black text-blue-400/80 uppercase tracking-widest">{{ masterProfile.secretKeywords?.length || 0 }} Active</span>
                     <Lock class="w-3.5 h-3.5 text-white/50" />
@@ -172,13 +239,13 @@ const generateCoverLetter = () => emit('generateCoverLetter')
                  
                  <div class="grid grid-cols-2 gap-2">
                     <button @click="analyzeAndSuggestKeywords" :disabled="isAnalyzingKeywords" 
-                            class="py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                       <RefreshCw v-if="isAnalyzingKeywords" class="w-3 h-3 animate-spin" />
-                       <Stars v-else class="w-3 h-3 text-blue-400" />
-                       {{ isAnalyzingKeywords ? 'Analyzing' : 'AI Suggester' }}
+                            class="py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9.5px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                       <RefreshCw v-if="isAnalyzingKeywords" class="w-2.5 h-2.5 animate-spin" />
+                       <Stars v-else class="w-2.5 h-2.5 text-blue-400" />
+                       {{ isAnalyzingKeywords ? 'Sensing...' : 'AI Suggester' }}
                     </button>
                     <button @click="handleDashboardAction('clear_keywords')" 
-                            class="py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all">
+                            class="py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9.5px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all">
                        Flush All
                     </button>
                  </div>
@@ -187,6 +254,100 @@ const generateCoverLetter = () => emit('generateCoverLetter')
            
            <!-- Subtle Shading Overlay -->
            <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+           <!-- Interactivity Overlay -->
+           <Transition name="fade">
+             <div v-if="activeTip === 'stealth'" class="absolute inset-0 z-[100] bg-[#0A2647]/95 backdrop-blur-xl p-8 flex flex-col justify-center text-center">
+                <p class="text-[11px] font-black text-blue-300 uppercase tracking-widest leading-relaxed">{{ engineTips.stealth }}</p>
+                <button @click="activeTip = null" class="mt-6 text-[8px] font-black text-white/30 uppercase tracking-widest">Resume Strategic Tuning</button>
+             </div>
+           </Transition>
+        </div>
+
+        <!-- 3.5 BROADCAST ENGINE STATUS (NEW V13.0) -->
+        <div class="bg-gradient-to-br from-[#1E3A8A]/20 to-black rounded-[2.2rem] p-5 border border-blue-500/10 relative overflow-hidden group shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+               <div class="flex flex-col">
+                  <span class="text-[8px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1">Broadcast Engine V13.0</span>
+                  <h3 class="text-[12px] font-black text-white uppercase tracking-tight">Automated Outreach</h3>
+               </div>
+               <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                  <span class="text-[8px] font-black text-green-400 uppercase tracking-widest">Proxy Active</span>
+               </div>
+            </div>
+            
+            <div class="flex items-center gap-4 bg-white/5 rounded-2xl p-4 border border-white/5">
+                <div class="p-3 bg-blue-500/10 rounded-xl">
+                   <Zap class="w-5 h-5 text-blue-400" />
+                </div>
+                <div class="flex flex-col gap-0.5">
+                   <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-black text-white uppercase">Stealth Proxy Layer</span>
+                      <button @click="toggleTip('broadcast')" class="p-1 rounded-full bg-white/5 hover:bg-blue-400/20">
+                         <ShieldCheck class="w-2.5 h-2.5 text-blue-400" />
+                      </button>
+                   </div>
+                   <span class="text-[8px] font-black text-white/30 uppercase tracking-widest">Dynamic IP Rotation Enabled</span>
+                </div>
+            </div>
+
+            <!-- Interactivity Overlay -->
+            <Transition name="fade">
+              <div v-if="activeTip === 'broadcast'" class="absolute inset-0 z-[100] bg-[#0A2647]/95 backdrop-blur-xl p-8 flex flex-col justify-center text-center">
+                 <p class="text-[11px] font-black text-blue-300 uppercase tracking-widest leading-relaxed">{{ engineTips.broadcast }}</p>
+                 <button @click="activeTip = null" class="mt-6 text-[8px] font-black text-white/30 uppercase tracking-widest">Secure Handshake Complete</button>
+              </div>
+            </Transition>
+        </div>
+
+        <!-- 3.8 GLOBAL STRATEGY CALIBRATION (NEW V13.1) -->
+        <div class="bg-gradient-to-br from-[#C1A172]/10 to-transparent rounded-[2.2rem] p-5 border border-[#C1A172]/20 relative overflow-hidden group shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+               <div class="flex flex-col">
+                  <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.3em] mb-1">Global Strategy Hub</span>
+                  <h3 class="text-[12px] font-black text-white uppercase tracking-tight">Locale Calibration</h3>
+               </div>
+               <div class="p-2 bg-[#C1A172]/10 rounded-lg">
+                  <Globe class="w-4 h-4 text-[#C1A172]" />
+               </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+               <!-- Target Region -->
+               <div class="space-y-2">
+                  <label class="text-[9px] font-black text-white/40 uppercase tracking-widest pl-1">Target Region</label>
+                  <div class="relative group">
+                     <select v-model="masterProfile.targetRegion" 
+                             class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[10px] text-white/90 font-bold focus:outline-none focus:ring-1 focus:ring-[#C1A172] appearance-none cursor-pointer">
+                        <option v-for="c in ['Sweden', 'Germany', 'Norway', 'Finland', 'Denmark', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Japan', 'France', 'Netherlands', 'Singapore', 'Switzerland', 'Ireland', 'Italy', 'Spain']" 
+                                :key="c" :value="c" class="bg-[#0A2647]">{{ c }}</option>
+                     </select>
+                     <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none group-hover:text-[#C1A172] transition-colors" />
+                  </div>
+               </div>
+
+               <!-- CV Locale -->
+               <div class="space-y-2">
+                  <label class="text-[9px] font-black text-white/40 uppercase tracking-widest pl-1">CV Locale</label>
+                  <div class="relative group">
+                     <select v-model="masterProfile.cvLanguage" 
+                             class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[10px] text-white/90 font-bold focus:outline-none focus:ring-1 focus:ring-[#C1A172] appearance-none cursor-pointer">
+                        <option value="EN" class="bg-[#0A2647]">English (Global)</option>
+                        <option value="DE" class="bg-[#0A2647]">Deutsch (DACH)</option>
+                        <option value="SW" class="bg-[#0A2647]">Svenska (Nordics)</option>
+                        <option value="FR" class="bg-[#0A2647]">Français</option>
+                        <option value="ES" class="bg-[#0A2647]">Español</option>
+                        <option value="IT" class="bg-[#0A2647]">Italiano</option>
+                        <option value="JP" class="bg-[#0A2647]">日本語 (Japan)</option>
+                        <option value="CN" class="bg-[#0A2647]">中文 (China)</option>
+                        <option value="KR" class="bg-[#0A2647]">한국어 (Korea)</option>
+                        <option value="AR" class="bg-[#0A2647]">العربية (MENA)</option>
+                     </select>
+                     <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none group-hover:text-[#C1A172] transition-colors" />
+                  </div>
+               </div>
+            </div>
         </div>
 
         <!-- 4. VISUAL BRANDING (SLIM-LINE DENSITY) -->

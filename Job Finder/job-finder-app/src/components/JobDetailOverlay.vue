@@ -1,7 +1,7 @@
 <script setup>
 import { 
   X, Briefcase, MapPin, Calendar, Zap, ShieldCheck, 
-  ArrowUpRight, Share2, Bookmark, CheckCircle2, Globe, Sparkles
+  ArrowUpRight, Share2, Bookmark, CheckCircle2, Globe, Sparkles, FileText, Download
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -106,16 +106,26 @@ const emit = defineEmits(['close', 'onAction'])
            </div>
         </div>
 
-        <!-- Fixed Footer Actions (V6.5 GLOBAL SYNC) -->
+        <!-- Fixed Footer Actions (V13.1 HYBRID BROADCAST) -->
         <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A2647] via-[#0A2647] to-transparent pt-12 pb-8 flex items-center gap-3 z-20">
+           <!-- Side Action: Tailor -->
            <button @click="emit('onAction', 'tailor_cv', job)" class="flex-1 bg-white/5 h-14 rounded-[1.25rem] border border-white/10 flex items-center justify-center gap-2 text-white/80 font-black uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all hover:text-white">
               <Zap class="w-3.5 h-3.5 text-[#C1A172]" />
-              <span>Tailor Specimen</span>
+              <span>Tailor Only</span>
            </button>
-           <button @click="emit('onAction', 'quick_apply', job)" class="flex-[1.5] bg-[#C1A172] h-14 rounded-[1.25rem] flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all text-[#0A2647] font-black uppercase tracking-widest text-[11px] group relative overflow-hidden">
+
+           <!-- Main Action: Auto-Broadcast -->
+           <button v-if="job.applyType !== 'manual'" @click="emit('onAction', 'quick_apply', job)" class="flex-[1.5] bg-[#C1A172] h-14 rounded-[1.25rem] flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(193,161,114,0.25)] hover:scale-[1.02] active:scale-95 transition-all text-[#0A2647] font-black uppercase tracking-widest text-[11px] group relative overflow-hidden">
               <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <span>Instant AI Apply</span>
               <ArrowUpRight class="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+           </button>
+
+           <!-- Main Action: Manual-Assist Toolkit -->
+           <button v-else @click="emit('onAction', 'manual_toolkit', job)" class="flex-[1.5] bg-[#73BBA3] h-14 rounded-[1.25rem] flex items-center justify-center gap-3 shadow-[0_15px_40px_rgba(115,187,163,0.25)] hover:scale-[1.02] active:scale-95 transition-all text-[#0A2647] font-black uppercase tracking-widest text-[11px] group relative overflow-hidden border border-white/10">
+              <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <span>Manual Assist Toolkit</span>
+              <FileText class="w-4 h-4 group-hover:scale-110 transition-transform" />
            </button>
         </div>
 

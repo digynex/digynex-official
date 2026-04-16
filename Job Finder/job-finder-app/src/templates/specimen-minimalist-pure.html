@@ -125,7 +125,7 @@
             <!-- SUMMARY -->
             <section class="mb-5">
                 <p class="serif text-[16.5px] leading-relaxed text-slate-700 italic font-medium">
-                    Telecommunications Professional with over 15 years experience, project consulting, and management specialist. Proven track record in delivery of multi-million dollar infrastructure rollouts across global markets.
+                    {{BIO}}
                 </p>
             </section>
 
@@ -136,45 +136,33 @@
 
             <!-- SKILLS -->
             <section>
-                <div class="flex flex-wrap">
-                    <span class="skill-bubble">Project Management</span><span class="skill-bubble">RF Engineering</span><span class="skill-bubble">5G / LTE</span><span class="skill-bubble">Agile</span>
-                    <span class="skill-bubble">Stakeholder Management</span><span class="skill-bubble">Strategic Planning</span>
+                <div class="flex flex-wrap" style="gap: 2px;">
+                    {{SKILLS_GRID}}
                 </div>
             </section>
 
             <!-- EXPERIENCE -->
             <section>
                 <h2 class="section-header">Professional History</h2>
-                <div class="experience-block">
-                    <div class="job-header"><h3 class="job-title">Project Manager</h3><span class="job-date">2021 — PRESENT</span></div>
-                    <p class="company-name">Artha Engineering and Consulting Pvt Ltd</p>
-                    <ul class="bullet-list serif">
-                        <li>Define project objectives, scope, and deliverables aligning with client needs.</li>
-                        <li>Evaluate and recommend suitable network architectures and configurations.</li>
-                        <li>Monitor performance and implement optimization measures for 5G ecosystems.</li>
-                    </ul>
-                </div>
-
-                <div class="experience-block">
-                    <div class="job-header"><h3 class="job-title">Head Of Division (Wireless & Fiber)</h3><span class="job-date">2013 — 2021</span></div>
-                    <p class="company-name">Teshan Engineering Pvt Ltd, SL</p>
-                    <ul class="bullet-list serif">
-                        <li>Spearheaded strategic direction and execution of critical telco projects.</li>
-                        <li>Maintained rigorous ISO quality management systems.</li>
-                        <li>Managed complex project budgets and nationwide scheduling.</li>
-                    </ul>
-                </div>
+                {{EXPERIENCE_LIST}}
             </section>
 
             <!-- EDUCATION -->
             <section>
                 <h2 class="section-header">Education</h2>
                 <div class="grid grid-cols-2 gap-x-12">
-                    <div class="edu-item"><div class="edu-degree">Cyber security & Admin</div><div class="edu-meta">University of Skovde, SE - 2024</div></div>
-                    <div class="edu-item"><div class="edu-degree">MBA</div><div class="edu-meta">London Met University - 2022</div></div>
-                    <div class="edu-item"><div class="edu-degree">Electronics Special</div><div class="edu-meta">ATI, Moratuwa - 2004</div></div>
-                    <div class="edu-item"><div class="edu-degree">Diploma in Tech</div><div class="edu-meta">City & Guide, London - 2008</div></div>
+                    {{EDUCATION_LIST}}
                 </div>
+            </section>
+
+            <section>
+                <h2 class="section-header">Recent Projects</h2>
+                {{PROJECTS_LIST}}
+            </section>
+
+            <section>
+                <h2 class="section-header">Languages</h2>
+                {{LANGUAGES_LIST}}
             </section>
         </div>
 
@@ -186,7 +174,7 @@
                 </p>
                 <div class="flex justify-between items-center text-[7.5px] font-black text-slate-200 uppercase tracking-widest">
                     <span>REF: AM-MINIMAL-PURE-2026</span>
-                    <span>DIGYNEX CAREERNEXUS ENGINE V6.5</span>
+                    <span>DIGYNEX CAREERNEXUS ENGINE V11.5 NEURAL HUB</span>
                     <span>Page 1 of 1</span>
                 </div>
             </div>

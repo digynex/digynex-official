@@ -188,6 +188,15 @@
     "coverLetterTitle": "Cover Letter Studio",
     "careerDocumentEngine": "Career Document Engine",
     "coverLetterPlaceholder": "Wait for AI to synthesize your professional soul...",
-    "neuralContentSynthesis": "Neural Content Synthesis Active"
+    "neuralContentSynthesis": "Neural Content Synthesis Active",
+    "cv_labels": {
+      "experience": "Professional Experience",
+      "expertise": "Technical Expertise",
+      "skills": "Technical Skills",
+      "projects": "Key Projects",
+      "languages": "Languages",
+      "education": "Education",
+      "declaration": "I hereby declare that the info provided is true and correct."
+    }
   }
 }

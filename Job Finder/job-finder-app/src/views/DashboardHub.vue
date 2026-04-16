@@ -226,6 +226,18 @@ const handleDashboardAction = (action) => emit('handleAction', action)
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 20px; }
 
 .neural-glow {
-  text-shadow: 0 0 20px rgba(193, 161, 114, 0.3);
+  text-shadow: 0 0 10px rgba(193, 161, 114, 0.4);
+  animation: neural-pulse 4s ease-in-out infinite;
+}
+
+@keyframes neural-pulse {
+  0%, 100% { 
+    text-shadow: 0 0 15px rgba(193, 161, 114, 0.5); 
+    filter: drop-shadow(0 0 2px rgba(193, 161, 114, 0.3));
+  }
+  50% { 
+    text-shadow: 0 0 25px rgba(193, 161, 114, 0.8); 
+    filter: drop-shadow(0 0 8px rgba(193, 161, 114, 0.6));
+  }
 }
 </style>
