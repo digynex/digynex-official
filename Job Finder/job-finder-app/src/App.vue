@@ -58,48 +58,13 @@ const currentLang = ref('EN')
 const isLangOpen = ref(false)
 
 // --- BACKEND-DRIVEN NEURAL CONFIG (V12.0) ---
-const masterConfig = ref({
-    free: { cv_per_week: 2, day_cap: 2, price: 0, ai_magic: false, retention_days: 14 },
-    pro: { cv_per_week: 6, day_cap: 3, price: 19, ai_magic: true, retention_days: 14 },
-    elite: { cv_per_week: 999, day_cap: 999, price: 49, ai_magic: true, retention_days: 30 }
-})
+// centralized in quotaService.TIERS
 
 const isMaintenanceMode = ref(false)
 const maintenanceMessage = ref('System Recalibration in Progress...')
 const globalBroadcast = ref({ active: false, message: '', type: 'info' })
 
-const fetchSystemConfig = async () => {
-    try {
-        const { data } = await supabase.from('system_config').select('key, value');
-        if (data) {
-            const quotas = data.find(i => i.key === 'tiered_quotas');
-            if (quotas) {
-                masterConfig.value = quotas.value;
-
-                // WHY: Sync proPrice / elitePrice directly from DB config.
-                // This runs on mount AND on real-time admin commits so the pricing
-                // page always reflects what the admin set — no stale values.
-                const v = quotas.value;
-                if (v.free?.price !== undefined)  freePrice.value  = v.free.price;
-                if (v.pro?.price !== undefined)   proPrice.value   = v.pro.price;
-                if (v.elite?.price !== undefined)  elitePrice.value = v.elite.price;
-            }
-
-            const maintenance = data.find(i => i.key === 'maintenance_mode');
-            if (maintenance) {
-                isMaintenanceMode.value = maintenance.value.enabled;
-                maintenanceMessage.value = maintenance.value.message;
-            }
-
-            const broadcast = data.find(i => i.key === 'global_broadcast');
-            if (broadcast) globalBroadcast.value = broadcast.value;
-
-            console.log('[DIGYNEX] Global Neural Context Synchronized');
-        }
-    } catch (err) {
-        console.warn('[DIGYNEX] Falling back to Default Neural Context');
-    }
-}
+// config logic moved to quotaService.js
 
 const quickLangs = ['EN', 'DE', 'SW']
 const langContainer = ref(null)
@@ -108,9 +73,10 @@ const isNotificationsOpen = ref(false)
 const searchQuery = ref('') // Mission-critical state for global filtering
 
 // Quota engine UI Reactivity
-const proPrice = ref(19)
+const proPrice = ref(29)
 const elitePrice = ref(49)
 const freePrice = ref(0)
+
 
 // --- GLOBAL REACTIVE STATE (Neural Core) ---
 const activeTab = ref('dashboard')
@@ -223,12 +189,12 @@ const handleDownloadPdf = async () => {
         const viewport = document.querySelector('#live-viewport iframe');
         if (!viewport || !viewport.srcdoc) {
             toastMessage.value = 'Error: Viewport not ready';
-            showToast.value = true;
+            isNeuralToastVisible.value = true;
             return;
         }
         
         toastMessage.value = 'Preparing Ultra-HD Specimen...';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         await pdfService.generateFromHtml(viewport.srcdoc, `DigyNex_${userProfile.value.name.replace(/\s/g, '_')}_Specimen.pdf`, {
             userName: userProfile.value.name,
@@ -246,7 +212,7 @@ const handleDownloadPdf = async () => {
         console.error('PDF Export Failure:', err);
         toastMessage.value = 'Export Failure: Engine Overload';
     } finally {
-        setTimeout(() => { showToast.value = false }, 3000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
     }
 }
 
@@ -378,8 +344,8 @@ watch(locale, (newLocale) => {
         // Automatically suggest/switch country slot based on language choice
         activeCountry.value = suggestedCountry
         toastMessage.value = `Focusing on ${suggestedCountry} matches`
-        showToast.value = true
-        setTimeout(() => showToast.value = false, 2000)
+        isNeuralToastVisible.value = true
+        setTimeout(() => isNeuralToastVisible.value = false, 2000)
     }
 })
 
@@ -403,14 +369,14 @@ const saveProfile = async () => {
       if (error) throw error;
       
       toastMessage.value = 'Identity Core Synced Successfully';
-      showToast.value = true;
-      setTimeout(() => { showToast.value = false }, 3000);
+      isNeuralToastVisible.value = true;
+      setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
     }
   } catch (err) {
     console.error('Failed to update global engine:', err);
     toastMessage.value = 'Sync Error: Connection Unstable';
-    showToast.value = true;
-    setTimeout(() => { showToast.value = false }, 3000);
+    isNeuralToastVisible.value = true;
+    setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
   } finally {
     isSavingProfile.value = false
   }
@@ -429,7 +395,7 @@ const handleFileUpload = async (event) => {
   
   isUploadingCV.value = true;
   toastMessage.value = `DigyNex AI: Extracting Intelligence from ${file.name}...`;
-  showToast.value = true;
+  isNeuralToastVisible.value = true;
   
   try {
     // ENGINE CALL: Strategic data extraction
@@ -463,7 +429,7 @@ const handleFileUpload = async (event) => {
     toastMessage.value = 'Extraction Error: Link Unstable';
   } finally {
     isUploadingCV.value = false;
-    setTimeout(() => { showToast.value = false }, 3000);
+    setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
   }
 }
 
@@ -495,9 +461,9 @@ const saveLinkedIn = async () => {
     
     linkedInUrl.value = linkedInUrlInput.value;
     toastMessage.value = 'Neural Sync: LinkedIn Connection Request Dispatched';
-    showToast.value = true;
+    isNeuralToastVisible.value = true;
     isLinkedInModalOpen.value = false;
-    setTimeout(() => { showToast.value = false }, 3500);
+    setTimeout(() => { isNeuralToastVisible.value = false }, 3500);
   } finally {
     isLinkedInConnecting.value = false;
   }
@@ -519,33 +485,36 @@ const analyzeAndSuggestKeywords = async () => {
    // Strict Rule: Quota Enforcement Check
    const limit = quotaService.getKeywordLimit(userProfile.value.plan_type);
    if (!userProfile.value.isSuperUser && masterProfile.value.secretKeywords.length >= limit) {
-       toastMessage.value = `Quota Reached: Tier ${userProfile.value.plan_type} limits to ${limit} keywords`;
-       showToast.value = true;
-       setTimeout(() => { showToast.value = false }, 3000);
+       showNeuralToast(`Quota Reached: Tier limit is ${limit} keywords`, 'warning');
        return;
    }
 
    isAnalyzingKeywords.value = true;
    
-   // Logic First: Trigger Neural Engine for Strategic Ingestion
-   const context = selectedJob.value ? selectedJob.value.desc : fieldsOfInterest.value.join(', ');
-   console.log(`[DIGYNEX AI] Triggering Neural Analysis for context: ${context}`);
-   
-   // ENGINE CALL: Real-time keyword extraction (Simulated delay for UX)
-   await new Promise(r => setTimeout(r, 1500));
-   
-   const coreKeywords = ['AI', 'Neural Systems', 'SaaS Architecture', 'Cloud Orchestration', 'n8n Engineering', 'Scalable Backend'];
-   
-   const uniqueNewKeywords = coreKeywords.filter(k => !masterProfile.value.secretKeywords.includes(k.toUpperCase()));
-   
-   uniqueNewKeywords.forEach(k => {
-      if (userProfile.value.isSuperUser || masterProfile.value.secretKeywords.length < limit) {
-         masterProfile.value.secretKeywords.push(k.toUpperCase());
-      }
-   });
-   
-   isAnalyzingKeywords.value = false;
-   await saveProfile(); // Kinetic Sync: Persist results to Supabase
+   try {
+       // Logic First: Trigger Neural Engine for Strategic Ingestion
+       const context = selectedJob.value ? selectedJob.value.desc : fieldsOfInterest.value.join(', ');
+       
+       // ENGINE CALL: Real-time keyword extraction (Service Layer)
+       const suggested = await aiService.suggestKeywords(context);
+       
+       // Filter and Apply
+       suggested.forEach(k => {
+          const upper = k.toUpperCase();
+          if (!masterProfile.value.secretKeywords.includes(upper)) {
+             if (userProfile.value.isSuperUser || masterProfile.value.secretKeywords.length < limit) {
+                masterProfile.value.secretKeywords.push(upper);
+             }
+          }
+       });
+       
+       showNeuralToast('Neural Extraction Complete: Keywords Hydrated', 'success');
+       await saveProfile(); // Kinetic Sync: Persist results to Supabase
+   } catch (err) {
+       showNeuralToast('AI Engine unstable. Retrying...', 'error');
+   } finally {
+       isAnalyzingKeywords.value = false;
+   }
 }
 
 const newSecretKeyword = ref('')
@@ -554,8 +523,8 @@ const addSecretKeyword = async () => {
    const limit = quotaService.getKeywordLimit(userProfile.value.plan_type);
    if (!userProfile.value.isSuperUser && masterProfile.value.secretKeywords.length >= limit) {
        toastMessage.value = `Quota Reached: Tier limit is ${limit} keywords`;
-       showToast.value = true;
-       setTimeout(() => { showToast.value = false }, 3000);
+       isNeuralToastVisible.value = true;
+       setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
        return;
    }
 
@@ -588,8 +557,8 @@ const handleGenerateCoverLetter = () => {
    setTimeout(async () => { await refreshViewport(); }, 150);
 
    toastMessage.value = 'Neural Identity Synthesized: Cover Letter Created';
-   showToast.value = true;
-   setTimeout(() => { showToast.value = false }, 3000);
+   isNeuralToastVisible.value = true;
+   setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
    
    // Auto-Sync to Database to ensure persistence
    handleUpdateCoverLetter(text);
@@ -605,15 +574,15 @@ const handleUpdateCoverLetter = async (text) => {
          const { error } = await profileService.updateCoverLetter(user.id, text);
          if (error) throw error;
          toastMessage.value = 'Strategic Cover Letter Synced';
-         showToast.value = true;
+         isNeuralToastVisible.value = true;
       }
    } catch (err) {
       console.error('Failed to sync cover letter:', err);
       toastMessage.value = 'Sync Error: Connection Unstable';
-      showToast.value = true;
+      isNeuralToastVisible.value = true;
    } finally {
       isSavingProfile.value = false;
-      setTimeout(() => { showToast.value = false }, 3000);
+      setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
    }
 }
 const isCompilingLatex = ref(false)
@@ -752,8 +721,8 @@ const finalizeTemplateSelection = async () => {
      if (user) {
        await templateService.setSelectedTemplate(user, id);
        toastMessage.value = 'CV Performance Engine Synced';
-       showToast.value = true;
-       setTimeout(() => { showToast.value = false }, 3000);
+       isNeuralToastVisible.value = true;
+       setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
      }
    } catch (err) {
      console.error('Failed to persist template choice:', err);
@@ -864,7 +833,7 @@ const handleApply = async (job) => {
     // NEURAL GUARDRAIL: Mobile Approval Interception (WA/TG)
     if (userProfile.value.docStatus !== 'Verified') {
         toastMessage.value = 'Neural Sync: CV/Letter Approval requested via WhatsApp & Telegram';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         // Signal N8N Trigger: Workflow D (Include Job Metadata)
         await profileService.logActivity(userProfile.value.email, 'DOC_APPROVAL_PENDING', { 
@@ -873,13 +842,13 @@ const handleApply = async (job) => {
             timestamp: new Date().toISOString()
         });
         
-        setTimeout(() => { showToast.value = false }, 5000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 5000);
         return;
     }
     
     isRecalibrating.value = true;
     toastMessage.value = `DigyNex Intelligence: Syncing Profile with ${job.c}...`;
-    showToast.value = true;
+    isNeuralToastVisible.value = true;
     
     try {
         // Simulate high-fidelity sync delay
@@ -902,7 +871,7 @@ const handleApply = async (job) => {
     } finally {
         isRecalibrating.value = false;
         isJobDetailOpen.value = false;
-        setTimeout(() => { showToast.value = false }, 3000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
     }
 }
 
@@ -934,14 +903,17 @@ const fetchUserProfile = async () => {
         const { data: profile } = await profileService.fetchProfile(user.id);
 
         if (profile) {
+            const planIndex = quotaService.normalizePlanType(profile.plan_type);
+            const planString = planIndex === 2 ? 'elite' : (planIndex === 1 ? 'pro' : 'free');
+
             userProfile.value = {
                 email: user.email,
                 name: profile.name || user.user_metadata?.full_name || 'Expert',
-                plan_type: profile.plan_type ?? 0, // WHY: Critical for quota enforcement — must come from DB
+                plan_type: planString, // STRATEGIC: Unified string format
                 primaryColor: profile.primary_color || '#0A2647',
                 secondaryColor: profile.secondary_color || '#64748b',
                 languagePreference: profile.language_preference || 'EN',
-                isAdmin: profile.is_admin || false,
+                isSuperUser: profile.is_admin || false, // RE-ENGAGED: Real-time role check
                 isReturning: true, // ENGINE: Mark as returning user
                 docStatus: profile.doc_status || 'Draft' // GUARDRAIL: Document Verification State
             };
@@ -974,27 +946,55 @@ const fetchUserProfile = async () => {
             isFirstTime.value = true;
         }
     }
-    // FLAGSHIP: Global Override (Ensures Owner always has Super User status in development)
-    userProfile.value.isSuperUser = true;
     
     // NEURAL WAKE-UP: Prepare the specimen for instant preview
     await refreshViewport();
 };
 
 onMounted(async () => {
-    // Phase 1 Backend Quota Sync
-    await fetchSystemConfig();
+    // Phase 1 Backend Quota Sync (Centralized Engine)
     await quotaService.init();
     
-    // Initial set
-    if (quotaService.TIERS[1] && quotaService.TIERS[1].price !== undefined) proPrice.value = quotaService.TIERS[1].price;
-    if (quotaService.TIERS[2] && quotaService.TIERS[2].price !== undefined) elitePrice.value = quotaService.TIERS[2].price;
+    // UI Pricing Sync
+    const syncPrices = () => {
+        freePrice.value = quotaService.TIERS[0].price;
+        proPrice.value = quotaService.TIERS[1].price;
+        elitePrice.value = quotaService.TIERS[2].price;
+    };
     
-    // Listen for live config pushes
-    window.addEventListener('quota-prices-updated', () => {
-         if (quotaService.TIERS[1] && quotaService.TIERS[1].price !== undefined) proPrice.value = quotaService.TIERS[1].price;
-         if (quotaService.TIERS[2] && quotaService.TIERS[2].price !== undefined) elitePrice.value = quotaService.TIERS[2].price;
-    })
+    syncPrices();
+    
+    // Listen for live config pushes from AdminHub via QuotaEngine
+    window.addEventListener('quota-prices-updated', syncPrices);
+    
+    // Global System State Monitoring
+    const { data: configs } = await supabase.from('system_config').select('*');
+    if (configs) {
+        const m = configs.find(c => c.key === 'maintenance_mode')?.value;
+        if (m) { isMaintenanceMode.value = m.enabled; maintenanceMessage.value = m.message; }
+        
+        const b = configs.find(c => c.key === 'global_broadcast')?.value;
+        if (b) globalBroadcast.value = b;
+    }
+    
+    // 3. UNIVERSAL STRATEGIC SYNC (Real-time Governance)
+    supabase.channel('global_config_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' }, (payload) => {
+            console.log('[NEURAL SYNC] Global Config Pulsed:', payload.new.key);
+            const key = payload.new.key;
+            const val = payload.new.value;
+
+            if (key === 'maintenance_mode') {
+                isMaintenanceMode.value = val.enabled;
+                if (val.message) maintenanceMessage.value = val.message;
+            } else if (key === 'tiered_quotas') {
+                quotaService.updateTiersFromBackend(val);
+                syncPrices();
+            } else if (key === 'global_broadcast') {
+                globalBroadcast.value = val;
+            }
+        })
+        .subscribe();
     
     // Check for existing session natively
     const user = await authService.getUser();
@@ -1072,7 +1072,7 @@ const countriesContainer = ref(null)
 const sliderProgress = ref(0)
 
 // Real Engine Action Handlers
-const showToast = ref(false)
+const isNeuralToastVisible = ref(false)
 const toastMessage = ref('')
 const toastType = ref('info') // 'info' | 'success' | 'error' | 'warning'
 
@@ -1080,8 +1080,8 @@ const toastType = ref('info') // 'info' | 'success' | 'error' | 'warning'
 const showNeuralToast = (message, type = 'info', duration = 3000) => {
     toastMessage.value = message;
     toastType.value = type;
-    showToast.value = true;
-    setTimeout(() => { showToast.value = false }, duration);
+    isNeuralToastVisible.value = true;
+    setTimeout(() => { isNeuralToastVisible.value = false }, duration);
 }
 
 const handleDashboardAction = async (actionId, jobData = null) => {
@@ -1102,8 +1102,8 @@ const handleDashboardAction = async (actionId, jobData = null) => {
     if (actionId === 'insights') {
         activeTab.value = 'matches';
         toastMessage.value = 'Analyzing real-time market trends...';
-        showToast.value = true;
-        setTimeout(() => { showToast.value = false }, 3000);
+        isNeuralToastVisible.value = true;
+        setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
         return;
     }
 
@@ -1111,8 +1111,8 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         masterProfile.value.secretKeywords = [];
         await saveProfile();
         toastMessage.value = 'Neural Wipe: Standard Keywords Flushed';
-        showToast.value = true;
-        setTimeout(() => { showToast.value = false }, 2500);
+        isNeuralToastVisible.value = true;
+        setTimeout(() => { isNeuralToastVisible.value = false }, 2500);
         return;
     }
 
@@ -1128,14 +1128,14 @@ const handleDashboardAction = async (actionId, jobData = null) => {
             toastMessage.value = 'Sync Complete: Profile Optimized';
         } finally {
             isRecalibrating.value = false;
-            setTimeout(() => { showToast.value = false }, 3000);
+            setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
         }
         return;
     }
 
     if (actionId === 'broadcast') {
         toastMessage.value = 'Preparing executive notification broadcast...';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         // BRIDGE: Trigger n8n Workflow A (Global Broadcast)
         await profileService.logActivity(userProfile.value.email, 'ADMIN_BROADCAST', { 
@@ -1143,7 +1143,7 @@ const handleDashboardAction = async (actionId, jobData = null) => {
             message: 'Global Neural System Upgrade Initiated.' 
         });
         
-        setTimeout(() => { showToast.value = false }, 4000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 4000);
         return;
     }
 
@@ -1156,7 +1156,7 @@ const handleDashboardAction = async (actionId, jobData = null) => {
 
         if (!quota.can) {
            toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}. Queued.`;
-           showToast.value = true;
+           isNeuralToastVisible.value = true;
            
            allJobs.value.unshift({
                c: targetJob.c,
@@ -1171,14 +1171,14 @@ const handleDashboardAction = async (actionId, jobData = null) => {
            });
 
            await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { job: targetJob.c, reason: quota.reason });
-           setTimeout(() => { showToast.value = false }, 3000);
+           setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
            return;
         }
 
         // WITHIN QUOTA: Instant Dispatch
         const today = new Date().toLocaleDateString();
         toastMessage.value = `Neural Pulse: Dispatching to ${targetJob.c}...`;
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         allJobs.value.unshift({
             c: targetJob.c,
@@ -1193,23 +1193,23 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         });
 
         await profileService.logActivity(userProfile.value.email, 'QUICK_APPLY', { job: targetJob.c });
-        setTimeout(() => { showToast.value = false }, 2500);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 2500);
         return;
     }
 
     if (actionId === 'save_match') {
         const targetJob = jobData || selectedJob.value;
         toastMessage.value = 'Identity Protocol: Match Buffered';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         await profileService.logActivity(userProfile.value.email, 'JOB_SAVED', { job: targetJob?.c });
-        setTimeout(() => { showToast.value = false }, 2000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 2000);
         return;
     }
 
     if (actionId === 'manual_toolkit') {
         const targetJob = jobData || selectedJob.value;
         toastMessage.value = `Manual Assist: Preparing assets for ${targetJob.c}...`;
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         // n8n Signal: Log manual application intent
         await profileService.logActivity(userProfile.value.email, 'MANUAL_ASSIST_START', { job: targetJob.c });
@@ -1223,7 +1223,7 @@ const handleDashboardAction = async (actionId, jobData = null) => {
 
     if (actionId === 'submit_for_audit') {
         toastMessage.value = 'Neural Audit: Strategy Submission Initiated...';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         try {
             await profileService.updateProfile(userProfile.value.email, { 
@@ -1240,7 +1240,7 @@ const handleDashboardAction = async (actionId, jobData = null) => {
             toastMessage.value = 'Audit Sync Error. Retrying...';
         }
         
-        setTimeout(() => { showToast.value = false }, 3000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
         return;
     }
 
@@ -1248,16 +1248,15 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         if (!selectedJob.value) return;
 
         // --- DYNAMIC TIER CHECK: AI Magic (V12.0) ---
-        const tierKey = userProfile.value.plan_type === 2 ? 'elite' : (userProfile.value.plan_type === 1 ? 'pro' : 'free');
-        if (!masterConfig.value[tierKey]?.ai_magic) {
-            toastMessage.value = `${tierKey.toUpperCase()} Tier: AI Magic LOCKED 🔒 Upgrade to Synch`;
-            showToast.value = true;
-            setTimeout(() => { showToast.value = false }, 3000);
+        const index = quotaService.normalizePlanType(userProfile.value.plan_type);
+        const tier = quotaService.TIERS[index];
+        
+        if (!tier?.ai_magic && !userProfile.value.isSuperUser) {
+            showNeuralToast(`${tier?.name || 'FREE'} Tier: AI Magic LOCKED 🔒 Upgrade to Sync`, 'warning');
             return;
         }
         
-        toastMessage.value = 'Neural Engine: Synthesizing Custom Identity...';
-        showToast.value = true;
+        showNeuralToast('Neural Engine: Synthesizing Custom Identity...', 'info');
         
         // ENGINE CALL: Generate Context-Aware Synthesis
         const tailoredLetter = profileService.generateCoverLetter({
@@ -1275,7 +1274,6 @@ const handleDashboardAction = async (actionId, jobData = null) => {
 
         await new Promise(r => setTimeout(r, 2000));
         isSynthesisReviewOpen.value = true;
-        showToast.value = false;
         return;
     }
 
@@ -1287,52 +1285,36 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         const quota = await quotaService.canPerformAction(userProfile.value, 'CV_EXPORT');
 
         if (!quota.can) {
-             toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}. Queued.`;
-             showToast.value = true;
-             // Logic to queue... (same as quick_apply)
+             showNeuralToast(`Quota Reached: ${quota.reason.replace('_', ' ')}. Queued.`, 'warning');
+             
              allJobs.value.unshift({
-                c: targetJob.c,
-                r: targetJob.r,
-                s: 'queued',
-                m: targetJob.m,
-                d: new Date().toLocaleDateString(),
-                l: targetJob.l,
-                icon: Briefcase,
-                color: '#0A2647',
-                step: 'queued'
+                c: targetJob.c, r: targetJob.r, s: 'queued', m: targetJob.m,
+                d: new Date().toLocaleDateString(), l: targetJob.l,
+                icon: Briefcase, color: '#0A2647', step: 'queued'
             });
             await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { job: targetJob.c, reason: quota.reason });
-            setTimeout(() => { showToast.value = false }, 3000);
             return;
         }
-        isDispatching.value = true;
         
-        await profileService.logActivity(userProfile.value.email, 'AUTO_APPLY_EXECUTED', {
-            company: targetJob?.c,
-            position: targetJob?.r,
-            timestamp: new Date().toISOString()
-        });
+        isDispatching.value = true;
+        showNeuralToast('Pulse Signal Transmitting...', 'info', 3000);
+        
+        // DISPATCH ENGINE: Trigger Headless Broadcast Signal for n8n/Playwright
+        const userIdentity = { ...userProfile.value, ...masterProfile.value };
+        await profileService.triggerHeadlessBroadcast(userIdentity, targetJob, synthesisData.value);
 
         // Add to tracking list locally
         allJobs.value.unshift({
-            c: synthesisData.value.job.c,
-            r: synthesisData.value.job.r,
-            s: 'applied',
-            m: synthesisData.value.job.m,
-            d: new Date().toLocaleDateString(),
-            l: synthesisData.value.job.l,
-            icon: Briefcase,
-            color: '#0A2647',
-            step: 'applied'
+            c: targetJob.c, r: targetJob.r, s: 'applied', m: targetJob.m,
+            d: new Date().toLocaleDateString(), l: targetJob.l,
+            icon: Briefcase, color: '#0A2647', step: 'applied'
         });
 
         await new Promise(r => setTimeout(r, 2500));
         isDispatching.value = false;
         isSynthesisReviewOpen.value = false;
         
-        toastMessage.value = 'Protocol Executed: Application Dispatched via Cloud Pipe';
-        showToast.value = true;
-        setTimeout(() => { showToast.value = false }, 3500);
+        showNeuralToast('Protocol Executed: Application Dispatched via Cloud Pipe', 'success', 4000);
         return;
     }
 
@@ -1345,8 +1327,8 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         const limit = quotaService.getCountryLimit(userProfile.value.plan_type);
         if (selectedCountriesArr.value.length >= limit && !userProfile.value.isSuperUser) {
             toastMessage.value = `Quota Reached: Tier limit is ${limit} countries.`;
-            showToast.value = true;
-            setTimeout(() => { showToast.value = false }, 3000);
+            isNeuralToastVisible.value = true;
+            setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
             return;
         }
         showCountrySelector.value = true;
@@ -1354,12 +1336,12 @@ const handleDashboardAction = async (actionId, jobData = null) => {
     
     if (actionId === 'purge') {
         toastMessage.value = 'Neural Wipe: Purging System Residue...';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         // BRIDGE: Trigger n8n Workflow C (System Purge)
         await profileService.logActivity(userProfile.value.email, 'ADMIN_DATA_PURGE');
         
-        setTimeout(() => { showToast.value = false }, 4000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 4000);
         return;
     }
     if (actionId === 'manual_toolkit') {
@@ -1370,14 +1352,14 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         const quota = await quotaService.canPerformAction(userProfile.value, 'CV_EXPORT');
         if (!quota.can) {
             toastMessage.value = `Quota Reached: ${quota.reason.replace('_', ' ')}`;
-            showToast.value = true;
-            setTimeout(() => { showToast.value = false }, 3000);
+            isNeuralToastVisible.value = true;
+            setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
             return;
         }
 
         // 2. Synthesis (Neural Tailoring)
         toastMessage.value = 'Neural Hub: Synthesizing Toolkit Specimens...';
-        showToast.value = true;
+        isNeuralToastVisible.value = true;
         
         const tailoredLetter = profileService.generateCoverLetter({
            name: userProfile.value.name,
@@ -1399,13 +1381,13 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         
         // 4. Open UI (Face Phase)
         isManualToolkitOpen.value = true;
-        showToast.value = false;
+        isNeuralToastVisible.value = false;
         return;
     }
 
     // Generic Action Wrapper for n8n/Supabase Logging
     toastMessage.value = `Dispatching Signal: ${actionId}...`;
-    showToast.value = true;
+    isNeuralToastVisible.value = true;
     
     try {
         // Log event to activity engine using profile service
@@ -1418,7 +1400,7 @@ const handleDashboardAction = async (actionId, jobData = null) => {
     } catch (err) {
         console.error('Engine Link Error');
     } finally {
-        setTimeout(() => { showToast.value = false }, 2000);
+        setTimeout(() => { isNeuralToastVisible.value = false }, 2000);
     }
 }
 
@@ -1484,6 +1466,19 @@ const handleNotificationClick = (notif) => {
 
 <template>
   <div class="min-h-screen bg-[#0A2647] flex items-center justify-center p-4 font-jakarta">
+
+    <!-- GLOBAL MAINTENANCE OVERLAY (NEURAL LOCK) -->
+    <div v-if="isMaintenanceMode && !userProfile?.isSuperUser" class="fixed inset-0 z-[10000] bg-[#0A2647] flex flex-col items-center justify-center p-8 text-center">
+       <div class="bg-white/5 p-8 rounded-[3rem] border border-white/10 backdrop-blur-3xl shadow-3xl max-w-md w-full animate-in zoom-in-95 duration-700">
+          <div class="bg-[#C1A172] p-4 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(193,161,114,0.4)]">
+             <AlertTriangle class="w-10 h-10 text-[#0A2647]" />
+          </div>
+          <h1 class="text-2xl font-black text-white uppercase tracking-[0.2em] mb-4">Neural Systems Offline</h1>
+          <p class="text-white/40 text-xs font-bold uppercase tracking-widest leading-relaxed">{{ maintenanceMessage }}</p>
+          <div class="h-[1px] w-12 bg-white/10 my-8 mx-auto"></div>
+          <p class="text-[9px] font-black text-[#C1A172] uppercase tracking-[0.3em]">Direct Strategic Pulse: DigyNex Core</p>
+       </div>
+    </div>
     <!-- 
        ALEX MASTER SYNC V6.0 (STRICT STABLE RECOVERY)
        - CENTERED BRANDING HUB
@@ -1960,7 +1955,7 @@ const handleNotificationClick = (notif) => {
 
       <!-- NEURAL GLOW TOAST (TYPED ERROR HANDLING ENGINE) -->
       <Transition name="fade">
-        <div v-if="showToast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[85%] max-w-[320px]">
+        <div v-if="isNeuralToastVisible" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] w-[85%] max-w-[320px]">
            <div class="backdrop-blur-2xl rounded-2xl p-4 shadow-3xl flex items-center gap-3 border"
                 :class="{
                   'bg-black/80 border-white/15': toastType === 'info',
@@ -2144,7 +2139,7 @@ const handleNotificationClick = (notif) => {
                             <p class="text-[10px] font-bold text-white/30 tracking-[0.1em] uppercase mt-1">{{ $t('pricing.tier1Sub') }}</p>
                          </div>
                          <div class="text-right">
-                            <span class="text-[20px] font-black text-[#C1A172] tracking-tighter">$0</span>
+                            <span class="text-[20px] font-black text-[#C1A172] tracking-tighter">${{ freePrice }}</span>
                             <p class="text-[9px] font-black text-white/20 uppercase">{{ $t('pricing.priceForever') }}</p>
                          </div>
                       </div>

@@ -13,6 +13,7 @@ export const quotaService = {
       cv_weekly_limit: 2,
       max_life_days: 14,
       keyword_limit: 5,
+      price: 0,
       country_slots: 1,
       features: ['Basic Templates', 'PDF Ingestion']
     },
@@ -21,6 +22,7 @@ export const quotaService = {
       cv_weekly_limit: 6,
       cv_daily_limit: 3,
       keyword_limit: 15,
+      price: 29,
       country_slots: 3,
       features: ['Pro Templates', 'LinkedIn Sync', 'Aesthetic Presets']
     },
@@ -29,56 +31,64 @@ export const quotaService = {
       cv_weekly_limit: 9999,
       cv_daily_limit: 9999,
       keyword_limit: 9999,
-      country_slots: 10,
       price: 49,
+      country_slots: 10,
       features: ['Unlimited Everything', 'All Templates', 'Neural Suggester', 'Cover Letter AI']
     }
+  },
+
+  /**
+   * Internal Helper: Normalizes a plan type string/number to a numeric index (0, 1, 2)
+   */
+  normalizePlanType(plan) {
+    if (plan === 0 || plan === '0' || plan === 'free') return 0;
+    if (plan === 1 || plan === '1' || plan === 'pro' || plan === 'growth') return 1;
+    if (plan === 2 || plan === '2' || plan === 'elite') return 2;
+    return 0; // Default to Free
   },
 
   updateTiersFromBackend(backendData) {
     if (!backendData) return;
 
-    // WHY: DB may store data in two formats:
-    //   Format A (named): { free:{...}, pro:{...}, elite:{...} } — saved by AdminHub
-    //   Format B (numeric): { "0":{...}, "1":{...}, "2":{...} } — legacy format in DB
-    // We normalize both so the quota engine always works correctly.
+    console.log('[QUOTA ENGINE] Synchronizing with Backend Strategics:', backendData);
 
-    // --- Format A: Named keys (AdminHub format) ---
-    if (backendData.free) {
-      if (backendData.free.cv_per_week !== undefined) this.TIERS[0].cv_weekly_limit = backendData.free.cv_per_week;
-      if (backendData.free.day_cap !== undefined) this.TIERS[0].cv_daily_limit = backendData.free.day_cap;
-      if (backendData.free.price !== undefined) this.TIERS[0].price = backendData.free.price;
-      if (backendData.free.ai_magic !== undefined) this.TIERS[0].ai_magic = backendData.free.ai_magic;
-    }
-    if (backendData.pro) {
-      if (backendData.pro.cv_per_week !== undefined) this.TIERS[1].cv_weekly_limit = backendData.pro.cv_per_week;
-      if (backendData.pro.day_cap !== undefined) this.TIERS[1].cv_daily_limit = backendData.pro.day_cap;
-      if (backendData.pro.price !== undefined) this.TIERS[1].price = backendData.pro.price;
-      if (backendData.pro.ai_magic !== undefined) this.TIERS[1].ai_magic = backendData.pro.ai_magic;
-    }
-    if (backendData.elite) {
-      if (backendData.elite.cv_per_week !== undefined) this.TIERS[2].cv_weekly_limit = backendData.elite.cv_per_week;
-      if (backendData.elite.day_cap !== undefined) this.TIERS[2].cv_daily_limit = backendData.elite.day_cap;
-      if (backendData.elite.price !== undefined) this.TIERS[2].price = backendData.elite.price;
-      if (backendData.elite.ai_magic !== undefined) this.TIERS[2].ai_magic = backendData.elite.ai_magic;
-    }
-
-    // --- Format B: Numeric keys (legacy DB format {0,1,2}) ---
-    const numericMap = { '0': 0, '1': 1, '2': 2 };
-    for (const [key, tierIndex] of Object.entries(numericMap)) {
+    // Normalize Format A: Named keys (free, pro, elite)
+    const namedMap = { 'free': 0, 'pro': 1, 'elite': 2 };
+    for (const [key, index] of Object.entries(namedMap)) {
       const src = backendData[key];
       if (!src) continue;
-      if (src.cv_weekly_limit !== undefined) this.TIERS[tierIndex].cv_weekly_limit = src.cv_weekly_limit;
-      if (src.cv_daily_limit !== undefined) this.TIERS[tierIndex].cv_daily_limit = src.cv_daily_limit;
-      if (src.price !== undefined) this.TIERS[tierIndex].price = src.price;
-      if (src.ai_magic !== undefined) this.TIERS[tierIndex].ai_magic = src.ai_magic;
+      
+      const target = this.TIERS[index];
+      if (src.cv_per_week !== undefined) target.cv_weekly_limit = src.cv_per_week;
+      if (src.day_cap !== undefined) target.cv_daily_limit = src.day_cap;
+      if (src.price !== undefined) target.price = src.price;
+      if (src.ai_magic !== undefined) target.ai_magic = src.ai_magic;
+      
+      // Also handle legacy keys in the backend data if they exist
+      if (src.cv_weekly_limit !== undefined) target.cv_weekly_limit = src.cv_weekly_limit;
+      if (src.cv_daily_limit !== undefined) target.cv_daily_limit = src.cv_daily_limit;
+    }
+
+    // Normalize Format B: Numeric keys ('0', '1', '2')
+    const numericMap = { '0': 0, '1': 1, '2': 2 };
+    for (const [key, index] of Object.entries(numericMap)) {
+      const src = backendData[key];
+      if (!src) continue;
+      
+      const target = this.TIERS[index];
+      if (src.cv_weekly_limit !== undefined) target.cv_weekly_limit = src.cv_weekly_limit;
+      if (src.cv_per_week !== undefined) target.cv_weekly_limit = src.cv_per_week;
+      if (src.cv_daily_limit !== undefined) target.cv_daily_limit = src.cv_daily_limit;
+      if (src.day_cap !== undefined) target.cv_daily_limit = src.day_cap;
+      if (src.price !== undefined) target.price = src.price;
+      if (src.ai_magic !== undefined) target.ai_magic = src.ai_magic;
     }
   },
 
   async init() {
     try {
       // 1. Initial Fetch
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'tiered_quotas')
@@ -86,10 +96,10 @@ export const quotaService = {
         
       if (data && data.value) {
         this.updateTiersFromBackend(data.value);
-        console.log('[QUOTA ENGINE] Migrated configs from Backend Hub');
+        console.log('[QUOTA ENGINE] Neural Config Hydrated');
       }
 
-      // 2. Real-time Realignment
+      // 2. Real-time Subscription
       supabase.channel('system_config_quota_changes')
         .on('postgres_changes', { 
             event: '*', 
@@ -99,23 +109,25 @@ export const quotaService = {
         }, (payload) => {
           if (payload.new && payload.new.value) {
             this.updateTiersFromBackend(payload.new.value);
-            window.dispatchEvent(new CustomEvent('quota-prices-updated'));
-            console.log('[QUOTA ENGINE] Real-time limits updated via Portal');
+            window.dispatchEvent(new CustomEvent('quota-prices-updated', { detail: payload.new.value }));
+            console.log('[QUOTA ENGINE] Real-time Ripple: Config Updated');
           }
         })
         .subscribe();
     } catch (err) {
-      console.warn('[QUOTA ENGINE] Failed to sync with Backend. Using local strict rules.');
+      console.warn('[QUOTA ENGINE] Fallback to Hardcoded Strict Rules');
     }
   },
 
   getCountryLimit(planType) {
-    const pType = (planType !== undefined) ? planType : 0;
-    return this.TIERS[String(pType)]?.country_slots || this.TIERS[pType]?.country_slots || 1;
+    const index = this.normalizePlanType(planType);
+    return this.TIERS[index]?.country_slots || 1;
   },
 
   async checkLockoutStatus(profile) {
-    if (!profile || profile.plan_type !== 0) return false;
+    const index = this.normalizePlanType(profile?.plan_type);
+    if (index !== 0) return false; // Only free tier has 14-day lock
+    
     if (!profile.created_at) return false;
     const createdAt = new Date(profile.created_at);
     const now = new Date();
@@ -124,9 +136,6 @@ export const quotaService = {
     return diffDays > this.TIERS[0].max_life_days;
   },
 
-  /**
-   * Calculates usage stats based on activity logs from Supabase.
-   */
   async getUsageStats(userEmail) {
     if (!userEmail) return { weeklyCount: 0, dailyCount: 0 };
     
@@ -135,68 +144,54 @@ export const quotaService = {
         const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000)).toISOString();
         const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
 
-        // 1. Weekly Count
-        const { count: weeklyCount, error: weekError } = await supabase
+        const { count: weeklyCount } = await supabase
             .from('user_activity')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userEmail)
             .eq('action', 'CV_EXPORT')
             .gt('created_at', oneWeekAgo);
 
-        if (weekError) throw weekError;
-
-        // 2. Daily Count
-        const { count: dailyCount, error: dayError } = await supabase
+        const { count: dailyCount } = await supabase
             .from('user_activity')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userEmail)
             .eq('action', 'CV_EXPORT')
             .gt('created_at', oneDayAgo);
 
-        if (dayError) throw dayError;
-
-        console.log(`[QUOTA ENGINE] Real-time usage for ${userEmail}: ${dailyCount}d / ${weeklyCount}w`);
-
         return {
           weeklyCount: weeklyCount || 0, 
           dailyCount: dailyCount || 0
         };
     } catch (error) {
-        console.error('Error fetching real-time usage stats:', error);
         return { weeklyCount: 0, dailyCount: 0 };
     }
   },
 
-  /**
-   * Gatekeeper: Determines if a user can perform a CV action.
-   */
   async canPerformAction(profile, actionId = 'CV_EXPORT') {
-    // Determine user plan (default to 0 if undefined)
-    const planType = (profile && profile.plan_type !== undefined) ? profile.plan_type : 0;
+    if (!profile) return { can: false, reason: 'AUTH_REQUIRED' };
     
-    // Super user or Tier 3 (plan_type 2) bypasses limits
-    if ((profile && profile.is_admin) || planType === 2) {
+    const index = this.normalizePlanType(profile.plan_type);
+    
+    // Super user or Tier 3 (Elite) bypasses limits
+    if (profile.is_admin || index === 2 || profile.isSuperUser) {
       return { can: true };
     }
 
-    // Enforce 14-day lock for Free tier (plan_type 0)
-    if (planType === 0) {
+    // 14-day lock for Free tier
+    if (index === 0) {
       const isLocked = await this.checkLockoutStatus(profile);
       if (isLocked) {
         return { can: false, reason: 'ACCOUNT_LOCKED', limit: this.TIERS[0].max_life_days };
       }
     }
 
-    // Check real usage from database (using email as ID)
     const stats = await this.getUsageStats(profile.email);
-    const tier = this.TIERS[planType] || this.TIERS[0];
+    const tier = this.TIERS[index];
 
-    // Weekly Check
     if (stats.weeklyCount >= tier.cv_weekly_limit) {
       return { can: false, reason: 'WEEKLY_LIMIT', limit: tier.cv_weekly_limit };
     }
 
-    // Daily Check (Tier 1 has a daily limit)
     if (tier.cv_daily_limit && stats.dailyCount >= tier.cv_daily_limit) {
       return { can: false, reason: 'DAILY_LIMIT', limit: tier.cv_daily_limit };
     }
@@ -204,11 +199,8 @@ export const quotaService = {
     return { can: true };
   },
 
-  /**
-   * Keyword Limit Enforcement
-   */
   getKeywordLimit(planType) {
-    const pType = (planType !== undefined) ? planType : 0;
-    return this.TIERS[pType]?.keyword_limit || this.TIERS[0].keyword_limit;
+    const index = this.normalizePlanType(planType);
+    return this.TIERS[index]?.keyword_limit || 5;
   }
 };

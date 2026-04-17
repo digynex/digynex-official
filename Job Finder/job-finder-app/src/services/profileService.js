@@ -106,7 +106,7 @@ export const profileService = {
   async fetchAllProfiles() {
     return await supabase
       .from('profiles')
-      .select('id, name, email, plan_type, is_admin, is_suspended, doc_status, last_seen, created_at')
+      .select('id, name, email, plan_type, is_admin, is_suspended, doc_status, created_at')
       .order('created_at', { ascending: false });
   },
 

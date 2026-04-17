@@ -71,5 +71,40 @@ export const aiService = {
    */
   async generateInsights(profileData) {
      return "Neural Analysis: Profile matches 92% of Tech Leads roles in Scandinavia.";
+  },
+
+  /**
+   * Strategically suggests high-impact keywords based on job description or field.
+   * Logic migrated from App.vue for SoC.
+   */
+  async suggestKeywords(context) {
+    console.log(`[DIGYNEX AI] Triggering Neural Analysis for context: ${context}`);
+    
+    // Simulate engine latency
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Core high-impact keywords often used in high-scale tech roles
+    const library = [
+        'AI Architecture', 'Neural Systems', 'SaaS Scaling', 'Cloud Orchestration', 
+        'n8n Engineering', 'Scalable Backend', 'Distributed Systems', 'Postgres Optimization',
+        'Supabase', 'Docker', 'Kubernetes', 'Python', 'LLM Fine-tuning', 'Vector Databases'
+    ];
+    
+    // In production, this would be an OpenAI call to extract from the specific context
+    // For now, we return 6 random high-quality keywords from the library
+    return library.sort(() => 0.5 - Math.random()).slice(0, 6);
+  },
+
+  /**
+   * Analyzes a job description to extract target expectations.
+   */
+  async analyzeJobDescription(description) {
+      if (!description) return null;
+      // Simulated extraction
+      return {
+          role: "Senior Solutions Architect",
+          requiredExperience: "8+ years",
+          topSkills: ["Cloud Architecture", "System Design", "Scalability"]
+      };
   }
 };

@@ -191,11 +191,11 @@ const hasCVData = computed(() => {
            <div class="bg-white/5 rounded-[2.2rem] p-5 border border-white/5 backdrop-blur-md shadow-2xl">
               <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 block px-1">{{ t('governance.general') }}</span>
               <button @click="$emit('openLegal', 'pricing')" class="w-full flex items-center justify-between py-4 border-b border-white/5 group">
-                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors">{{ t('governance.pricing') }}</span>
+                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors text-left flex-1">{{ t('governance.pricing') }}</span>
                  <ArrowRight class="w-4 h-4 text-white/20 group-hover:text-[#C1A172] transition-all" />
               </button>
               <button @click="$emit('openLegal', 'about')" class="w-full flex items-center justify-between py-4 group">
-                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors">{{ t('governance.about') }}</span>
+                 <span class="text-[13px] font-black text-white/80 uppercase tracking-widest group-hover:text-white transition-colors text-left flex-1">{{ t('governance.about') }}</span>
                  <ArrowRight class="w-4 h-4 text-white/20 group-hover:text-[#C1A172] transition-all" />
               </button>
            </div>
@@ -205,26 +205,26 @@ const hasCVData = computed(() => {
               <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 block px-1">{{ t('governance.legal') }}</span>
               <div class="space-y-1">
                  <button @click="$emit('openLegal', 'privacy')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
-                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.privacy') }}</span>
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors text-left flex-1">{{ t('governance.privacy') }}</span>
                     <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
                  </button>
                  <button @click="$emit('openLegal', 'terms')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
-                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.terms') }}</span>
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors text-left flex-1">{{ t('governance.terms') }}</span>
                     <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
                  </button>
                  <button @click="$emit('openLegal', 'security')" class="w-full flex items-center justify-between py-3.5 border-b border-white/5 group">
-                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.security') }}</span>
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors text-left flex-1">{{ t('governance.security') }}</span>
                     <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
                  </button>
                  <button @click="$emit('openLegal', 'refund')" class="w-full flex items-center justify-between py-3.5 group">
-                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors">{{ t('governance.refund') }}</span>
+                    <span class="text-[13px] font-bold text-white/60 uppercase tracking-widest group-hover:text-white/90 transition-colors text-left flex-1">{{ t('governance.refund') }}</span>
                     <ArrowRight class="w-3.5 h-3.5 text-white/10 group-hover:text-white/30" />
                  </button>
               </div>
            </div>
            
            <!-- SECTION 3: NEURAL MASTER CONTROL (ADMIN ONLY) -->
-           <button v-if="userProfile?.isAdmin && userProfile?.email === 'amilawijayantha858@gmail.com'" 
+           <button v-if="userProfile?.isSuperUser" 
                    @click.stop="$emit('openAdminPanel')"
                    class="w-full p-3.5 bg-gradient-to-r from-[#C1A172]/10 to-[#C1A172]/5 border border-dashed border-[#C1A172]/30 rounded-3xl flex items-center justify-between group transition-all hover:border-[#C1A172] shadow-xl shadow-[#C1A172]/5">
               <div class="flex items-center gap-3">

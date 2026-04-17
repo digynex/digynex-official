@@ -34,10 +34,11 @@ const activeTierSelector = ref(null)
 // --- SYSTEM CONFIG ENGINE (NEW V12.0) ---
 const configData = ref({
     free: { cv_per_week: 2, day_cap: 3, price: 0, ai_magic: false },
-    pro: { cv_per_week: 6, day_cap: 3, price: 19, ai_magic: true },
+    pro: { cv_per_week: 6, day_cap: 3, price: 29, ai_magic: true },
     elite: { cv_per_week: 999, day_cap: 999, price: 49, ai_magic: true }
 })
 const isSavingConfig = ref(false)
+const broadcastMessage = ref('Global Neural System Upgrade Initiated.')
 
 const fetchConfig = async () => {
     try {
@@ -73,28 +74,33 @@ const saveConfig = async () => {
     try {
         // WHY: Always save in named {free,pro,elite} format with all fields.
         // quotaService.updateTiersFromBackend() and fetchConfig() both handle this format.
-        const { error } = await supabase.from('system_config').upsert({ key: 'tiered_quotas', value: configData.value })
+        // STRICT SYNC: Specify onConflict to ensure 'key' is used as the unique identifier for updates
+        const { error } = await supabase
+            .from('system_config')
+            .upsert({ 
+                key: 'tiered_quotas', 
+                value: configData.value 
+            }, { onConflict: 'key' })
         if (error) throw error
         emit('sendNotification', 'STRATEGIC ENGINE UPDATED: CHANGES LIVE')
     } catch (err) {
-        emit('sendNotification', 'CONFIG SYNC FAILED')
+        console.error('[ADMIN] Persistence Failure:', err)
+        emit('sendNotification', 'CONFIG SYNC FAILED: ' + (err.message || 'DATABASE REJECTION'))
     } finally {
         isSavingConfig.value = false
     }
 }
 
-onMounted(async () => {
-    await fetchConfig()
+const fetchAllUsers = async () => {
     try {
         const { data, error } = await profileService.fetchAllProfiles()
         if (error) throw error
         
-        // Handle BOTH formats: numeric (0,1,2) and string ('free','pro','elite','growth')
         const normalizeTier = (pt) => {
             if (pt === 0 || pt === '0' || pt === 'free')   return 'Free'
             if (pt === 1 || pt === '1' || pt === 'pro')    return 'Pro'
             if (pt === 2 || pt === '2' || pt === 'elite')  return 'Elite'
-            if (pt === 'growth')                            return 'Pro' // legacy alias
+            if (pt === 'growth')                            return 'Pro'
             return 'Free'
         }
         
@@ -105,48 +111,98 @@ onMounted(async () => {
                 email: u.email || 'No Email',
                 tier: normalizeTier(u.plan_type),
                 doc_status: u.doc_status || 'Draft',
-                lastSeen: u.last_seen || 'New',
+                lastSeen: 'Real-time Signal',
                 joined: u.created_at || new Date().toISOString(),
                 isAdmin: u.is_admin || false,
                 isSuspended: u.is_suspended || false
             }))
-        } else {
-            throw new Error("No profiles found, using mocks")
         }
     } catch (err) {
-        console.warn("Neural Fetch Failed or Empty, loading mock specimens:", err)
-        // Inject fake data for testing so the UI is not empty
-        users.value = [
-            { id: 'usr_1', name: 'Alex T.', email: 'alex@example.com', tier: 'Free', doc_status: 'Draft', lastSeen: '10 mins ago', joined: '2026-04-10', isAdmin: false, isSuspended: false },
-            { id: 'usr_2', name: 'Sarah G.', email: 'sarah.g@mail.com', tier: 'Pro', doc_status: 'Verified', lastSeen: '2 hours ago', joined: '2026-04-12', isAdmin: true, isSuspended: false },
-            { id: 'usr_3', name: 'Amila M.', email: 'amila@digynex.com', tier: 'Elite', doc_status: 'Pending_Approval', lastSeen: 'Just now', joined: '2026-04-15', isAdmin: false, isSuspended: false },
-            { id: 'usr_4', name: 'John D.', email: 'john.d@web.co', tier: 'Free', doc_status: 'Draft', lastSeen: '1 day ago', joined: '2026-04-05', isAdmin: false, isSuspended: true },
-        ]
+        console.warn("Neural Fetch Failed, using mocks if list empty:", err)
+        if (users.value.length === 0) {
+            users.value = [
+                { id: 'usr_1', name: 'Alex T.', email: 'alex@example.com', tier: 'Free', doc_status: 'Draft', lastSeen: '10 mins ago', joined: '2026-04-10', isAdmin: false, isSuspended: false },
+                { id: 'usr_2', name: 'Sarah G.', email: 'sarah.g@mail.com', tier: 'Pro', doc_status: 'Verified', lastSeen: '2 hours ago', joined: '2026-04-12', isAdmin: true, isSuspended: false },
+                { id: 'usr_3', name: 'Amila M.', email: 'amila@digynex.com', tier: 'Elite', doc_status: 'Pending_Approval', lastSeen: 'Just now', joined: '2026-04-15', isAdmin: false, isSuspended: false },
+                { id: 'usr_4', name: 'John D.', email: 'john.d@web.co', tier: 'Free', doc_status: 'Draft', lastSeen: '1 day ago', joined: '2026-04-05', isAdmin: false, isSuspended: true },
+            ]
+        }
     }
+}
+
+onMounted(async () => {
+    await fetchConfig()
+    await fetchFinanceStats()
+    await fetchAllUsers()
+
+    // REAL-TIME SYNC: PostgreSQL Changes
+    supabase.channel('admin_config_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' }, () => {
+            fetchFinanceStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+            console.log('[ADMIN] Profiles Updated - Refreshing All Specs');
+            fetchFinanceStats();
+            fetchAllUsers();
+        })
+        .subscribe();
 })
+
+const financeStats = ref([
+    { id: 1, label: 'Monthly Revenue', value: '$0', sub: 'MRR', trend: '+0%', up: true, color: '#C1A172', icon: DollarSign },
+    { id: 2, label: 'Active Subscribers', value: '0', sub: 'Users', trend: '+0%', up: true, color: '#38BDF8', icon: Users },
+    { id: 3, label: 'AI Token Burn', value: '0', sub: 'Tokens/mo', trend: 'N/A', up: false, color: '#F472B6', icon: Zap },
+    { id: 4, label: 'Founder Passes', value: '0', sub: 'of 100 sold', trend: 'N/A', up: true, color: '#34D399', icon: Sparkles },
+])
+
+const fetchFinanceStats = async () => {
+    try {
+        const { data: allUsers } = await supabase.from('profiles').select('plan_type, is_suspended');
+        if (!allUsers) return;
+
+        const activeUsers = allUsers.filter(u => !u.is_suspended);
+        const subCount = activeUsers.filter(u => u.plan_type === 'pro' || u.plan_type === 'elite' || u.plan_type === 1 || u.plan_type === 2).length;
+
+        // Calculate MRR (Monthly Recurring Revenue)
+        let mrr = 0;
+        let proRev = 0;
+        let eliteRev = 0;
+
+        activeUsers.forEach(u => {
+            const tier = String(u.plan_type).toLowerCase();
+            if (tier === 'pro' || tier === '1') { mrr += 29; proRev += 29; }
+            if (tier === 'elite' || tier === '2') { mrr += 49; eliteRev += 49; }
+        });
+
+        financeStats.value[0].value = `$${mrr.toLocaleString()}`;
+        financeStats.value[1].value = activeUsers.length.toLocaleString();
+        financeStats.value[2].value = (activeUsers.length * 1200 / 1000).toFixed(1) + 'k'; // Est. token burn
+        
+        // Update Chart Data
+        revenueBreakdown.value.datasets[0].data = [0, proRev, eliteRev, 4470]; // Founder is still mock for now
+        
+        console.log('[ADMIN] Financial Telemetry & Charts Refreshed');
+    } catch (err) {
+        console.error('[ADMIN] Telemetry Error:', err);
+    }
+}
 
 const authenticateAdmin = () => {
     if (adminPin.value === '8580') {
         isAdminAuthenticated.value = true
         isSuperAdmin.value = true
         authError.value = ''
+        fetchFinanceStats() // Trigger real telemetry on auth
     } else if (neuralKeys.includes(adminPin.value)) {
         isAdminAuthenticated.value = true
         isSuperAdmin.value = false
         authError.value = ''
+        fetchFinanceStats()
     } else {
         authError.value = 'NEURAL ACCESS DENIED: IDENTITY UNVERIFIED'
         adminPin.value = ''
     }
 }
-
-// ─── FINANCIAL TELEMETRY (Stripe-Ready — Replace values with API) ───────────
-const financeStats = [
-    { id: 1, label: 'Monthly Revenue', value: '$12,450', sub: 'MRR', trend: '+12%', up: true, color: '#C1A172', icon: DollarSign },
-    { id: 2, label: 'Active Subscribers', value: '1,280', sub: 'Users', trend: '+5%', up: true, color: '#38BDF8', icon: Users },
-    { id: 3, label: 'AI Token Burn', value: '8.4M', sub: 'Tokens/mo', trend: '+18%', up: false, color: '#F472B6', icon: Zap },
-    { id: 4, label: 'Founder Passes', value: '33', sub: 'of 100 sold', trend: '+33%', up: true, color: '#34D399', icon: Sparkles },
-]
 
 // ─── AI COST INDEX (per tier) ────────────────────────────────────────────────
 const aiCostData = {
@@ -162,15 +218,15 @@ const aiCostData = {
 }
 
 // ─── REVENUE BREAKDOWN (Stripe-ready mock) ───────────────────────────────────
-const revenueBreakdown = {
-    labels: ['Free', 'Pro ($19)', 'Elite ($49)', 'Founder ($149)'],
+const revenueBreakdown = ref({
+    labels: ['Free', 'Pro ($29)', 'Elite ($49)', 'Founder ($149)'],
     datasets: [{
-        data: [0, 4750, 6860, 4470],
+        data: [0, 0, 0, 4470],
         backgroundColor: ['#1e293b', '#38BDF8', '#C1A172', '#34D399'],
         borderWidth: 0,
         hoverOffset: 10,
     }]
-}
+})
 
 const donutOptions = {
     responsive: true,
@@ -236,30 +292,45 @@ const updateTier = async (userId, newTier) => {
 
 const editingUser = ref(null)
 
-const handlePromoteAdmin = (userId) => {
+const handlePromoteAdmin = async (userId) => {
     const user = users.value.find(u => u.id === userId)
     if (user) {
-        user.isAdmin = !user.isAdmin
-        emit('sendNotification', `IDENTITY UPDATED: ${user.name.toUpperCase()} IS ${user.isAdmin ? 'NOW ADMIN' : 'NO LONGER ADMIN'}`)
+        try {
+            const newAdminStatus = !user.isAdmin
+            const { error } = await profileService.updateAdminStatus(userId, newAdminStatus)
+            if (error) throw error
+            
+            user.isAdmin = newAdminStatus
+            emit('sendNotification', `IDENTITY UPDATED: ${user.name.toUpperCase()} IS ${user.isAdmin ? 'NOW ADMIN' : 'NO LONGER ADMIN'}`)
+        } catch (err) {
+            emit('sendNotification', 'ADMIN OVERRIDE FAILED')
+        }
     }
 }
 
-const handleSuspendUser = (userId) => {
+const handleSuspendUser = async (userId) => {
     const user = users.value.find(u => u.id === userId)
     if (user) {
-        user.isSuspended = !user.isSuspended
-        emit('sendNotification', `SUSPENSION ${user.isSuspended ? 'ISSUED' : 'REVOKED'} FOR ${user.name.toUpperCase()}`)
+        try {
+            const newSuspendedStatus = !user.isSuspended
+            const { error } = await profileService.adminUpdateProfile(userId, { is_suspended: newSuspendedStatus })
+            if (error) throw error
+            
+            user.isSuspended = newSuspendedStatus
+            emit('sendNotification', `SUSPENSION ${user.isSuspended ? 'ISSUED' : 'REVOKED'} FOR ${user.name.toUpperCase()}`)
+        } catch (err) {
+            emit('sendNotification', 'SUSPENSION OVERRIDE FAILED')
+        }
     }
 }
 
 const confirmEdit = async () => {
     if (!editingUser.value) return
     try {
-        const reverseTierMap = { 'Free': 0, 'Pro': 1, 'Elite': 2 }
         const { error } = await profileService.adminUpdateProfile(editingUser.value.id, {
             name: editingUser.value.name,
             email: editingUser.value.email,
-            plan_type: reverseTierMap[editingUser.value.tier],
+            plan_type: editingUser.value.tier.toLowerCase(), // STRICT SYNC: Save as string ('free','pro','elite')
             doc_status: editingUser.value.doc_status
         })
         
@@ -279,25 +350,36 @@ const confirmEdit = async () => {
 const handleMaintenanceToggle = async () => {
     const newState = !props.isMaintenanceMode
     try {
-        const { error } = await supabase.from('system_config').upsert({ 
-            key: 'maintenance_mode', 
-            value: { enabled: newState, message: 'System Recalibration in Progress...' } 
-        })
+        const { error } = await supabase
+            .from('system_config')
+            .upsert({ 
+                key: 'maintenance_mode', 
+                value: { enabled: newState, message: 'System Recalibration in Progress...' } 
+            }, { onConflict: 'key' })
         if (error) throw error
+        
+        // NEURAL SYNC: Immediate local feedback while waiting for real-time pulse
         emit('update:isMaintenanceMode', newState)
         emit('sendNotification', `MAINTENANCE PROTOCOL: ${newState ? 'ENGAGED' : 'DISENGAGED'}`)
     } catch (err) {
-        emit('sendNotification', 'PROTOCOL TRANSITION FAILED')
+        console.error('[ADMIN] Maintenance Transition Error:', err)
+        emit('sendNotification', 'PROTOCOL TRANSITION FAILED: ' + (err.message || 'UNAUTHORIZED'))
     }
 }
 
 const handleQuickAction = async (action) => {
+    // SECURITY: Add confirmation factor for global/destructive actions
+    const isConfirmed = window.confirm(`CONFIRM NEURAL ACTION: ${action.l.toUpperCase()}?\n\nThis will pulse a global signal across all active specimens.`)
+    if (!isConfirmed) return
+
     try {
         if (action.l.includes('Broadcast')) {
-            const { error } = await supabase.from('system_config').upsert({
-                key: 'global_broadcast',
-                value: { active: true, message: 'Global Neural System Upgrade Initiated.', type: 'info' }
-            })
+            const { error } = await supabase
+                .from('system_config')
+                .upsert({
+                    key: 'global_broadcast',
+                    value: { active: true, message: broadcastMessage.value, type: 'info' }
+                }, { onConflict: 'key' })
             if (error) throw error
             emit('sendNotification', 'GLOBAL STRATEGY PULSE COMMITTED')
         } else {
@@ -507,16 +589,36 @@ const chartOptions = {
               </div>
               
               <button @click="handleMaintenanceToggle" 
-                      :class="isMaintenanceMode ? 'bg-[#C1A172] text-[#0A2647] shadow-[0_0_15px_rgba(193,161,114,0.3)]' : 'bg-white/5 text-white/30'"
+                      :class="props.isMaintenanceMode ? 'bg-[#C1A172] text-[#0A2647] shadow-[0_0_15px_rgba(193,161,114,0.3)]' : 'bg-white/5 text-white/30'"
                       class="px-4 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all active:scale-95">
-                 {{ isMaintenanceMode ? 'DEACTIVATE' : 'ACTIVATE' }}
+                 {{ props.isMaintenanceMode ? 'DEACTIVATE' : 'ACTIVATE' }}
+              </button>
+           </div>
+
+           <!-- Global Broadcast Control (Custom Pulse) -->
+           <div v-if="isSuperAdmin" class="bg-white/[0.03] border border-white/5 rounded-[1.8rem] p-3 space-y-3">
+              <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-2">
+                    <Bell class="w-3 h-3 text-[#818CF8]" />
+                    <span class="text-[9px] font-black text-white/60 uppercase tracking-widest">Broadcast Control</span>
+                 </div>
+                 <button @click="async () => {
+                    const { error } = await supabase.from('system_config').upsert({ key: 'global_broadcast', value: { active: false, message: '', type: 'info' } }, { onConflict: 'key' });
+                    if (!error) emit('sendNotification', 'BROADCAST TERMINATED');
+                 }" class="text-[7px] font-black text-pink-500/50 hover:text-pink-500 uppercase tracking-widest transition-colors">Terminate Pulse</button>
+              </div>
+              <textarea v-model="broadcastMessage" 
+                        placeholder="Type your strategic pulse message..."
+                        class="w-full bg-[#051124] border border-white/5 rounded-xl p-3 text-white text-[11px] font-bold placeholder:text-white/10 focus:border-[#818CF8]/30 focus:outline-none transition-all resize-none h-16"></textarea>
+              <button @click="handleQuickAction({l: 'Broadcast Strategy', s: 'Neural Alert', i: Bell, c: '#818CF8'})"
+                      class="w-full py-2 bg-[#818CF8]/20 border border-[#818CF8]/30 rounded-xl text-[8px] font-black text-[#818CF8] uppercase tracking-[0.2em] hover:bg-[#818CF8]/30 active:scale-95 transition-all">
+                 PULSE GLOBAL STRATEGY
               </button>
            </div>
            
            <!-- Quick Action Stack (Compressed Parity) -->
            <div class="flex flex-col gap-1.5">
               <button v-for="action in [
-                 {l: 'Broadcast Strategy', s: 'Neural Alert', i: Bell, c: '#818CF8'}, 
                  {l: 'Purge Test Specs', s: 'Recalibration', i: Trash2, c: '#F87171'}, 
                  {l: 'Force Cloud Sync', s: 'Refresh', i: RefreshCw, c: '#34D399'}
               ]" 
