@@ -1,5 +1,5 @@
-# 🚀 DigyNex Job Finder: Ultimate Unified Blueprint (2026)
-**Version:** V13.1 (Hybrid-Broadcast & 16 Core Locales)
+# CareerNexus: Ultimate Unified Blueprint (2026)
+**Version:** V15.1 (Elite Global Identity Hub)
 **Status:** DEFINITIVE PRODUCTION TARGET — CONNECTIVITY RESTORED
 
 This document consolidates every strategic discussed component, from UI guardrails to n8n backend automation.
@@ -26,6 +26,9 @@ This document consolidates every strategic discussed component, from UI guardrai
     - [x] UI section for AI-driven keyword suggestions based on target job description.
     - [x] **Tier Check:** Explicit "Upgrade to Pro for AI Keywords" gate for Tier 1 users.
 - [x] **Multilingual Logic:** Auto-tailor experience and summary content into 16 Core Global Locales (Economic Hubs).
+### 6. Studio Governance (CV Studio)
+*   **Template Sync (V15.1):** Implemented "Robust Hydration" logic to prevent '0 specimen' regressions. System now auto-retries template fetching on Studio tab activation to ensure 100% specimen visibility.
+*   **Aesthetic Core:** Title/Subtitle synced to CAREERNEXUS / AI CAREER ACCELERATION ENGINE with premium gold accents.
 - [x] **Cover Letter "Elite" Hub:** High-fidelity narrative synthesis with premium typography.
 - [x] **Gotenberg HD Generation:** `pdfService.js` live — browser-print engine active, Gotenberg swap-ready (Set `USE_GOTENBERG = true` in `pdfService.js`).
 - [x] **Neural Density Balancer (V12.9.2):** 
@@ -67,6 +70,7 @@ This document consolidates every strategic discussed component, from UI guardrai
 - [ ] **Step 4: GDPR Auto-Purge:** Logic to delete all user assets/PDFs every 14 days.
 - [ ] **Step 5: Stripe Webhook Sync:** Synchronizing subscription status to Supabase `plan_type`.
 - [x] **Step 6: Headless Broadcast (Hybrid V13.1):**
+    - [x] **Frontend Initiation (Proxy Layer):** 1-Click "Initiate Neural Broadcast" tactical button active in CV Studio. Emits `initiate_broadcast` to central signal dispatcher.
     - [ ] **Tier A (Auto-Native):** LinkedIn Easy Apply / Indeed Quick Apply. Automated via Playwright + Proxy.
     - [x] **Tier B (Manual-Assist):** External Portal Redirection. System generates tailored PDF + Letter -> User submits manually via 1-click toolkit. ✅ (Frontend Ready)
     - [ ] **Infrastructure:** Playwright-based headless browsers with **Residential Proxy Integration** (IP Rotation).

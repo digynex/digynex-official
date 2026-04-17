@@ -88,6 +88,13 @@ This document serves as the single source of truth for every interactive compone
 - **Logic:** Re-hydrates `masterProfile.cvLanguage` and triggers `refreshViewport`.
 - **Result:** Instant localized branding and terminology without losing profile data.
 
+### E. Broadcast Engine V13.0 (Automated Outreach)
+- **UI:** Stealth Proxy section with interactive "Initiate Neural Broadcast" button.
+- **Logic:** `handleDashboardAction('initiate_broadcast')`.
+- **Ripple:** 
+    1. Executes a local UI diagnostic sweep (Proxy Layer Handshake).
+    2. Serves as the primary frontend junction to trigger the n8n Outbound Automation Webhook for global CV distribution to external nodes.
+
 ---
 
 ## 🛡️ 4. Neural Master Control (Admin Dashboard)

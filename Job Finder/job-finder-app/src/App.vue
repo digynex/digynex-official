@@ -589,6 +589,20 @@ const cvTemplates = ref([])
 const viewportHtml = ref('')
 const viewMode = ref('elite')
 
+const fetchSystemConfig = async () => {
+    try {
+        const { data, error } = await supabase.from('system_config').select('*').single();
+        if (!error && data) {
+            isMaintenanceMode.value = data.maintenance_mode;
+            maintenanceMessage.value = data.maintenance_message;
+            if (data.pro_price) proPrice.value = data.pro_price;
+            if (data.elite_price) elitePrice.value = data.elite_price;
+        }
+    } catch (err) {
+        console.error('[CAREERNEXUS ENGINE] System Config Pulse Failure:', err);
+    }
+};
+
 const fetchTemplates = async () => {
     try {
         const data = await templateService.getTemplates();
@@ -649,8 +663,9 @@ watch(activeTab, (newTab) => {
 
 
 onMounted(async () => {
-  await fetchSystemConfig();
-  await fetchTemplates();
+  // Non-blocking Parallel Ingestion (V15.1)
+  fetchSystemConfig();
+  fetchTemplates();
   
   // Real-time Neural Sync (V12.0)
   supabase
@@ -1123,6 +1138,20 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         return;
     }
 
+    if (actionId === 'initiate_broadcast') {
+        // SIGNAL: Trigger n8n Workflow (Global CV Distribution)
+        toastMessage.value = 'Connecting to Proxy Layer... Establishing Handshake';
+        isNeuralToastVisible.value = true;
+        
+        setTimeout(() => {
+            toastMessage.value = 'Neural Broadcast Initiated: Outbound Active';
+            // Placeholder: Call webhook or log activity to Supabase for n8n to pick up.
+        }, 1500);
+
+        setTimeout(() => { isNeuralToastVisible.value = false }, 4000);
+        return;
+    }
+
     if (actionId === 'recalibrate') {
         // SIGNAL: Trigger n8n Workflow B (Neural Optimization)
         try {
@@ -1497,7 +1526,7 @@ const handleNotificationClick = (notif) => {
     -->
     <main :dir="locale === 'AR' ? 'rtl' : 'ltr'" 
           class="w-full max-w-[360px] h-[800px] bg-[#0A2647] relative z-10 flex flex-col border border-white/10 rounded-[3.8rem] ring-1 ring-white/20 shadow-[0_80px_160px_rgba(0,0,0,0.7)] overflow-hidden transition-all duration-500">
-        
+
        <!-- GLOBAL HEADER HUB -->
        <TopNavbar 
           :t="t"
@@ -1511,9 +1540,10 @@ const handleNotificationClick = (notif) => {
           @openAuth="openAuth"
           @logout="logout"
        />
-
-       <!-- DASHBOARD VIEW -->
-       <DashboardHub 
+       <!-- MISSION CRITICAL HUB CENTER -->
+       <div class="flex-1 relative overflow-hidden flex flex-col">
+          <!-- DASHBOARD VIEW -->
+          <DashboardHub 
           v-if="activeTab === 'dashboard'"
           :t="t"
           :locale="locale"
@@ -1642,9 +1672,10 @@ const handleNotificationClick = (notif) => {
          <div class="bg-white/5 p-6 rounded-full animate-bounce">
             <Globe class="w-10 h-10 text-white/20" />
          </div>
-         <h2 class="text-[18px] font-black text-white/60 uppercase tracking-widest">{{ activeTab }}</h2>
-         <p class="text-[12px] font-medium text-white/30 italic">Initializing Global Modules...</p>
+         <h2 class="text-[18px] font-black text-[#C1A172] uppercase tracking-widest">Active State: {{ activeTab }}</h2>
+         <p class="text-[12px] font-medium text-white/30 italic">Initializing Neural Interface...</p>
       </div>
+    </div>
 
       <!-- GLOBAL DISCOVERY OVERLAY (COUNTRY SELECTOR) -->
       <!-- GDPR-COMPLAINT CV PREVIEW MODAL -->

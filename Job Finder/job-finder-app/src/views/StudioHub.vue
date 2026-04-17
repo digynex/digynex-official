@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { 
   Sparkles, Check, Lock, X, RefreshCw, ArrowRight, Stars, Zap, DownloadCloud, ShieldCheck, 
   Globe, Languages, ChevronDown
@@ -184,7 +184,7 @@ const engineTips = {
                  </button>
                  <button @click="$emit('setPreviewMode', 'letter')"
                          class="relative z-10 flex-1 h-full text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500"
-                         :class="previewMode === 'cv' ? 'text-[#0A2647]' : 'text-white/25 group-hover/toggle:text-white/50'">
+                         :class="previewMode === 'letter' ? 'text-[#0A2647]' : 'text-white/25 group-hover/toggle:text-white/50'">
                     LETTER
                  </button>
               </div>
@@ -301,6 +301,12 @@ const engineTips = {
                    <span class="text-[8px] font-black text-white/30 uppercase tracking-widest">Dynamic IP Rotation Enabled</span>
                 </div>
             </div>
+               
+            <!-- TACTICAL INITIATION BUTTON -->
+            <button @click="$emit('handleAction', 'initiate_broadcast')" 
+                    class="mt-4 w-full py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-2xl text-[10px] font-black text-blue-300 uppercase tracking-widest transition-all shadow-[0_5px_20px_rgba(59,130,246,0.15)] hover:shadow-[0_5px_25px_rgba(59,130,246,0.25)] active:scale-95">
+                Initiate Neural Broadcast
+            </button>
 
             <!-- Interactivity Overlay -->
             <Transition name="fade">
