@@ -34,7 +34,7 @@ const emit = defineEmits([
          <div class="flex justify-center">
             <div class="relative group">
               <div class="p-1.5 bg-gradient-to-br from-[#144272] to-[#0A2647] rounded-full flex items-center justify-center border-2 border-white/40 shadow-[-10px_-10px_30px_rgba(255,255,255,0.05),15px_15px_35px_rgba(0,0,0,0.6)] overflow-hidden scale-100 transition-all hover:scale-110 active:scale-95 duration-500">
-                 <img src="/digynex-icon.png" alt="DigyNex" class="h-10 w-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]" />
+                 <img src="/logo.png" alt="CareerNexus" class="h-10 w-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]" />
               </div>
               <div class="absolute -inset-1 border border-white/10 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"></div>
             </div>
@@ -53,7 +53,7 @@ const emit = defineEmits([
     <!-- Branding Text Hub -->
     <div class="flex flex-col items-center mt-4 mb-1">
       <h1 class="text-[17px] font-black text-white uppercase tracking-[0.2em] leading-tight font-jakarta">{{ t('header.title') }}</h1>
-      <p class="text-[15px] font-black text-white uppercase tracking-[0.25em] -mt-1 font-jakarta">{{ t('header.subtitle') }}</p>
+      <p class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.4em] mt-1 font-jakarta opacity-80">{{ t('header.subtitle') }}</p>
     </div>
 
     <!-- Language Pill Unit -->

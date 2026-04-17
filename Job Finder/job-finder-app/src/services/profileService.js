@@ -42,6 +42,14 @@ export const profileService = {
   },
 
   /**
+   * Universal Profile Update: Handles targeted field updates for statuses like 'doc_status'.
+   */
+  async updateProfile(userId, updates) {
+    if (!userId) return { error: 'No ID provided for update' };
+    return await supabase.from('profiles').update(updates).eq('id', userId);
+  },
+
+  /**
    * Retrieves the extended profile for a specific user.
    * @param {string} userId - The unique UUID of the user.
    */

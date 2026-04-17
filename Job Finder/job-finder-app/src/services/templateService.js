@@ -293,10 +293,10 @@ export const templateService = {
   async getCoverLetterHtml(text, colors, profile) {
     const primary = colors.primary || '#0A2647';
     const secondary = colors.secondary || '#C1A172';
-    const name = profile.basic?.fullName || 'Professional Candidate';
-    const email = profile.basic?.email || '';
-    const phone = profile.basic?.phone || '';
-    const location = profile.basic?.location || '';
+    const name = profile?.basic?.fullName || profile?.name || 'Professional Identity';
+    const email = profile?.basic?.email || profile?.email || '';
+    const phone = profile?.basic?.phone || '';
+    const location = profile?.basic?.location || '';
     const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
     return `

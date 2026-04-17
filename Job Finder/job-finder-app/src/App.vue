@@ -567,7 +567,7 @@ const handleGenerateCoverLetter = () => {
 const handleUpdateCoverLetter = async (text) => {
    if (!isAuthenticated.value) return;
    coverLetterText.value = text;
-   isSavingProfile.value = true;
+   // BG SYNC: No blocking spinner for editing (Kinetic UX)
    try {
       const user = await authService.getUser();
       if (user) {
@@ -578,11 +578,8 @@ const handleUpdateCoverLetter = async (text) => {
       }
    } catch (err) {
       console.error('Failed to sync cover letter:', err);
-      toastMessage.value = 'Sync Error: Connection Unstable';
-      isNeuralToastVisible.value = true;
    } finally {
-      isSavingProfile.value = false;
-      setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
+      // Background sync complete
    }
 }
 const isCompilingLatex = ref(false)
@@ -591,6 +588,20 @@ const isCVPreviewOpen = ref(false)
 const cvTemplates = ref([])
 const viewportHtml = ref('')
 const viewMode = ref('elite')
+
+const fetchTemplates = async () => {
+    try {
+        const data = await templateService.getTemplates();
+        if (data && data.length > 0) {
+            cvTemplates.value = data;
+            console.log(`[CAREERNEXUS ENGINE] ${data.length} Templates Hydrated.`);
+        } else {
+            console.warn('[CAREERNEXUS ENGINE] Template fetch returned empty or null. Retrying in background...');
+        }
+    } catch (err) {
+        console.error('[CAREERNEXUS ENGINE] Template Loading Failure:', err);
+    }
+};
 
 const getCVLabels = (lang) => {
     const msg = i18n.global.getLocaleMessage(lang || 'EN');
@@ -630,6 +641,7 @@ watch([
 
 watch(activeTab, (newTab) => {
     if (newTab === 'studio') {
+        if (cvTemplates.value.length === 0) fetchTemplates();
         refreshViewport();
     }
 })
@@ -638,6 +650,7 @@ watch(activeTab, (newTab) => {
 
 onMounted(async () => {
   await fetchSystemConfig();
+  await fetchTemplates();
   
   // Real-time Neural Sync (V12.0)
   supabase
@@ -648,12 +661,6 @@ onMounted(async () => {
     })
     .subscribe();
 
-  // 1. Load available templates from Supabase
-  const data = await templateService.getTemplates();
-  if (data && data.length > 0) {
-    cvTemplates.value = data;
-  }
-  
   // 2. Initialize user session and profile with Real-time Sync
   authService.onAuthStateChange((event, session) => {
     console.log(`[DIGYNEX AUTH] Event: ${event}`);
@@ -1226,10 +1233,13 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         isNeuralToastVisible.value = true;
         
         try {
-            await profileService.updateProfile(userProfile.value.email, { 
-                doc_status: 'Pending_Approval' 
-            });
-            userProfile.value.doc_status = 'Pending_Approval';
+            const user = await authService.getUser();
+            if (user) {
+                await profileService.updateProfile(user.id, { 
+                    doc_status: 'Pending_Approval' 
+                });
+                userProfile.value.doc_status = 'Pending_Approval';
+            }
             
             await profileService.logActivity(userProfile.value.email, 'STRATEGY_AUDIT_REQUESTED', {
                 timestamp: new Date().toISOString()
@@ -1904,8 +1914,8 @@ const handleNotificationClick = (notif) => {
             class="absolute bottom-[76px] left-0 right-0 flex flex-col items-center z-[1001] pointer-events-none transition-all duration-500">
           <div class="flex items-center gap-2.5 opacity-40 mb-[1px]">
              <span class="text-[7.5px] font-black text-white/30 uppercase tracking-[0.2em]">{{ t('footer.poweredBy') }}</span>
-             <img src="/digynex-icon.png" alt="DigyNex" class="h-2.5 w-auto object-contain opacity-30" />
-             <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.1em]">DigyNex Identity Hub</span>
+             <img src="/logo.png" alt="DigyNex" class="h-2.5 w-auto object-contain opacity-30" />
+             <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.1em]">CareerNexus Identity Hub</span>
           </div>
           <p class="text-[6px] font-black text-white/25 tracking-[0.5em] uppercase mt-[1px] italic">{{ t('footer.engine') }} • {{ t('footer.version') }}</p>
        </div>

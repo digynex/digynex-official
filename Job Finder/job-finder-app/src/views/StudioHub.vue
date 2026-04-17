@@ -35,10 +35,20 @@ const handleDashboardAction = (action) => emit('handleAction', action)
 const updateSelectedTemplate = (id) => emit('update:selectedTemplate', id)
 const generateCoverLetter = () => emit('generateCoverLetter')
 
-// V13.0 Interactive Engine Documentation
 const activeTip = ref(null)
 const toggleTip = (id) => {
   activeTip.value = activeTip.value === id ? null : id
+}
+
+// Local state for smooth editing (Persistence is handled on Sync)
+const localLetterText = ref(props.coverLetterText || '')
+watch(() => props.coverLetterText, (newVal) => {
+  if (newVal !== localLetterText.value) localLetterText.value = newVal
+})
+
+const syncLetterToMaster = () => {
+  emit('updateCoverLetter', localLetterText.value)
+  emit('saveProfile')
 }
 
 const engineTips = {
@@ -405,10 +415,9 @@ const engineTips = {
             </div>
            
            <textarea 
-              :value="coverLetterText" 
-              @input="e => emit('updateCoverLetter', e.target.value)"
+              v-model="localLetterText" 
               placeholder="Click AI RE-GEN to synthesize your strategy..."
-              class="w-full h-32 bg-black/20 border border-white/5 rounded-2xl p-3.5 text-[11px] text-white/90 placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#73BBA3]/40 transition-all no-scrollbar resize-none font-jakarta italic leading-relaxed"
+              class="w-full h-32 bg-black/20 border border-white/5 rounded-2xl p-3.5 text-[11px] text-white/90 placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#73BBA3]/40 transition-all no-scrollbar resize-y font-jakarta italic leading-relaxed"
            ></textarea>
            
            <div class="mt-3 flex flex-col gap-2.5">
@@ -420,7 +429,7 @@ const engineTips = {
                   </div>
                </div>
                
-               <button @click="saveProfile" 
+               <button @click="syncLetterToMaster" 
                        class="w-full py-3 bg-[#73BBA3] hover:bg-[#5DA08A] rounded-[1.4rem] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg group/confirm border border-white/10">
                   <Check class="w-3.5 h-3.5 text-[#0A2647]" />
                   <span class="text-[10px] font-black text-[#0A2647] uppercase tracking-widest">Confirm & Sync</span>
