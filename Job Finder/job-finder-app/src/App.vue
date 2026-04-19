@@ -1508,7 +1508,7 @@ const handleNotificationClick = (notif) => {
 
     <!-- GLOBAL MAINTENANCE OVERLAY (NEURAL LOCK) -->
     <div v-if="isMaintenanceMode && !userProfile?.isSuperUser" class="fixed inset-0 z-[10000] bg-[#0A2647] flex flex-col items-center justify-center p-8 text-center">
-       <div class="bg-white/5 p-8 rounded-[3rem] border border-white/10 backdrop-blur-3xl shadow-3xl max-w-md w-full animate-in zoom-in-95 duration-700">
+       <div class="bg-white/5 p-8 rounded-[3rem] border border-white/10 backdrop-blur-3xl shadow-3xl max-w-[360px] w-full animate-in zoom-in-95 duration-700">
           <div class="bg-[#C1A172] p-4 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(193,161,114,0.4)]">
              <AlertTriangle class="w-10 h-10 text-[#0A2647]" />
           </div>
@@ -1685,7 +1685,7 @@ const handleNotificationClick = (notif) => {
             <div @click="isCVModalOpen = false" class="absolute inset-0 bg-[#0A2647]/90 backdrop-blur-2xl"></div>
             
             <!-- MODAL CARD -->
-            <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl animate-in slide-in-from-bottom duration-300 flex flex-col max-h-[85vh]">
+            <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl animate-in slide-in-from-bottom duration-300 flex flex-col max-h-[85vh]">
                 <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
                    <div class="flex items-center gap-3">
                       <div class="bg-[#2C74B3]/20 p-2 rounded-xl">
@@ -1768,7 +1768,7 @@ const handleNotificationClick = (notif) => {
             <div @click="isLinkedInModalOpen = false" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
             
             <!-- MODAL CARD -->
-            <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
+            <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
                <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
                   <div class="flex items-center gap-3">
                      <div class="bg-[#0077b5]/20 p-2 rounded-xl border border-[#0077b5]/30">
@@ -1809,7 +1809,7 @@ const handleNotificationClick = (notif) => {
             <div @click="showCountrySelector = false" class="absolute inset-0 bg-[#0A2647]/80 backdrop-blur-xl"></div>
             
             <!-- MODAL CONTENT -->
-            <div class="relative w-full max-w-lg bg-[#0A2647] border border-white/10 rounded-t-[2.5rem] sm:rounded-[40px] overflow-hidden shadow-3xl animate-in slide-in-from-bottom duration-300">
+            <div class="relative w-full max-w-[360px] bg-[#0A2647] border border-white/10 rounded-t-[2.5rem] sm:rounded-[40px] overflow-hidden shadow-3xl animate-in slide-in-from-bottom duration-300">
                <div class="p-6 pb-2 border-b border-white/5 flex items-center justify-between">
                   <div>
                      <h3 class="text-xl font-black text-white/90 uppercase tracking-tight">GLOBAL DISCOVERY HUB</h3>
@@ -1946,7 +1946,7 @@ const handleNotificationClick = (notif) => {
           <div class="flex items-center gap-2.5 opacity-40 mb-[1px]">
              <span class="text-[7.5px] font-black text-white/30 uppercase tracking-[0.2em]">{{ t('footer.poweredBy') }}</span>
              <img src="/logo.png" alt="DigyNex" class="h-2.5 w-auto object-contain opacity-30" />
-             <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.1em]">CareerNexus Identity Hub</span>
+             <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.1em]">Career Nexus Identity Hub</span>
           </div>
           <p class="text-[6px] font-black text-white/25 tracking-[0.5em] uppercase mt-[1px] italic">{{ t('footer.engine') }} • {{ t('footer.version') }}</p>
        </div>
@@ -2034,7 +2034,7 @@ const handleNotificationClick = (notif) => {
           <div v-if="isTemplatePreviewOpen" class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
              <div class="absolute inset-0 bg-black/90 backdrop-blur-2xl" @click="isTemplatePreviewOpen = false"></div>
              
-             <div class="bg-gradient-to-br from-white/10 to-white/5 rounded-[3rem] w-full max-w-[420px] max-h-[90vh] overflow-hidden border border-white/10 shadow-5xl relative z-10 flex flex-col animate-in zoom-in duration-500">
+             <div class="bg-gradient-to-br from-white/10 to-white/5 rounded-[3rem] w-full max-w-[360px] max-h-[90vh] overflow-hidden border border-white/10 shadow-5xl relative z-10 flex flex-col animate-in zoom-in duration-500">
                 <!-- Modal Header -->
                 <div class="p-6 flex justify-between items-center border-b border-white/5 bg-white/5">
                    <div class="flex flex-col">
@@ -2091,7 +2091,7 @@ const handleNotificationClick = (notif) => {
           <div v-if="isInfoSheetOpen" class="fixed inset-0 z-[1100] flex flex-col items-center justify-end sm:justify-center p-0 sm:p-4 animate-in fade-in duration-300">
              <div @click="isInfoSheetOpen = false" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
              
-             <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
+             <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
                 <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
                    <div class="flex items-center gap-3">
                       <div class="bg-[#C1A172]/20 p-2 rounded-xl">
@@ -2266,19 +2266,19 @@ const handleNotificationClick = (notif) => {
 
                    <!-- FOUNDER'S LIFETIME PASS BANNER (Injected) -->
                    <div @click="isInfoSheetOpen = false; isFounderPassOpen = true" 
-                        class="mt-4 p-5 bg-gradient-to-r from-[#C1A172] to-[#FFD700] rounded-[2rem] relative overflow-hidden cursor-pointer shadow-xl shadow-[#C1A172]/20 hover:scale-[1.02] active:scale-95 transition-all group">
+                        class="mt-3 py-2.5 px-5 bg-gradient-to-r from-[#C1A172] to-[#FFD700] rounded-[2rem] relative overflow-hidden cursor-pointer shadow-xl shadow-[#C1A172]/20 hover:scale-[1.02] active:scale-95 transition-all group">
                       <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/20 blur-3xl rounded-full group-hover:scale-150 transition-all duration-700"></div>
                       <div class="flex items-center justify-between relative z-10">
                          <div>
-                            <p class="text-[14px] font-black text-[#0A2647] uppercase tracking-[0.2em] flex items-center gap-2">
+                            <p class="text-[13px] font-black text-[#0A2647] uppercase tracking-[0.2em] flex items-center gap-2">
                                Founder's Pass
                                <Crown class="w-4 h-4 text-[#0A2647]" />
                             </p>
-                            <p class="text-[9px] font-black text-[#0A2647]/70 tracking-widest uppercase mt-0.5">Lifetime Global Access</p>
+                            <p class="text-[8px] font-black text-[#0A2647]/70 tracking-widest uppercase mt-0.5">Annual Elite Access</p>
                          </div>
                          <div class="text-right">
-                            <span class="text-[20px] font-black text-[#0A2647] tracking-tighter">$149</span>
-                            <p class="text-[8px] font-black text-[#0A2647]/70 uppercase tracking-widest">One-time payment</p>
+                            <span class="text-[18px] font-black text-[#0A2647] tracking-tighter">$149</span>
+                            <p class="text-[8px] font-black text-[#0A2647]/70 uppercase tracking-widest">/ YEAR</p>
                          </div>
                       </div>
                    </div>
@@ -2319,7 +2319,7 @@ const handleNotificationClick = (notif) => {
                        <div class="p-10 border border-dashed border-white/10 rounded-[2.5rem] text-center flex flex-col items-center gap-4">
                           <RefreshCw class="w-8 h-8 text-[#C1A172]/20 animate-spin" />
                           <p class="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">
-                    DIGYNEX CAREERNEXUS ENGINE V12.0 NEURAL HUB
+                    DIGYNEX CAREER NEXUS ENGINE V12.0 NEURAL HUB
                   </p>
                        </div>
                     </div>
@@ -2338,7 +2338,7 @@ const handleNotificationClick = (notif) => {
         <div v-if="isSynthesisReviewOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-0">
             <div class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-2xl" @click="isSynthesisReviewOpen = false"></div>
             
-            <div class="w-full max-w-xl bg-white border border-white/20 rounded-[2.5rem] overflow-hidden shadow-[0_0_120px_rgba(0,0,0,0.6)] relative z-10 animate-in zoom-in slide-in-from-bottom-10 duration-500">
+            <div class="w-full max-w-[360px] bg-white border border-white/20 rounded-[2.5rem] overflow-hidden shadow-[0_0_120px_rgba(0,0,0,0.6)] relative z-10 animate-in zoom-in slide-in-from-bottom-10 duration-500">
                <div class="p-6 sm:p-8 space-y-6">
                   <div class="flex justify-between items-start">
                      <div class="flex items-center gap-3">
@@ -2399,7 +2399,7 @@ const handleNotificationClick = (notif) => {
         <div v-if="isTrackingLabOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-0">
             <div class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-2xl" @click="isTrackingLabOpen = false"></div>
             
-            <div class="w-full max-w-sm bg-[#0A2647] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] relative z-10 animate-in slide-in-from-bottom-10 duration-500">
+            <div class="w-full max-w-[360px] bg-[#0A2647] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] relative z-10 animate-in slide-in-from-bottom-10 duration-500">
                <div class="p-6 space-y-6">
                   <div class="flex justify-between items-center border-b border-white/5 pb-5">
                      <div>

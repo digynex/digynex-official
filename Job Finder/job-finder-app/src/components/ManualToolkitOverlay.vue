@@ -40,7 +40,7 @@ const handlePortalOpen = () => {
       <div @click="emit('close')" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-2xl"></div>
       
       <!-- Toolkit Hub -->
-      <div class="relative w-full max-w-[400px] bg-[#051124] border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 max-h-[90vh]">
+      <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-[3rem] shadow-3xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 max-h-[90vh]">
         
         <!-- Header: Identity Sync -->
         <div class="p-6 bg-gradient-to-br from-white/5 to-transparent border-b border-white/5 relative overflow-hidden">

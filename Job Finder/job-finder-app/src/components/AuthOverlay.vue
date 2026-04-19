@@ -165,7 +165,7 @@ const signInWithSocial = async (provider) => {
       <div @click="emit('close')" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
       
       <!-- AUTH CARD -->
-      <div class="relative w-full max-w-sm bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col scale-100 animate-in zoom-in-95 duration-500">
+      <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col scale-100 animate-in zoom-in-95 duration-500">
         
         <!-- INTERNAL CLOSE BUTTON (X) -->
         <button @click="emit('close')" class="absolute top-6 right-6 z-[70] p-2.5 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-white transition-all shadow-xl hover:scale-110 active:scale-90">

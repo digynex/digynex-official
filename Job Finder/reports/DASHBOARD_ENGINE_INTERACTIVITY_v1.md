@@ -89,11 +89,15 @@ This document serves as the single source of truth for every interactive compone
 - **Result:** Instant localized branding and terminology without losing profile data.
 
 ### E. Broadcast Engine V13.0 (Automated Outreach)
-- **UI:** Stealth Proxy section with interactive "Initiate Neural Broadcast" button.
+- **UI:** Stealth Proxy section with immersive interactive "Initiate Neural Broadcast" button.
 - **Logic:** `handleDashboardAction('initiate_broadcast')`.
+- **The "One-Time Campaign Launcher" Architecture (Autopilot Context):**
+    - **One-Time Trigger (Campaign Mode):** This button acts as an Autopilot mass-application launcher. Users press this **once** when their CV structure, keywords, and format are thoroughly finalized. Upon initiation, the n8n Automation takes over in the background, continuously running over days/weeks to automatically apply to hundreds of target roles across job portals (e.g., LinkedIn Easy Apply).
+    - **Live CV Auto-Sync:** If the user tweaks their CV format or content while a broadcast campaign is already running, they **do not need to press the button again**. The n8n backend is structured to constantly pull the latest active PDF representation directly from the database dynamically before each application transaction.
+    - **Differentiation from Targeted Apply:** This button is explicitly designed for mass-automation campaigns. For individual, highly-targeted applications, users utilize the distinct "Apply Now" button designated on each individual Job Card within the Matches Hub.
 - **Ripple:** 
-    1. Executes a local UI diagnostic sweep (Proxy Layer Handshake).
-    2. Serves as the primary frontend junction to trigger the n8n Outbound Automation Webhook for global CV distribution to external nodes.
+    1. Executes a local UI diagnostic sweep (Proxy Layer Handshake simulation).
+    2. Serves as the primary frontend junction to trigger the n8n Outbound Automation Webhook payload for global mass CV distribution.
 
 ---
 

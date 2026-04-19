@@ -122,7 +122,7 @@ const finalizeManualCV = async () => {
         <div @click="emit('close')" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
         
         <!-- MODAL CARD -->
-        <div class="relative w-full max-w-md bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
+        <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col max-h-[85vh]">
           <div class="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/5">
             <div class="flex items-center gap-3">
               <div class="bg-[#C1A172]/20 p-2.5 rounded-xl border border-[#C1A172]/30">
@@ -430,7 +430,7 @@ const finalizeManualCV = async () => {
     <Transition name="fade">
       <div v-if="isComparing" class="fixed inset-0 z-[3000] flex flex-col items-center justify-center p-4">
         <div @click="isComparing = false" class="absolute inset-0 bg-[#0A2647]/95 backdrop-blur-3xl"></div>
-        <div class="relative w-full max-w-sm bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col scale-100 animate-in zoom-in-95 duration-300">
+        <div class="relative w-full max-w-[360px] bg-[#051124] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-3xl flex flex-col scale-100 animate-in zoom-in-95 duration-300">
           <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
             <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
               <Sparkles class="w-3.5 h-3.5 text-[#C1A172]" />

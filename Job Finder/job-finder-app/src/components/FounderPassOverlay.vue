@@ -50,12 +50,12 @@ const claimFounderPass = async () => {
 }
 
 const perks = [
-    { icon: Crown, label: 'Elite Access — Forever', sub: 'All future features included' },
-    { icon: Zap, label: 'Unlimited CV Exports', sub: 'No weekly limits, ever' },
+    { icon: Crown, label: 'Annual Elite Access', sub: 'Premium access for a full year' },
+    { icon: Zap, label: 'Unlimited CV Exports', sub: 'No weekly limits, full access' },
     { icon: Sparkles, label: 'AI Stealth Keywords', sub: 'Full ATS domination suite' },
     { icon: Shield, label: 'Priority Support', sub: 'Direct founder channel access' },
     { icon: Star, label: 'All Elite Palettes', sub: 'Every premium visual identity' },
-    { icon: Gift, label: 'Lifetime Updates', sub: 'Zero renewal cost, forever' },
+    { icon: Gift, label: 'Zero Surprises', sub: 'Lock in this rate for renewals' },
 ]
 </script>
 
@@ -65,7 +65,7 @@ const perks = [
     <div @click="emit('close')" class="absolute inset-0 bg-[#030D1A]/95 backdrop-blur-3xl"></div>
 
     <!-- Card -->
-    <div class="relative w-full max-w-[420px] mx-4 mb-0 sm:mb-0 rounded-t-[3rem] sm:rounded-[3rem] overflow-hidden
+    <div class="relative w-full max-w-[360px] mx-4 mb-0 sm:mb-0 rounded-t-[3rem] sm:rounded-[3rem] overflow-hidden
                 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                 border border-[#C1A172]/20 shadow-[0_-40px_120px_rgba(193,161,114,0.15)]"
          style="background: linear-gradient(160deg, #0A2647 0%, #051124 50%, #0D0A00 100%);">
@@ -104,12 +104,12 @@ const perks = [
             <span class="text-[8px] font-black text-[#C1A172] uppercase tracking-[0.3em]">Founder's Edition — Limited Offer</span>
           </div>
           <h2 class="text-[28px] font-black text-white leading-none tracking-tight mt-2">
-            Lifetime Elite<br/>
+            Founder's Annual<br/>
             <span style="background: linear-gradient(90deg, #C1A172, #FFD700, #C1A172); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" 
                   class="text-[32px]">$149</span>
-            <span class="text-white text-[16px]"> once</span>
+            <span class="text-white text-[16px]"> / year</span>
           </h2>
-          <p class="text-[11px] text-white/40 font-medium">vs $49/month ($588/year) — save 75% forever</p>
+          <p class="text-[11px] text-white/40 font-medium">vs $49/month ($588/year) — save $439 annually</p>
         </div>
 
         <!-- Slot Counter -->
@@ -186,7 +186,7 @@ const perks = [
           </button>
 
           <p class="text-center text-[8px] font-bold text-white/20 uppercase tracking-widest">
-            One-time payment · No subscription · Instant access
+            Billed annually · Lock in founder rate · Instant access
           </p>
         </div>
 
