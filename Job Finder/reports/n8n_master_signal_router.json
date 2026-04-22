@@ -1,0 +1,165 @@
+{
+  "name": "DigyNex Master Signal Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "digynex-neural-signal",
+        "options": {}
+      },
+      "name": "Webhook: Neural Signal Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        400
+      ],
+      "notesInFlow": true,
+      "notes": "Receives payload from Supabase user_activity"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$json.body.action}}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "equal",
+              "value2": "JOB_APPLY"
+            },
+            {
+              "operation": "regex",
+              "value2": "(CV_EXPORT|CL_EXPORT)"
+            },
+            {
+              "operation": "equal",
+              "value2": "ADMIN_BROADCAST"
+            },
+            {
+              "operation": "equal",
+              "value2": "DOC_APPROVAL_PENDING"
+            },
+            {
+              "operation": "equal",
+              "value2": "QUICK_APPLY"
+            }
+          ]
+        }
+      },
+      "name": "Signal Routing Layer (Switch)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        500,
+        400
+      ],
+      "notesInFlow": true,
+      "notes": "Routes signals based on actionId"
+    },
+    {
+      "parameters": {},
+      "name": "Workflow E: Executor (Path 0)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        180
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Workflow X: Logger (Path 1)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        340
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Admin Broadcast Sync (Path 2)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        480
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Workflow D: Verification Handshake (Path 3)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        640
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Workflow E: Quick Executor (Path 4)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        800
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: Neural Signal Receiver": {
+      "main": [
+        [
+          {
+            "node": "Signal Routing Layer (Switch)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signal Routing Layer (Switch)": {
+      "main": [
+        [
+          {
+            "node": "Workflow E: Executor (Path 0)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow X: Logger (Path 1)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin Broadcast Sync (Path 2)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow D: Verification Handshake (Path 3)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow E: Quick Executor (Path 4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

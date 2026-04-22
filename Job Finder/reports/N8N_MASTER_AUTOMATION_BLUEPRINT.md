@@ -14,19 +14,19 @@ The App communicates with n8n via the `user_activity` table in Supabase. Every "
 | :--- | :--- | :--- | :--- |
 | `DOC_APPROVAL_PENDING` | **Workflow D: Guardrail** | Mandatory mobile approval (WA) before any apply. | ✅ **COMPLETE** |
 | `LINKEDIN_SYNC_REQUESTED` | **Workflow L: Profiler** | Scrape LinkedIn data and update Supabase. | ✅ **COMPLETE** |
-| `JOB_SCRAPE_REQUEST` | **Workflow G: Scraper** | Global multi-site discovery (LinkedIn/Indeed/etc). | ✅ **COMPLETE** |
+| `JOB_SCRAPE_REQUEST` | **Workflow G: Scraper** | Global multi-site discovery (LinkedIn/Indeed/etc). | ⏸️ **PENDING (PHASE 2)** |
 | `DOC_EXPORT_REQUEST` | **Workflow E: Executor** | Job Application / CV PDF Export. | ✅ **COMPLETE** |
 | `ADMIN_BROADCAST` | **Workflow A: Broadcaster** | Global multi-channel notifications. | ✅ **COMPLETE** |
+| `ADMIN_DATA_PURGE` | **Workflow P: Purge** | Secure data cleanup and GDPR compliance. | ⏸️ **PENDING (PHASE 2)** |
+| `QUICK_APPLY` | **Workflow E: Executor** | Automated job matching & application. | ✅ **COMPLETE** |
+| `CV_EXPORT` | **Workflow X: Logger** | Log export events, enforce quota, trigger Stripe check. | ✅ **COMPLETE** |
 
 ### **The "Trust Window" Logic**
 - **Verified Status**: Unlocks Workflow E for **30 Days**.
 - **Mutation Reset**: Any change to `resume_data` forces status back to `Pending_Approval`.
 - **Handshake**: Requires mobile response ("YES") to flip status to `Verified`.
-| `ADMIN_DATA_PURGE` | **Workflow P: Purge** | Secure data cleanup and GDPR compliance. | ✅ **COMPLETE** |
-| `QUICK_APPLY` | **Workflow E: Executor** | Automated job matching & application. | ✅ **COMPLETE** |
-| `CV_EXPORT` | **Workflow X: Logger** | Log export events, enforce quota, trigger Stripe check. | ✅ **COMPLETE** |
 
-### 🧠 Signal Routing Layer (Switch Mapping)
+### 🧠 Signal Routing Layer (Switch Mapping) [✅ COMPLETED]
 The master switch routes incoming signals based on the `actionId` from the frontend:
 
 - **Output 0: `JOB_APPLY` (Master Executor)**

@@ -272,6 +272,19 @@ This is the "Neural Gateway" that prevents unauthorized job applications.
 
 ---
 
+## 🕵️ Step 9: Workflow G (Global Job Scraper)
+*Hybrid Minimum-Cost Architecture using Adzuna & Careerjet.*
+
+**Sequence of Actions:**
+1.  **Step 1: Check Supabase (Cache System):** The workflow pulls a target request (Keywords + Country) and queries the internal `job_scrapes` table via the Supabase Node.
+2.  **Step 2: If Exists (Cache Hit):** If valid data is found (less than 24 hours old), the HTTP fetch is bypassed, and the cached jobs are forwarded instantly to the Vue Frontend. *(Result: $0 API Cost)*.
+3.  **Step 3: If Not Exists (The Fetch):** If no fresh cache exists, an HTTP Request Node makes an external call to the Free API Tier (Adzuna / Careerjet).
+4.  **Step 4: Save & Format:** The fresh payload is immediately saved into `job_scrapes` to populate the cache, then formatted into a strict JSON object that feeds the frontend's "4-by-4" Lazy Loading state.
+
+**Strict Rule (Data Purity):** Every chunk saved to `job_scrapes` MUST be sent as a pure array of objects directly assigned to the `jobs` parameter. The target Supabase column is strictly `JSONB`.
+
+---
+
 ## 🔱 Summary of Global Integration
 - **Root Webhook**: Must always use `{{ $node["UI Signal Webhook"].json.body }}`.
 - **Signal Integrity**: All signal data flows into Section 7 (The Dispatcher) for final queuing.

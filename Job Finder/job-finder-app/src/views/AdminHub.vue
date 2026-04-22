@@ -52,9 +52,9 @@ const checkNeuralBridge = async () => {
 }
 // --- SYSTEM CONFIG ENGINE (NEW V12.0) ---
 const configData = ref({
-    free: { cv_per_week: 2, day_cap: 3, price: 0, ai_magic: false },
-    pro: { cv_per_week: 6, day_cap: 3, price: 29, ai_magic: true },
-    elite: { cv_per_week: 999, day_cap: 999, price: 49, ai_magic: true }
+    free: { cv_per_week: 2, day_cap: 3, price: 0, ai_magic: false, country_slots: 1 },
+    pro: { cv_per_week: 6, day_cap: 3, price: 29, ai_magic: true, country_slots: 3 },
+    elite: { cv_per_week: 999, day_cap: 999, price: 49, ai_magic: true, country_slots: 10 }
 })
 const isSavingConfig = ref(false)
 const broadcastMessage = ref(`⚡ **DIGYNEX SYSTEM UPDATE** ⚡
@@ -81,16 +81,16 @@ const fetchConfig = async () => {
             if (v.free !== undefined || v.pro !== undefined || v.elite !== undefined) {
                 // Already in named format — use directly
                 configData.value = {
-                    free:  { cv_per_week: v.free?.cv_per_week ?? 2,   day_cap: v.free?.day_cap ?? 3,   price: v.free?.price ?? 0,  ai_magic: v.free?.ai_magic ?? false },
-                    pro:   { cv_per_week: v.pro?.cv_per_week ?? 6,    day_cap: v.pro?.day_cap ?? 3,    price: v.pro?.price ?? 19,  ai_magic: v.pro?.ai_magic ?? true  },
-                    elite: { cv_per_week: v.elite?.cv_per_week ?? 999, day_cap: v.elite?.day_cap ?? 999, price: v.elite?.price ?? 49, ai_magic: v.elite?.ai_magic ?? true }
+                    free:  { cv_per_week: v.free?.cv_per_week ?? 2,   day_cap: v.free?.day_cap ?? 3,   price: v.free?.price ?? 0,  ai_magic: v.free?.ai_magic ?? false, country_slots: v.free?.country_slots ?? 1 },
+                    pro:   { cv_per_week: v.pro?.cv_per_week ?? 6,    day_cap: v.pro?.day_cap ?? 3,    price: v.pro?.price ?? 19,  ai_magic: v.pro?.ai_magic ?? true, country_slots: v.pro?.country_slots ?? 3 },
+                    elite: { cv_per_week: v.elite?.cv_per_week ?? 999, day_cap: v.elite?.day_cap ?? 999, price: v.elite?.price ?? 49, ai_magic: v.elite?.ai_magic ?? true, country_slots: v.elite?.country_slots ?? 10 }
                 }
             } else {
                 // Numeric-key format — map to named format
                 configData.value = {
-                    free:  { cv_per_week: v[0]?.cv_weekly_limit ?? 2,   day_cap: v[0]?.cv_daily_limit ?? 3,   price: v[0]?.price ?? 0,  ai_magic: v[0]?.ai_magic ?? false },
-                    pro:   { cv_per_week: v[1]?.cv_weekly_limit ?? 6,   day_cap: v[1]?.cv_daily_limit ?? 3,   price: v[1]?.price ?? 19, ai_magic: v[1]?.ai_magic ?? true  },
-                    elite: { cv_per_week: v[2]?.cv_weekly_limit ?? 999, day_cap: v[2]?.cv_daily_limit ?? 999, price: v[2]?.price ?? 49, ai_magic: v[2]?.ai_magic ?? true }
+                    free:  { cv_per_week: v[0]?.cv_weekly_limit ?? 2,   day_cap: v[0]?.cv_daily_limit ?? 3,   price: v[0]?.price ?? 0,  ai_magic: v[0]?.ai_magic ?? false, country_slots: v[0]?.country_slots ?? 1 },
+                    pro:   { cv_per_week: v[1]?.cv_weekly_limit ?? 6,   day_cap: v[1]?.cv_daily_limit ?? 3,   price: v[1]?.price ?? 19, ai_magic: v[1]?.ai_magic ?? true, country_slots: v[1]?.country_slots ?? 3 },
+                    elite: { cv_per_week: v[2]?.cv_weekly_limit ?? 999, day_cap: v[2]?.cv_daily_limit ?? 999, price: v[2]?.price ?? 49, ai_magic: v[2]?.ai_magic ?? true, country_slots: v[2]?.country_slots ?? 10 }
                 }
             }
         }
@@ -763,7 +763,15 @@ const chartOptions = {
                          @input="cfg.price = Number($event.target.value.replace(/[^0-9]/g,'')) || 0"
                          class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[#C1A172] text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
                     </div>
-                    <div class="flex items-center justify-between pt-4">
+                    <div class="space-y-1">
+                       <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">Country Slots</label>
+                       <input
+                         type="text" inputmode="numeric" pattern="[0-9]*"
+                         :value="cfg.country_slots"
+                         @input="cfg.country_slots = Number($event.target.value.replace(/[^0-9]/g,'')) || 1"
+                         class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[#38BDF8] text-[11px] font-black focus:border-[#C1A172]/50 outline-none" />
+                    </div>
+                    <div class="flex items-center justify-between col-span-2 pt-4 border-t border-white/5 mt-2">
                        <label class="text-[7px] font-black text-white/40 uppercase tracking-widest">AI Magic</label>
                        <button @click="cfg.ai_magic = !cfg.ai_magic"
                                :class="cfg.ai_magic ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'"

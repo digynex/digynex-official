@@ -63,6 +63,7 @@ export const quotaService = {
       if (src.day_cap !== undefined) target.cv_daily_limit = src.day_cap;
       if (src.price !== undefined) target.price = src.price;
       if (src.ai_magic !== undefined) target.ai_magic = src.ai_magic;
+      if (src.country_slots !== undefined) target.country_slots = src.country_slots;
       
       // Also handle legacy keys in the backend data if they exist
       if (src.cv_weekly_limit !== undefined) target.cv_weekly_limit = src.cv_weekly_limit;
@@ -82,6 +83,7 @@ export const quotaService = {
       if (src.day_cap !== undefined) target.cv_daily_limit = src.day_cap;
       if (src.price !== undefined) target.price = src.price;
       if (src.ai_magic !== undefined) target.ai_magic = src.ai_magic;
+      if (src.country_slots !== undefined) target.country_slots = src.country_slots;
     }
   },
 
@@ -194,14 +196,18 @@ export const quotaService = {
     const stats = await this.getUsageStats(profile.email);
     const tier = this.TIERS[index];
 
-    if (stats.weeklyCount >= tier.cv_weekly_limit) {
-      const nextDate = stats.oldestWeekly ? new Date(new Date(stats.oldestWeekly).getTime() + (7 * 24 * 60 * 60 * 1000)) : null;
-      return { can: false, reason: 'WEEKLY_LIMIT', limit: tier.cv_weekly_limit, nextActivation: nextDate };
-    }
-
-    if (tier.cv_daily_limit && stats.dailyCount >= tier.cv_daily_limit) {
-      const nextDate = stats.oldestDaily ? new Date(new Date(stats.oldestDaily).getTime() + (24 * 60 * 60 * 1000)) : null;
-      return { can: false, reason: 'DAILY_LIMIT', limit: tier.cv_daily_limit, nextActivation: nextDate };
+    if (index === 0) {
+      // Free Tier: Strictly Weekly Limit
+      if (stats.weeklyCount >= tier.cv_weekly_limit) {
+        const nextDate = stats.oldestWeekly ? new Date(new Date(stats.oldestWeekly).getTime() + (7 * 24 * 60 * 60 * 1000)) : null;
+        return { can: false, reason: 'WEEKLY_LIMIT', limit: tier.cv_weekly_limit, nextActivation: nextDate };
+      }
+    } else {
+      // Pro Tier (and others if not bypassed): Strictly Daily Limit
+      if (tier.cv_daily_limit && stats.dailyCount >= tier.cv_daily_limit) {
+        const nextDate = stats.oldestDaily ? new Date(new Date(stats.oldestDaily).getTime() + (24 * 60 * 60 * 1000)) : null;
+        return { can: false, reason: 'DAILY_LIMIT', limit: tier.cv_daily_limit, nextActivation: nextDate };
+      }
     }
 
     return { can: true };
