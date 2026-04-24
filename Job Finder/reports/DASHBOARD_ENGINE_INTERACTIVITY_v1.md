@@ -47,9 +47,21 @@ Global governance for Super Admins.
 
 ---
 
-## 🧠 Neural Pulse Logic
+## 🌎 5. Matches Hub (Global Discovery)
+Real-time neural discovery and auto-application pipeline.
+
+| Element | Interaction | Neural Signal | n8n Outcome |
+| :--- | :--- | :--- | :--- |
+| **Search Input** | Press `ENTER` | `JOB_SCRAPE_REQUEST` | Triggers **Workflow G**. Fetches real jobs and updates `job_scrapes`. |
+| **Apply Now** | Click | `QUICK_APPLY` | Instant dispatch to Headless Executor (Step 6). |
+| **Tailor** | Click | `DOC_TAILOR_REQUEST` | Triggers AI to align CV/CL to specific job role. |
+
+---
+
+## 🧬 Neural Pulse Logic
+- **Search Pulse**: UI shows "Neural Engine: Dispatched Discovery..." during n8n fetch.
+- **Auto-Injection**: If a job has Match Score >= 95%, n8n automatically logs a `JOB_APPLY` signal (status: queued) without user interaction.
 - **Success Tone**: Green Toast + Console `Status: 200`.
-- **Failure Tone**: Red Toast + Console Retry logic enabled.
 - **Diagnostic Level**: All pulses are logged with the `[NEURAL_PULSE]` prefix in the developer console.
 
 ---

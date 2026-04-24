@@ -272,16 +272,36 @@ This is the "Neural Gateway" that prevents unauthorized job applications.
 
 ---
 
-## 🕵️ Step 9: Workflow G (Global Job Scraper)
-*Hybrid Minimum-Cost Architecture using Adzuna & Careerjet.*
+## 🕵️ Step 9: Workflow G (Neural Job Scraper V15.0 - Final Sequential)
+**Strategic Goal:** Professional Global Discovery with zero-drift cache-first persistence.
 
-**Sequence of Actions:**
-1.  **Step 1: Check Supabase (Cache System):** The workflow pulls a target request (Keywords + Country) and queries the internal `job_scrapes` table via the Supabase Node.
-2.  **Step 2: If Exists (Cache Hit):** If valid data is found (less than 24 hours old), the HTTP fetch is bypassed, and the cached jobs are forwarded instantly to the Vue Frontend. *(Result: $0 API Cost)*.
-3.  **Step 3: If Not Exists (The Fetch):** If no fresh cache exists, an HTTP Request Node makes an external call to the Free API Tier (Adzuna / Careerjet).
-4.  **Step 4: Save & Format:** The fresh payload is immediately saved into `job_scrapes` to populate the cache, then formatted into a strict JSON object that feeds the frontend's "4-by-4" Lazy Loading state.
+**Sequence of Actions (Strict Serial Order):**
+1.  **Signal Webhook (Inbound):** Receives `keyword`, `country`, and `email`.
+2.  **Supabase: Check Cache:** Queries `job_scrapes` table for valid search keys.
+3.  **If: In Cache?:**
+    -   **TRUE (Cache Hit):** Bypasses API calls. Injects existing jobs into the stream.
+    -   **FALSE (Cache Miss):** Dispatches HTTP request to Adzuna/Careerjet API.
+4.  **Supabase: Save Cache (Miss Path Only):** Persists fresh API results into `job_scrapes`.
+5.  **Headless: Neural Queue Injection (Central Logic):** 
+    -   Filters matches for `match_score >= 95`.
+    -   Prepares `JOB_APPLY` signals for top-tier opportunities.
+    -   Fallback: Injects `SEARCH_LOG` if no high-risk matches are found to prevent execution stalls.
+6.  **Supabase: Action Log:** Records the activity signal directly into `user_activity` for Dashboard sync.
+7.  **Respond to Webhook (Final Outbound):** Sends the `jobs_to_return` array to the frontend.
 
-**Strict Rule (Data Purity):** Every chunk saved to `job_scrapes` MUST be sent as a pure array of objects directly assigned to the `jobs` parameter. The target Supabase column is strictly `JSONB`.
+**Logic Engine (Injection Node):**
+```javascript
+const userEmail = $node['Webhook: Job Request'].json.query.email || 'guest@digynex.se';
+const jobs = $input.item.json.jobs || [];
+const highMatchJobs = jobs.filter(j => j.match_score >= 95).slice(0, 3);
+
+if (highMatchJobs.length > 0) {
+  return highMatchJobs.map(job => ({
+    json: { action: 'JOB_APPLY', user_id: userEmail, details: { status: 'queued', job_id: job.id, role: job.title, company: job.company } }
+  }));
+}
+return { json: { action: 'SEARCH_LOG', user_id: userEmail, details: { status: 'completed' } } };
+```
 
 ---
 

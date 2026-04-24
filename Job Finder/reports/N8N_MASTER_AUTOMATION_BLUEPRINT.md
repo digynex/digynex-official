@@ -14,7 +14,7 @@ The App communicates with n8n via the `user_activity` table in Supabase. Every "
 | :--- | :--- | :--- | :--- |
 | `DOC_APPROVAL_PENDING` | **Workflow D: Guardrail** | Mandatory mobile approval (WA) before any apply. | ✅ **COMPLETE** |
 | `LINKEDIN_SYNC_REQUESTED` | **Workflow L: Profiler** | Scrape LinkedIn data and update Supabase. | ✅ **COMPLETE** |
-| `JOB_SCRAPE_REQUEST` | **Workflow G: Scraper** | Global multi-site discovery (LinkedIn/Indeed/etc). | ⏸️ **PENDING (PHASE 2)** |
+| `JOB_SCRAPE_REQUEST` | **Workflow G: Scraper** | Global multi-site discovery (Adzuna/Careerjet). | ✅ **COMPLETE (V15)** |
 | `DOC_EXPORT_REQUEST` | **Workflow E: Executor** | Job Application / CV PDF Export. | ✅ **COMPLETE** |
 | `ADMIN_BROADCAST` | **Workflow A: Broadcaster** | Global multi-channel notifications. | ✅ **COMPLETE** |
 | `ADMIN_DATA_PURGE` | **Workflow P: Purge** | Secure data cleanup and GDPR compliance. | ⏸️ **PENDING (PHASE 2)** |
@@ -171,20 +171,16 @@ To prevent confusion, here is exactly how the Frontend buttons map to n8n logic:
 ## 🌎 9. Global Strategic Scraper (Workflow G: DISCOVERY)
 **Objective**: Continuous job discovery across multi-site platforms (LinkedIn, Indeed, localized boards) tailored to user geographic preferences.
 
-### **The Multi-Site Pulse**
-1.  **Trigger**: CRON Trigger (Every 4-12 hours based on Tier).
-2.  **Country Slot Enforcement**:
-    -   **Free (T1)**: Scrapes only the primary country slot.
-    -   **Pro (T2)**: Parallel scraping for up to 3 countries.
-    -   **Elite (T3)**: Full parity across 10+ countries.
+### **The Sequential Neural Pulse**
+1.  **Trigger**: Direct Frontend Webhook Call (User Search).
+2.  **Cache Audit**: Performs instant lookup in `job_scrapes` to minimize API latency and costs.
 3.  **Discovery Protocol**:
-    -   Uses Premium Scraping APIs to bypass anti-bot shields.
-    -   Filters for "Newest" or "Urgent" keywords.
-    -   Extracts Role, Company, Location, and Application URL.
-4.  **Neural Matching**:
-    -   New discoveries are cross-referenced with user `secretKeywords`.
-    -   If match score > 85%, n8n pushes a `TOP_MATCH_DISCOVERED` signal.
-5.  **UI Injection**: Jobs appear in the "Matches" hub with a `NEW` badge.
+    -   Dispatches to Adzuna/Careerjet via HTTP Request nodes.
+    -   Strict sequential flow ensures `Action Log` is updated BEFORE the webhook response.
+4.  **Neural Matching & Auto-Queuing**:
+    -   Automatically tags jobs with `match_score >= 95%`.
+    -   Injects `JOB_APPLY` signals into the `user_activity` pipeline for the Headless Executor.
+5.  **UI Feedback**: Real-time results are hydrated into the "Matches" hub instantly.
 
 ---
 

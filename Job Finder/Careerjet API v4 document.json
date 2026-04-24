@@ -1,0 +1,38 @@
+{
+  "api_name": "Careerjet API",
+  "version": "v4",
+  "endpoint": "https://search.api.careerjet.net/v4/query",
+  "auth": {
+    "method": "Basic Auth",
+    "username": "YOUR_API_KEY",
+    "password": "",
+    "header_format": "Authorization: Basic {Base64(API_KEY:)}"
+  },
+  "required_parameters": {
+    "user_ip": "The IP address of the end user (Mandatory)",
+    "user_agent": "The browser user agent of the end user (Mandatory)"
+  },
+  "query_parameters": {
+    "locale_code": "language_code_COUNTRY_CODE (e.g., sv_SE, en_GB)",
+    "keywords": "Search terms (URL-encoded)",
+    "location": "Search location (City/Region)",
+    "contract_type": "p (permanent), c (contract), t (temp), i (intern), v (volunteer)",
+    "work_hours": "f (full-time), p (part-time)",
+    "page_size": "1 to 100 (Default: 20)",
+    "sort": "relevance, date, salary",
+    "fragment_size": "Character size of description (Default: 120)"
+  },
+  "response_codes": {
+    "200": "Success",
+    "400": "Unsupported locale code",
+    "403": "Missing user_ip or user_agent"
+  },
+  "job_object_structure": {
+    "title": "String",
+    "company": "String",
+    "date": "GMT Format",
+    "description": "Excerpt",
+    "url": "Unique job link",
+    "salary_type": "Y (Yearly), M (Monthly), W (Weekly), D (Daily), H (Hourly)"
+  }
+}
