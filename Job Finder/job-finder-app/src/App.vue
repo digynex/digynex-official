@@ -72,6 +72,7 @@ const langContainer = ref(null)
 const notificationContainer = ref(null)
 const isNotificationsOpen = ref(false)
 const searchQuery = ref('') // Mission-critical state for global filtering
+const activeCity = ref('') // NEW: Hyper-Local City Satellite (V16.9)
 
 // Quota engine UI Reactivity
 const proPrice = ref(29)
@@ -184,11 +185,15 @@ const handleGlobalSearch = async () => {
     isNeuralToastVisible.value = true;
 
     try {
-        const results = await jobService.searchJobs(
+        const response = await jobService.searchJobs(
             searchQuery.value, 
             activeCountry.value || 'gb', 
-            userProfile.value.email || 'guest@digynex.se'
+            userProfile.value.email || 'guest@digynex.se',
+            activeCity.value // Passing the City Satellite Focus
         );
+
+        // ROBUST HYDRATION: Support both direct Array and { jobs: [] } Object structures
+        const results = Array.isArray(response) ? response : (response?.jobs || []);
 
         if (results && results.length > 0) {
             // HYDRATE DISCOVERY STREAM: Replace mock matches with real discoveries
@@ -206,7 +211,8 @@ const handleGlobalSearch = async () => {
             }));
             toastMessage.value = `Discovered ${results.length} Neural Matches`;
         } else {
-            toastMessage.value = 'No matches found in this region';
+            matches.value = []; // Clear previous matches to show empty state
+            showNeuralToast(`Neural Link: No active matches for "${searchQuery.value}" in this region. Try a different role or broaden your location focus.`, 'warning', 5000);
         }
     } catch (err) {
         console.error('Search Dispatch Failure:', err);
@@ -337,22 +343,34 @@ const filteredMatches = computed(() => {
             'Canada': 'CA',
             'Australia': 'AU',
             'France': 'FR',
-            'Netherlands': 'NL'
+            'Netherlands': 'NL',
+            'Singapore': 'SG',
+            'Sri Lanka': 'LK',
+            'Nigeria': 'NG',
+            'Libya': 'LY',
+            'Japan': 'JP',
+            'Switzerland': 'CH'
         };
         const code = countryCodeMap[activeCountry.value];
         if (code) {
-            // Robust check: includes ISO code or the country name itself
+            // Robust check: includes ISO code, the country name, or handle cases where location is missing it but was recently discovered
             result = result.filter(m => 
-                (m.l && m.l.includes(code)) || 
-                (m.l && m.l.toLowerCase().includes(activeCountry.value.toLowerCase()))
+                !m.l || 
+                m.l.includes(code) || 
+                m.l.toLowerCase().includes(activeCountry.value.toLowerCase()) ||
+                m.t === 'Just now' // Strategy: Trust recently discovered neural matches
             );
         }
     }
     
-    // 2. Search Query Logic
+    // 2. Search Query Logic (Bypass for newly discovered neural matches)
     if (searchQuery.value) {
         const q = searchQuery.value.toLowerCase();
-        result = result.filter(m => m.c.toLowerCase().includes(q) || m.r.toLowerCase().includes(q));
+        result = result.filter(m => 
+            m.t === 'Just now' || 
+            m.c.toLowerCase().includes(q) || 
+            m.r.toLowerCase().includes(q)
+        );
     }
     
     // NEURAL RANKING: Sort by highest match percentage (Premium Discovery)
@@ -406,8 +424,11 @@ const activeFocusSlots = computed(() => {
 })
 
 const toggleCountryFocus = (country) => {
-    if (selectedCountriesArr.value.includes(country)) {
-        activeCountry.value = country;
+    // Normalize country name (Capitalize First Letter)
+    const normalized = country.charAt(0).toUpperCase() + country.slice(1).toLowerCase();
+    
+    if (selectedCountriesArr.value.includes(normalized)) {
+        activeCountry.value = normalized;
         showCountrySelector.value = false;
         return;
     }
@@ -418,10 +439,21 @@ const toggleCountryFocus = (country) => {
         return;
     }
 
-    selectedCountriesArr.value.push(country);
-    activeCountry.value = country;
+    selectedCountriesArr.value.push(normalized);
+    activeCountry.value = normalized;
     showCountrySelector.value = false;
-    showNeuralToast(`Focusing Neural Engine on ${country}`, 'success');
+    showNeuralToast(`Neural Engine: Calibrating Focus for ${normalized}... Global Pipe Active 🌍`, 'success');
+    
+    // SMART LOCALIZATION: Suggest language based on country
+    const autoLangs = {
+        'Sweden': 'SW', 'Germany': 'DE', 'Norway': 'NO', 'Finland': 'FI', 'Denmark': 'DA',
+        'France': 'FR', 'Spain': 'ES', 'Italy': 'IT', 'Netherlands': 'NL'
+    };
+    if (autoLangs[normalized]) {
+        setLang(autoLangs[normalized]);
+    } else {
+        setLang('EN'); // Default to International English for other countries
+    }
 }
 
 const removeCountryFocus = (country) => {
@@ -1400,29 +1432,23 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         toastMessage.value = `Neural Pulse: Dispatching to ${targetJob.c}...`;
         isNeuralToastVisible.value = true;
         
-        allJobs.value.unshift({
-            c: targetJob.c,
-            r: targetJob.r,
-            s: 'applied',
-            m: targetJob.m,
-            d: today,
-            l: targetJob.l,
-            icon: Briefcase,
-            color: targetJob.color,
-            step: 'applied'
-        });
-
-        await profileService.logActivity(userProfile.value.email, 'QUICK_APPLY', { 
-            status: 'instant',
-            job: targetJob,
-            company: targetJob.c,
-            role: targetJob.r,
-            job_url: targetJob.u, // Strategic URL for Puppeteer
-            user_phone: '+46769703311',
-            target_company_email: 'info@infodigynex.se',
-            timestamp: new Date().toISOString()
-        });
-        setTimeout(() => { isNeuralToastVisible.value = false }, 2500);
+        try {
+            const result = await profileService.triggerHeadlessApply(user.value, targetJob, userProfile.value);
+            if (result.error === 'IDENTITY_UNVERIFIED') {
+                showNeuralToast(result.message, 'warning');
+            } else if (result.ok) {
+                showNeuralToast('Neural Dispatch: Automated Application Initiated', 'success');
+                allJobs.value.unshift({
+                    c: targetJob.c, r: targetJob.r, s: 'applied', m: targetJob.m, d: today, l: targetJob.l,
+                    icon: Briefcase, color: targetJob.color, step: 'applied'
+                });
+            } else {
+                showNeuralToast('Dispatch Failure: Engine Sync Interrupted', 'error');
+            }
+        } catch (err) {
+            showNeuralToast('Critical Engine Error: Dispatch Aborted', 'error');
+        }
+        setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
         return;
     }
 
@@ -1773,6 +1799,7 @@ const handleNotificationClick = (notif) => {
           v-else-if="activeTab === 'matches'"
           v-model:searchQuery="searchQuery"
           v-model:activeCountry="activeCountry"
+           v-model:activeCity="activeCity"
           :t="t"
           :filteredMatches="filteredMatches"
           :selectedCountriesArr="selectedCountriesArr"
@@ -2066,7 +2093,8 @@ const handleNotificationClick = (notif) => {
                   </div>
 
                   <div class="grid grid-cols-2 gap-2 h-64 overflow-y-auto no-scrollbar pt-2 pr-1">
-                     <div v-for="c in ['Sweden', 'Germany', 'Norway', 'Finland', 'Denmark', 'United Kingdom', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Japan', 'France', 'Netherlands', 'Singapore', 'Switzerland', 'Ireland', 'Italy', 'Spain'].filter(name => name.toLowerCase().includes(countrySearch.toLowerCase()))" 
+                     <!-- PREDEFINED LIST -->
+                     <div v-for="c in ['Sweden', 'Germany', 'Norway', 'Finland', 'Denmark', 'United Kingdom', 'United States', 'Canada', 'Australia', 'Japan', 'France', 'Netherlands', 'Singapore', 'Switzerland', 'Ireland', 'Italy', 'Spain'].filter(name => name.toLowerCase().includes(countrySearch.toLowerCase()))" 
                           :key="c"
                           @click="toggleCountryFocus(c)"
                           class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center justify-between hover:bg-white/10 hover:border-white/20 cursor-pointer active:scale-95 transition-all group">
@@ -2075,6 +2103,22 @@ const handleNotificationClick = (notif) => {
                            <span class="text-[10px] font-bold text-white/70 group-hover:text-white transition-colors">{{ c }}</span>
                         </div>
                         <ArrowRight class="w-3.5 h-3.5 text-white/20 group-hover:text-[#C1A172] group-hover:translate-x-1 transition-all" />
+                     </div>
+
+                     <!-- CUSTOM COUNTRY OPTION (GLOBAL UNLOCK) -->
+                     <div v-if="countrySearch && !['Sweden', 'Germany', 'Norway', 'Finland', 'Denmark', 'United Kingdom', 'United States', 'Canada', 'Australia', 'Japan', 'France', 'Netherlands', 'Singapore', 'Switzerland', 'Ireland', 'Italy', 'Spain'].some(n => n.toLowerCase() === countrySearch.toLowerCase())"
+                          @click="toggleCountryFocus(countrySearch)"
+                          class="col-span-2 bg-[#C1A172]/10 border border-[#C1A172]/30 p-4 rounded-2xl flex items-center justify-between hover:bg-[#C1A172]/20 cursor-pointer active:scale-95 transition-all group mt-2">
+                        <div class="flex items-center gap-3">
+                           <div class="bg-[#C1A172] p-1.5 rounded-lg">
+                              <Globe class="w-4 h-4 text-[#0A2647]" />
+                           </div>
+                           <div class="flex flex-col">
+                              <span class="text-[10px] font-black text-white uppercase tracking-widest">Connect Neural Pulse</span>
+                              <span class="text-[11px] font-bold text-[#C1A172]">{{ countrySearch }}</span>
+                           </div>
+                        </div>
+                        <Sparkles class="w-4 h-4 text-[#C1A172] animate-pulse" />
                      </div>
                   </div>
                </div>

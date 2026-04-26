@@ -12,7 +12,7 @@ export const jobService = {
    * @param {string} country - Country code (e.g., 'gb')
    * @param {string} email - User identifier for quota tracking
    */
-  async searchJobs(keyword, country, email) {
+  async searchJobs(keyword, country, email, city = '') {
     const webhookUrl = import.meta.env.VITE_N8N_SCRAPER_WEBHOOK;
     if (!webhookUrl) {
       console.error('Neural Scraper Error: Webhook URL not configured in .env');
@@ -20,7 +20,7 @@ export const jobService = {
     }
 
     try {
-      const response = await fetch(`${webhookUrl}?keyword=${encodeURIComponent(keyword)}&country=${encodeURIComponent(country)}&email=${encodeURIComponent(email)}`);
+      const response = await fetch(`${webhookUrl}?keyword=${encodeURIComponent(keyword)}&country=${encodeURIComponent(country)}&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}`);
       if (!response.ok) throw new Error('Neural Scraper Connection Failure');
       return await response.json();
     } catch (err) {

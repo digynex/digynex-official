@@ -127,6 +127,40 @@ export const profileService = {
   },
 
   /**
+   * TRIGGER HEADLESS APPLY (Workflow E)
+   * High-fidelity dispatch to the Puppeteer executor with full identity hydration.
+   */
+  async triggerHeadlessApply(user, job, profile) {
+    if (!user) throw new Error("Unauthorized");
+    if (!job?.u) throw new Error("Target URL Missing");
+
+    // 1. Guardrail: Identity Verification Check
+    if (profile.doc_status !== 'Verified') {
+        return { error: 'IDENTITY_UNVERIFIED', message: 'Please verify your ID in Profile settings first.' };
+    }
+
+    const payload = {
+        job_url: job.u,
+        company: job.c || job.company,
+        role: job.r || job.role,
+        resume_data: profile.resume_data,
+        cover_letter: profile.cover_letter,
+        user_id: user.email,
+        timestamp: new Date().toISOString()
+    };
+
+    // 2. Dispatch Signal to n8n
+    const signal = await this.__dispatchToN8n('QUICK_APPLY', user.email, payload);
+    
+    // 3. Persistent Logging
+    await supabase.from('user_activity').insert([
+      { action: 'QUICK_APPLY', user_id: user.email, details: payload }
+    ]);
+
+    return signal;
+  },
+
+  /**
    * Universal System Awareness: Fetches global maintenance/config flags.
    */
   async getSystemConfig() {
@@ -236,15 +270,15 @@ export const profileService = {
    * Generates a high-fidelity drafting based on CV specimens and Job details.
    */
   generateCoverLetter(data) {
-    const { name, resume_data, secret_keywords, job } = data;
+    const { name, resume_data, job } = data;
     const fullName = resume_data?.basic?.fullName || name || 'Professional Candidate';
     
-    let letter = `Dear Hiring Manager,\n\n`;
+    let letter = ""; // Start clean (Template will provide the date and greeting)
     
     if (job) {
-       letter += `I am writing to express my strong interest in the ${job.r || job.role} position at ${job.c || job.company} in ${job.l || job.location}, as discovered through the DigyNex AI matching engine.\n\n`;
+       letter += `I am writing to express my strong interest in the ${job.r || job.role} position at ${job.c || job.company}, as discovered through the DigyNex AI matching engine.\n\n`;
     } else {
-       letter += `I am writing to express my interest in joining your organization in a capacity where my experience in high-scale architecture and neural systems can drive strategic value.\n\n`;
+       letter += `I am writing to express my interest in joining your organization in a capacity where my experience in strategic operations and technical leadership can drive significant value.\n\n`;
     }
 
     if (resume_data?.bio) {
@@ -254,16 +288,17 @@ export const profileService = {
     if (resume_data?.experiences && resume_data.experiences.length > 0) {
         const topExp = resume_data.experiences[0];
         if (topExp.role && topExp.company) {
-            letter += `During my tenure as ${topExp.role} at ${topExp.company}, I have specialized in delivering high-impact solutions. ${topExp.achievements || ''}\n\n`;
+            letter += `During my tenure as ${topExp.role} at ${topExp.company}, I specialized in delivering high-impact solutions and driving operational excellence.\n\n`;
         }
     }
 
-    const skills = resume_data?.skills?.hard || secret_keywords || [];
-    if (skills.length > 0) {
-        letter += `My core technical stack includes ${skills.slice(0, 6).join(', ')}, making me a strong candidate for this role's requirements.\n\n`;
+    // --- NEURAL FIX: Use real technical skills only, ignore ATS stealth keywords here ---
+    const technicalSkills = resume_data?.skills?.hard || [];
+    if (technicalSkills.length > 0) {
+        letter += `My core technical stack includes ${technicalSkills.slice(0, 6).join(', ')}, which aligns directly with the requirements of this role.\n\n`;
     }
 
-    letter += `I look forward to the possibility of discussing how my background and future-facing skills can benefit your team.\n\nSincerely,\n\n${fullName}`;
+    letter += `I look forward to the possibility of discussing how my background and future-facing skills can benefit your team.`;
     
     return letter;
   },
