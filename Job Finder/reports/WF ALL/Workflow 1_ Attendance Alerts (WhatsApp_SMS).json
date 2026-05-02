@@ -1,0 +1,104 @@
+{
+  "name": "Workflow 1: Attendance Alerts (WhatsApp/SMS)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "https://n8n.digynex.se/webhook/attendance-alert",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        -16
+      ],
+      "id": "eb2062d8-6b78-4713-bfa3-51f1ecf64bf7",
+      "name": "Webhook",
+      "webhookId": "84141a09-e32f-4ebf-a09b-4f5412e88581"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $json.body.phone }}",
+        "textBody": "=ඔබගේ දරුවා, {{ $json.body.student_name }}, අද {{ $json.body.date }} දින {{ $json.body.time }} ට පන්තියට පැමිණියා ({{ $json.body.status }}).\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        -16
+      ],
+      "id": "bf0dfd8c-2163-4fd5-b87c-8ea93a37a366",
+      "name": "Send message",
+      "webhookId": "1df61152-27ce-4414-aa14-56b7c213b5cc",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"success\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "b77b7b64-5b11-4c1c-b859-f3388ea3a6a3",
+      "name": "Success Response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Response": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c33a871a-da24-4992-ba4d-470f344378e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "SahjF49QFnnl3DOk",
+  "tags": []
+}

@@ -1,0 +1,355 @@
+{
+  "name": "DigyNex 360 - AI Social Viral Hub",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1456,
+        -128
+      ],
+      "id": "82c92c9e-faca-49b2-9d8b-8f789f04aa72",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as an elite B2B Sales Copywriter. Your task is to write ONLY the middle body paragraph of a cold email for DigyNex (a SaaS automation company).\n\nSTRICT RULES:\n1. DO NOT include any greetings (Hi, Dear, etc.).\n2. DO NOT include any sign-offs or signatures (Best regards, etc.).\n3. DO NOT include the recipient's name at the beginning.\n4. The text must be between 1-3 sentences.\n5. Focus on a specific business pain point that automation solves (like saving time, reducing manual errors, or scaling operations) specifically for a company like {{ $node[\"Code in JavaScript2\"].json.company }}.\n\nData:\nTarget Name: {{ $node[\"Code in JavaScript2\"].json.first_name }}\nCompany: {{ $node[\"Code in JavaScript2\"].json.company }}\n\nOutput Format:\nReturn ONLY a valid JSON object. No conversational filler, no markdown code blocks.\n{\"ai_draft\": \"Your generated paragraph here\"}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -816,
+        -128
+      ],
+      "id": "d00e7513-dc14-4337-bf46-df99075b3474",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iGmBVG0Pa93PNfat",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "=7467791306",
+        "text": "=🤖 *DigyNex AI: New Lead Generated for Approval !*\n👤 *Name:* {{ $node[\"Code in JavaScript1\"].json.lead_name }}\n🏢 *Company:* {{ $node[\"Code in JavaScript1\"].json.company }}\n📧 *Email:* {{ $node[\"Code in JavaScript1\"].json.email }}\n🔥 *Intent Score:* {{ $node[\"Code in JavaScript1\"].json.intent_score }}%\n\n✍️ *Smart Sales Pitch:*\n\"{{ $node[\"Code in JavaScript1\"].json.ai_draft }}\"\n",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Approve & Send",
+                    "additionalFields": {
+                      "callback_data": "={\"a\":\"apr\",\"i\":\"{{ $node[\"Create a row\"].json.id }}\"}"
+                    }
+                  },
+                  {
+                    "text": "♻️ Regenerate",
+                    "additionalFields": {
+                      "callback_data": "={\"a\":\"reg\",\"i\":\"{{ $node[\"Create a row\"].json.id }}\"}"
+                    }
+                  },
+                  {
+                    "text": "❌ Reject",
+                    "additionalFields": {
+                      "callback_data": "={\"a\":\"rej\",\"i\":\"{{ $node[\"Create a row\"].json.id }}\"}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        -128
+      ],
+      "id": "f68b981d-8560-4046-aa21-0b871d4dc907",
+      "name": "Send a text message",
+      "webhookId": "f8043cfe-c399-4aa8-8b8e-37d232c518ac",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $node[\"Get many rows\"].json.wa_node_1.toString().replace('+', '').replace(/\\s/g, '') }}",
+        "textBody": "=🤖 *DigyNex AI: New Lead Generated for Approval !*\n👤 *Name:* {{ $node[\"Code in JavaScript\"].json.lead_name }}\n🔥 *Intent Score:* {{ JSON.parse($json.content.parts[0].text).intent_score }}%\n\n✍️ *Smart Sales Pitch:*\n\"{{ JSON.parse($json.content.parts[0].text).ai_draft }}\"\n\n_(Please approve via Telegram)_",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        48
+      ],
+      "id": "feed2b2c-a2d5-4552-b362-427023ceb1d2",
+      "name": "Send message and wait for response Client 1",
+      "webhookId": "1f1dd092-a216-4516-9f39-189e4c894155",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $node[\"Get many rows\"].json.wa_node_2.toString().replace('+', '').replace(/\\s/g, '') }}",
+        "textBody": "=🤖 *New Lead for Approval*\n\n🤖 *DigyNex AI: New Lead Generated!*\n👤 *Name:* {{ $node[\"Code in JavaScript\"].json.lead_name }}\n🔥 *Intent Score:* {{ JSON.parse($json.content.parts[0].text).intent_score }}%\n\n✍️ *Smart Sales Pitch:*\n\"{{ JSON.parse($json.content.parts[0].text).ai_draft }}\"\n\n_(Please approve via Telegram)_",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        -304
+      ],
+      "id": "a5c38445-2317-4739-bee6-c2af0dce8740",
+      "name": "Send message and wait for response Client 2",
+      "webhookId": "1f1dd092-a216-4516-9f39-189e4c894155",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.lead_name }}"
+            },
+            {
+              "fieldId": "ai_draft",
+              "fieldValue": "={{ $json.ai_draft }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -128
+      ],
+      "id": "99e3612d-c402-4230-9062-7d42a41be750",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "try {\n  // 1. AI ලියපු Text එක ගන්නවා\n  const rawText = $input.item.json.content.parts[0].text || $input.item.json.message.content || $input.item.json.text;\n  \n  // 2. අර ```json මාර්ක් ටික අයින් කරලා පිරිසිදු කරනවා\n  const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();\n  const aiData = JSON.parse(cleanJson);\n\n  // 3. කලින් Nodes වලින් ආපු අපේ ඇත්ත Data ටික (නම, කම්පැණි එක, Hunter දීපු ඊමේල් එක) ගන්නවා\n  // (මෙතන 'Code in JavaScript2' සහ 'HTTP Request' කියන නම් ඔයාගේ ඒ අදාල Nodes වල නම් වලට සමාන වෙන්න ඕනේ)\n  const first_name = $node[\"Code in JavaScript2\"].json.first_name || \"Unknown\";\n  const last_name = $node[\"Code in JavaScript2\"].json.last_name || \"\";\n  const company = $node[\"Code in JavaScript2\"].json.company || \"Unknown\";\n  const email = $node[\"HTTP Request\"].json.data.email || \"No Email Found\";\n\n  // 4. Supabase එකටයි Telegram එකටයි යවන්න ලස්සනට පැකට් එකක් හදනවා\n  return {\n    lead_name: `${first_name} ${last_name}`.trim(),\n    company: company,\n    email: email,\n    ai_draft: aiData.ai_draft || aiData.body || \"Draft Not Generated\",\n    subject: aiData.subject || \"Collaboration Opportunity\",\n    intent_score: aiData.intent_score || 85\n  };\n\n} catch (e) {\n  console.log(\"JSON කඩන එකේ අවුලක්:\", e);\n  return { error: \"Failed to parse AI response\" };\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        -128
+      ],
+      "id": "99f0ecac-6148-4100-99b6-8baf0ec0d714",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { first_name: \"Jonas\", last_name: \"Olofsson\", company: \"Adviser Partner\", linkedin: \"https://www.linkedin.com/in/jonas-olofsson-6379844/?locale=en\" } },\n  { json: { first_name: \"Michael\", last_name: \"Jimmy\", company: \"LifeCare Public Health Solutions Network\", linkedin: \"https://www.linkedin.com/in/michael-jimmy/\" } },\n  { json: { first_name: \"Amila Wijayantha\", last_name: \"Perera\", company: \"artha engineering pvt limited\", linkedin: \"www.linkedin.com/in/digynex-amila\" } },\n  { json: { first_name: \"Aravinda\", last_name: \"Gunawardana\", company: \"IBT Designers Engineering (Pvt) Ltd\", linkedin: \"https://www.linkedin.com/in/aravinda-gunawardana-b4a0294a/\" } },\n  { json: { first_name: \"Manoch\", last_name: \"Kumar\", company: \"Tait Systems New Zealand\", linkedin: \"https://www.linkedin.com/in/manoch-kumar-1786a117/\" } }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        -128
+      ],
+      "id": "c377b192-318b-4537-8ec4-24b70fa07e1d",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/email-finder",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "company",
+              "value": "={{ $json.company }}"
+            },
+            {
+              "name": "first_name",
+              "value": "={{ $json.first_name }}"
+            },
+            {
+              "name": "last_name",
+              "value": "={{ $json.last_name }}"
+            },
+            {
+              "name": "api_key",
+              "value": "099f9e7061f84905b5eefc8a235cd735496fb564"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1040,
+        -128
+      ],
+      "id": "9ec6e311-b3b7-4ce6-a962-da6a6ea49f83",
+      "name": "HTTP Request",
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message and wait for response Client 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message and wait for response Client 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "11aac33f-653c-4b6f-8ac0-821e6bad5118",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "LRX5JJ9mEV5if5ti",
+  "tags": []
+}

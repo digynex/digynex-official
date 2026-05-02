@@ -1,0 +1,1170 @@
+{
+  "name": "CareerNexus - The Neural Bridge Architecture (Trigger Signals)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neural-bridge",
+        "options": {}
+      },
+      "id": "e1e61ac9-eb60-4d26-810d-33ed0e07d245",
+      "name": "UI Signal Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        208
+      ],
+      "webhookId": "0d335bdc-923f-4dad-8233-acd8b7925378"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "JOB_APPLY"
+            },
+            {
+              "value2": "CV_EXPORT",
+              "output": 1
+            },
+            {
+              "value2": "ADMIN_BROADCAST",
+              "output": 2
+            },
+            {
+              "value2": "DOC_APPROVAL_PENDING",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "id": "ac27ffcb-ba51-494c-ace5-762d9ad29f1e",
+      "name": "Neural Signal Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        176
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "231a7439-489b-475a-9dd7-220e3721362c",
+      "name": "Executor Pipeline (Job Apply)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -32
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "6bb2e4cb-fa5a-47cf-8e13-78c8f0caa1ef",
+      "name": "Logger Pipeline (CV Export)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        112
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "145dfea9-e8d8-4a88-b010-8c64abe3bf24",
+      "name": "Broadcast Engine",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        256
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "fcd741fc-f830-40bd-8249-33bfce6714c9",
+      "name": "Guardrail (WhatsApp verify)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "QUICK_APPLY"
+            }
+          ]
+        }
+      },
+      "id": "6ca55a3c-1ce9-41f5-8f96-8f5d07fb0dc9",
+      "name": "Neural Signal Switch1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        576
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "531b04ed-de38-4b11-a7f8-174532530d5c",
+      "name": "Executor Pipeline (QUICK Apply)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "applicant_email",
+              "value": "={{ $json.body.body.user_id }}"
+            },
+            {
+              "name": "job_role",
+              "value": "={{ $json.body.body.details.role }}"
+            },
+            {
+              "name": "company",
+              "value": "={{ $json.body.body.details.company }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c653dca4-07c9-4e4b-be49-090e5d52a9ff",
+      "name": "Send Application to ATS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        528,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('UI Signal Webhook').item.json.body.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "SUCCESSFUL_APPLY"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{ { \"status\": \"applied\", \"company\": $json.company, \"role\": $json.job_role } }}\n"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "734a84a3-cec8-4625-8dfb-c57952688e56",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $node[\"UI Signal Webhook\"].json.body.details.user_phone }}",
+        "textBody": "=Hello! DigyNex AI is ready to apply for the {{ $json.body.body.details.role }} role at {{ $json.body.body.details.company }} on your behalf. Reply YES to approve.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        448
+      ],
+      "id": "ed534a0e-512e-404c-81ee-b7267552af92",
+      "name": "Send message",
+      "webhookId": "2269abd4-6779-41fe-9da2-0e04d96bf146",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=🚀 **DigyNex AI: Approval Required**\n\nHello! Our AI is ready to submit your application for:\n\n📍 **Role:** {{ $node[\"UI Signal Webhook\"].json.body.body.details.role }}\n🏢 **Company:** {{ $node[\"UI Signal Webhook\"].json.body.body.details.company }}\n\nPlease review your documents. If everything looks good, reply **YES** to this message to initiate the expert submission.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "89d61f27-51d0-40b6-870f-25995158f6c7",
+      "name": "Telegram: Guardrail Approval",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        0,
+        464
+      ],
+      "webhookId": "7dc5307d-d885-49bf-ad77-c34020db471a",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Fetch Current Quota",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        144
+      ],
+      "id": "1f3debd4-4851-4cfa-ae69-bc8bd70ad5aa",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "system_config",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "condition": "eq",
+              "keyValue": "global_broadcast"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "value",
+              "fieldValue": "={{ $node[\"UI Signal Webhook\"].json[\"body\"][\"body\"][\"details\"] }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Sync Global Broadcast",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "a7eca4d6-dc95-45b2-bb1d-9ebed21923f2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=📢 **DIGYNEX GLOBAL BROADCAST**\n\n**Status:** {{ $node[\"UI Signal Webhook\"].json.body.body.details.active ? '🔴 ACTIVE' : '⚪ INACTIVE' }}\n**Type:** {{ $node[\"UI Signal Webhook\"].json.body.body.details.type.toUpperCase() }}\n\n**Message:**\n{{ $node[\"UI Signal Webhook\"].json.body.body.details.message }}\n\n*Strategic Pulse: Neural Master Hub*",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Telegram: Broadcast Log",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        208,
+        304
+      ],
+      "id": "e9fb9fa3-4796-4f67-94b3-c8dcc72293fd",
+      "webhookId": "64e1a33f-2496-400c-a6c7-f32e63ef5320",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $node[\"UI Signal Webhook\"].json.body.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "id": "005c7458-6c60-4c3e-b1b0-d6c83cad03ea",
+      "name": "Supabase: Fetch Quota Balance1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        656
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Neural Engine: Strategic Quota Auditor (V13.8 - Commercial Sync)\nconst profile = $json; \nconst now = new Date();\n\n// --- 1. SYNC WITH quotaService.js ---\nconst planType = profile.plan_type || 'free';\nconst role = profile.role || 'staff';\nlet plan = (planType === 'pro' || planType === 'growth') ? 1 : 0;\nif (planType === 'elite' || role === 'super_admin') plan = 2;\n\nconst balance = profile.cv_limit || 0;\n\nlet output = {\n  status: 'DISPATCH_INSTANT',\n  ui_message: 'Neural pulse active. Strategic match found.',\n  ui_type: 'success',\n  next_available: 'Available Now'\n};\n\n// --- 2. THE STRATEGIC GATE ---\nif (plan < 2 && balance <= 0) {\n    let nextDate = new Date();\n    if (plan === 0) { // Free: Next Monday\n        const day = now.getDay();\n        const diff = (day === 0 ? 1 : 8 - day);\n        nextDate.setDate(now.getDate() + diff);\n        nextDate.setHours(0, 1, 0, 0); \n    } else { // Pro/Growth: Tomorrow 06:00 AM\n        nextDate.setDate(now.getDate() + 1);\n        nextDate.setHours(6, 0, 0, 0);\n    }\n\n    output = {\n      status: 'QUEUE_STRATEGIC',\n      ui_message: plan === 0 ? 'Weekly Limit Reached. Strategic Queue active.' : 'Daily Window Closed. Queued for Tomorrow.',\n      ui_type: 'info',\n      next_available: nextDate.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })\n    };\n}\n\nreturn output;\n"
+      },
+      "id": "fdd899b6-62d5-41e5-abec-99320177748e",
+      "name": "Neural Quota Auditor1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        208,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Neural Engine: Strategic Quota Auditor (V13.8)\nconst profile = $json; \nconst now = new Date();\n\nconst planType = profile.plan_type || 'free';\nconst role = profile.role || 'staff';\nlet plan = (planType === 'pro' || planType === 'growth') ? 1 : 0;\nif (planType === 'elite' || role === 'super_admin') plan = 2;\nconst balance = profile.cv_limit || 0;\n\nif (plan < 2 && balance <= 0) {\n    let nextDate = new Date();\n    if (plan === 0) {\n        const day = now.getDay();\n        const diff = (day === 0 ? 1 : 8 - day);\n        nextDate.setDate(now.getDate() + diff);\n        nextDate.setHours(0, 1, 0, 0); \n    } else {\n        nextDate.setDate(now.getDate() + 1);\n        nextDate.setHours(6, 0, 0, 0);\n    }\n    return { status: 'QUEUE_STRATEGIC', ui_type: 'info', next_available: nextDate.toLocaleString('en-GB') };\n}\nreturn { status: 'DISPATCH_INSTANT', ui_type: 'success', next_available: 'Available Now' };\n"
+      },
+      "id": "4113c5f2-5fde-4f1c-8956-41d7a78f770c",
+      "name": "Neural Quota Auditor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $node[\"UI Signal Webhook\"].json.body.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "id": "b776c68e-9509-42be-b7bc-a1b6f78da378",
+      "name": "Supabase: Fetch Quota Balance",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -32
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0854a251-6b62-4309-a4c1-13c172adedee",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "DISPATCH_INSTANT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        -32
+      ],
+      "id": "5f910a82-d4db-434d-b3e0-1405a2e036f4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $node[\"UI Signal Webhook\"].json.body.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "JOB_QUEUED"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{    JSON.stringify({     ...$node[\"UI Signal Webhook\"].json.body.body.details,     status: \"pending\",     next_available: $node[\"Neural Quota Auditor1\"].json.next_available   })  }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -192
+      ],
+      "id": "5b0c9afa-acba-41d1-acde-caa18faae13d",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Supabase: Fetch Quota Balance').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "cv_limit",
+              "fieldValue": "={{ $node[\"Supabase: Fetch Quota Balance\"].json.cv_limit - 1 }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Decrement Quota - Job Apply",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -48
+      ],
+      "id": "f3d3a9da-8bef-4d12-8795-9495f09b5cd0",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0854a251-6b62-4309-a4c1-13c172adedee",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "DISPATCH_INSTANT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        656
+      ],
+      "id": "17e09c37-4644-4da2-9092-507b34007455",
+      "name": "IF - QA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "applicant_email",
+              "value": "={{ $json.body.body.user_id }}"
+            },
+            {
+              "name": "job_role",
+              "value": "={{ $json.body.body.details.role }}"
+            },
+            {
+              "name": "company",
+              "value": "={{ $json.body.body.details.company }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1c03db6-eb38-43c9-8215-51cc20e3b662",
+      "name": "Send Application to ATS - QA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        656,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('UI Signal Webhook').item.json.body.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "SUCCESSFUL_APPLY"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{ { \"status\": \"applied\", \"company\": $json.company, \"role\": $json.job_role } }}\n"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        864,
+        608
+      ],
+      "id": "3c956cc0-ca93-4d39-a928-808e90bd7bfe",
+      "name": "Create a row - QA",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $node[\"UI Signal Webhook\"].json.body.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "JOB_QUEUED"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{    JSON.stringify({     ...$node[\"UI Signal Webhook\"].json.body.body.details,     status: \"pending\",     next_available: $node[\"Neural Quota Auditor1\"].json.next_available   })  }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        656,
+        816
+      ],
+      "id": "8bafaad4-8885-43a1-ad36-032c20a899e6",
+      "name": "Create a row - QA1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Supabase: Fetch Quota Balance1').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "cv_limit",
+              "fieldValue": "={{ $('Supabase: Fetch Quota Balance1').item.json.cv_limit - 1 }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Decrement Quota - Quick Job Apply1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        608
+      ],
+      "id": "e952435b-f7ec-4dc8-85ef-c5336edf2f10",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0854a251-6b62-4309-a4c1-13c172adedee",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "DISPATCH_INSTANT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        160
+      ],
+      "id": "9349e212-d327-4290-a026-6b9c260a1526",
+      "name": "IF - CV"
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('UI Signal Webhook').item.json.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "SUCCESSFUL_APPLY"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{ { \"status\": \"applied\", \"company\": $json.company, \"role\": $json.job_role } }}\n"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        512,
+        144
+      ],
+      "id": "cdb9673c-058f-46dd-94e1-4bd531c74f20",
+      "name": "Create a row - CV",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Supabase: Fetch Current Quota').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "cv_limit",
+              "fieldValue": "={{ $('Supabase: Fetch Current Quota').item.json.cv_limit - 1 }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Decrement Quota - CV Count",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        752,
+        144
+      ],
+      "id": "4763805f-27c3-479f-bf33-b1877f65a8bd",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $node[\"UI Signal Webhook\"].json.body.user_id }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "JOB_QUEUED"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "={{ \n  JSON.stringify({\n    ...$node[\"UI Signal Webhook\"].json.body.details,\n    status: \"pending\",\n    next_available: $node[\"Neural Quota Auditor\"].json.next_available\n  }) \n}}\n"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        560,
+        320
+      ],
+      "id": "e47c1cbf-620a-47f7-8482-afb5fbf04bec",
+      "name": "Create a row - CV1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Neural Engine: Strategic Quota Auditor (V13.8)\nconst profile = $json; \nconst now = new Date();\n\nconst planType = profile.plan_type || 'free';\nconst role = profile.role || 'staff';\nlet plan = (planType === 'pro' || planType === 'growth') ? 1 : 0;\nif (planType === 'elite' || role === 'super_admin') plan = 2;\nconst balance = profile.cv_limit || 0;\n\nif (plan < 2 && balance <= 0) {\n    let nextDate = new Date();\n    if (plan === 0) {\n        const day = now.getDay();\n        const diff = (day === 0 ? 1 : 8 - day);\n        nextDate.setDate(now.getDate() + diff);\n        nextDate.setHours(0, 1, 0, 0); \n    } else {\n        nextDate.setDate(now.getDate() + 1);\n        nextDate.setHours(6, 0, 0, 0);\n    }\n    return { status: 'QUEUE_STRATEGIC', ui_type: 'info', next_available: nextDate.toLocaleString('en-GB') };\n}\nreturn { status: 'DISPATCH_INSTANT', ui_type: 'success', next_available: 'Available Now' };\n"
+      },
+      "id": "a7ee8c1b-476f-4ae5-962b-15011d050ecf",
+      "name": "Neural Quota Auditor CV Download",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        192,
+        144
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "UI Signal Webhook": {
+      "main": [
+        [
+          {
+            "node": "Neural Signal Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Neural Signal Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neural Signal Switch": {
+      "main": [
+        [
+          {
+            "node": "Executor Pipeline (Job Apply)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Logger Pipeline (CV Export)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Broadcast Engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardrail (WhatsApp verify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neural Signal Switch1": {
+      "main": [
+        [
+          {
+            "node": "Executor Pipeline (QUICK Apply)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Application to ATS": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executor Pipeline (Job Apply)": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Fetch Quota Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrail (WhatsApp verify)": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram: Guardrail Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Fetch Current Quota": {
+      "main": [
+        [
+          {
+            "node": "Neural Quota Auditor CV Download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logger Pipeline (CV Export)": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Fetch Current Quota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Sync Global Broadcast": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Broadcast Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Broadcast Engine": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Sync Global Broadcast",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executor Pipeline (QUICK Apply)": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Fetch Quota Balance1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Fetch Quota Balance1": {
+      "main": [
+        [
+          {
+            "node": "Neural Quota Auditor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Decrement Quota - Job Apply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Fetch Quota Balance": {
+      "main": [
+        [
+          {
+            "node": "Neural Quota Auditor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neural Quota Auditor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Application to ATS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - QA": {
+      "main": [
+        [
+          {
+            "node": "Send Application to ATS - QA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row - QA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Application to ATS - QA": {
+      "main": [
+        [
+          {
+            "node": "Create a row - QA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row - QA": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Decrement Quota - Quick Job Apply1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neural Quota Auditor1": {
+      "main": [
+        [
+          {
+            "node": "IF - QA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - CV": {
+      "main": [
+        [
+          {
+            "node": "Create a row - CV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row - CV1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row - CV": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Decrement Quota - CV Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neural Quota Auditor CV Download": {
+      "main": [
+        [
+          {
+            "node": "IF - CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d34456c9-5b6b-4dbe-9dc3-7e40bc7b28bb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "L239rX6WIghERxZy",
+  "tags": []
+}

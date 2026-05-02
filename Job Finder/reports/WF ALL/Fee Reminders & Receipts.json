@@ -1,0 +1,239 @@
+{
+  "name": "Fee Reminders & Receipts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "https://n8n.digynex.se/webhook/fee-action`",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "f4df2e68-5f1b-403f-b9e1-66b01f608404",
+      "name": "Webhook",
+      "webhookId": "699d5c7d-80d3-490c-be49-ec09a064e866"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "=receipt",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0074586f-7acb-4093-9cd5-73489cb6f383"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "786f8b70-0676-495b-94c2-5bc6fe8d5ef9",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "reminder",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "e3ed5d24-e5dd-434c-964c-817358e9ab1e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"success\", \"message\": \"Fee action processed\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "bf70e414-15f0-4a8f-b902-e5f7e8302719",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $json.body.phone }}",
+        "textBody": "=ඔබේ දරුවා, {{ $json.body.student_name }}, අද {{ $json.body.date }} දින {{ $json.body.time }} ට පන්තියට පැමිණියා ({{ $json.body.status }}).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "668af05b-caf0-4768-8e29-73956c78ba4f",
+      "name": "Send message",
+      "webhookId": "660bd55b-1bd7-4c7d-ac23-91a413a7a05a",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"success\", \"message\": \"Fee action processed\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        304,
+        80
+      ],
+      "id": "e4b6784b-ee30-4b41-9507-c45c876dd26e",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $json.body.phone }}",
+        "textBody": "=මතක් කිරීමක්! {{ $json.body.student_name }}, ඔබගේ {{ $json.body.month }} මාසය සඳහා පන්ති ගාස්තුව ගෙවීමට ඇති බව කරුණාවෙන් මතක් කරමු.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        80
+      ],
+      "id": "80cc315f-c801-4012-b019-675b3aa580a3",
+      "name": "Send message1",
+      "webhookId": "660bd55b-1bd7-4c7d-ac23-91a413a7a05a",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "Send message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b3bec8bf-167e-4949-94c6-730b447646c2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "o6HYHNKXYYgKRJvD",
+  "tags": []
+}

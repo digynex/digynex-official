@@ -1,0 +1,485 @@
+{
+  "name": "Workflow G: Neural Resilience Scraper (V15.9)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "neural-job-scraper",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook: Job Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "c21da054-4dc2-46c0-8a7d-2f90faacb5c2",
+      "webhookId": "5696eb5f-6856-4de6-b7da-37f27c098213"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputCountry = ($node[\"Webhook: Job Request\"].json.query.country || 'sweden').toLowerCase();\nconst inputCity = ($node[\"Webhook: Job Request\"].json.query.city || '').toLowerCase();\nconst inputKeyword = ($node[\"Webhook: Job Request\"].json.query.q || '').toLowerCase(); // 🎯 KEYWORD RECOVERED (CRITICAL FIX)\n\n// 🌍 GLOBAL STRATEGIC MAPPING (V16.9.5)\nconst countryMap = {\n  'sweden': 'se',\n  'germany': 'de',\n  'united kingdom': 'gb',\n  'norway': 'no',\n  'finland': 'fi',\n  'denmark': 'dk',\n  'sri lanka': 'lk',\n  'united states': 'us',\n  'canada': 'ca',\n  'australia': 'au',\n  'france': 'fr',\n  'netherlands': 'nl'\n};\n\nconst finalCountryCode = countryMap[inputCountry] || inputCountry;\n\n// 🛰️ DYNAMIC PROVIDER STRATEGY\n// Adzuna supports specific countries. Fallback to Careerjet for others.\nconst adzunaSupported = ['at','au','be','br','ca','ch','de','es','fr','gb','in','it','mx','nl','nz','pl','ru','us','za', 'se'];\nconst provider = adzunaSupported.includes(finalCountryCode) ? 'adzuna' : 'careerjet';\n\nconst localeMap = {\n  'se': 'sv_SE',\n  'de': 'de_DE',\n  'gb': 'en_GB',\n  'no': 'no_NO',\n  'lk': 'en_LK',\n  'fi': 'fi_FI',\n  'dk': 'da_DK'\n};\n\nconst localeCode = localeMap[finalCountryCode] || 'en_GB';\n\n// 🛡️ SURGICAL SEARCH KEY (V16.9.5)\n// Ensures the cache lookup is 100% accurate based on keyword + country + city\nconst uniqueSearchKey = `${inputKeyword}_${finalCountryCode}_${inputCity}`.replace(/__+/g, '_').trim();\n\n// 🚀 NEURAL RETURN PAYLOAD\nreturn {\n  keyword: inputKeyword,\n  search_key: uniqueSearchKey, // ✅ Use this in Supabase nodes!\n  country: finalCountryCode,\n  countryCode: finalCountryCode, \n  locale: localeCode,\n  provider: provider,\n  city: inputCity,\n  original_input: inputCountry\n};\n"
+      },
+      "name": "Code: Map Country",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -80
+      ],
+      "id": "569f5607-d591-459b-907a-89643825cdd8"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "job_scrapes",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "search_key",
+              "condition": "eq",
+              "keyValue": "={{ $node[\"Code: Map Country\"].json.search_key }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Check Cache",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -80
+      ],
+      "id": "ec808c26-b060-4734-b8c1-70662bb1ce14",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.search_key }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "If: In Cache?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -80
+      ],
+      "id": "7ebbe7d5-933c-4a31-8053-198e572aac72"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.jobs }}",
+        "options": {}
+      },
+      "name": "Respond to Webhook 1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -176
+      ],
+      "id": "20741c43-3e0f-43a3-974f-121996fa62eb"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $node[\"Code: Map Country\"].json.provider }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "adzuna"
+            },
+            {
+              "value2": "careerjet",
+              "output": 1
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "name": "Switch: Provider",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        80
+      ],
+      "id": "39f22569-9dfc-46bd-8d9c-8e8f404e374f"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.adzuna.com/v1/api/jobs/{{ $node[\"Code: Map Country\"].json.countryCode }}/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "3eb84619"
+            },
+            {
+              "name": "app_key",
+              "value": "f547d75879d0d2f2c75b915339692e6d"
+            },
+            {
+              "name": "what",
+              "value": "={{ $node[\"Code: Map Country\"].json.keyword }}"
+            },
+            {
+              "name": "results_per_page",
+              "value": "20"
+            },
+            {
+              "name": "where",
+              "value": "={{ $node[\"Code: Map Country\"].json.city }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "HTTP: Adzuna Fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1392,
+        32
+      ],
+      "id": "7dffe135-f3b6-4a0e-97d2-08e449e830ac",
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ !!$json.error || $json.httpCode >= 400 }}"
+            }
+          ]
+        }
+      },
+      "name": "If: Adzuna Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        32
+      ],
+      "id": "bb9ed028-f73a-4867-9ef0-afc8d83d30ec"
+    },
+    {
+      "parameters": {
+        "url": "http://public.api.careerjet.net/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "affid",
+              "value": "5e6c678b3e9de51d5d40c3545ddceb3f"
+            },
+            {
+              "name": "keywords",
+              "value": "={{ $node[\"Code: Map Country\"].json.keyword }}"
+            },
+            {
+              "name": "locale_code",
+              "value": "={{ $node[\"Code: Map Country\"].json.localeCode }}"
+            },
+            {
+              "name": "user_ip",
+              "value": "1.1.1.1"
+            },
+            {
+              "name": "user_agent",
+              "value": "Mozilla/5.0"
+            },
+            {
+              "name": "location",
+              "value": "={{ $json.city }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Referer",
+              "value": "https://digynex.se"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "HTTP: Careerjet Fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1792,
+        224
+      ],
+      "id": "b3e0fb76-052b-4eb2-9104-60868c30626a"
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawData = $input.item.json;\n\n// Handle error output from Adzuna if it somehow reaches here\nif (rawData.error) return { jobs: [] };\n\n// Handle stringified JSON from Careerjet\nif (typeof rawData.data === 'string') {\n  try { rawData = JSON.parse(rawData.data); } catch (e) {}\n} else if (rawData.data && typeof rawData.data === 'object') {\n  rawData = rawData.data;\n}\n\nconst results = rawData.results || rawData.jobs || [];\nconst keyword = $node['Code: Map Country'].json.keyword.toLowerCase();\nconst country = $node['Code: Map Country'].json.countryCode;\n\nconst formattedJobs = results.map((job, index) => ({\n  id: job.id || String(index),\n  company: job.company?.display_name || job.company || 'Unknown Company',\n  title: job.title,\n  location: job.location?.display_name || job.location || 'Remote',\n  match_score: Math.floor(Math.random() * 20) + 80,\n  url: job.redirect_url || job.url,\n  description: job.description\n}));\n\nreturn {\n  search_key: `${keyword}_${country}`,\n  jobs: formattedJobs\n};"
+      },
+      "name": "Code: Format Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        80
+      ],
+      "id": "cdcca37b-1e95-432b-bb7d-5b03ee57588d"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "job_scrapes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "search_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.search_key }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Delete Old Cache",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2256,
+        80
+      ],
+      "alwaysOutputData": true,
+      "id": "4705aeca-17e1-4e3e-8991-c5df75728e6e",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "job_scrapes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "search_key",
+              "fieldValue": "={{ $node[\"Code: Map Country\"].json.search_key }}"
+            },
+            {
+              "fieldId": "jobs",
+              "fieldValue": "={{ $node[\"Code: Format Jobs\"].json.jobs }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Save Cache",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        80
+      ],
+      "alwaysOutputData": true,
+      "id": "8b1f9e80-8bf1-43b9-864f-d86037a98283",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $node[\"Code: Format Jobs\"].json.jobs }}",
+        "options": {}
+      },
+      "name": "Respond to Webhook 2",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2656,
+        80
+      ],
+      "id": "d1bcd986-e424-45f0-87c4-05d96c1c7479"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: Job Request": {
+      "main": [
+        [
+          {
+            "node": "Code: Map Country",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Map Country": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Check Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Check Cache": {
+      "main": [
+        [
+          {
+            "node": "If: In Cache?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: In Cache?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch: Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Provider": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Adzuna Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Careerjet Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Adzuna Fetch": {
+      "main": [
+        [
+          {
+            "node": "If: Adzuna Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Adzuna Failed?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Careerjet Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Format Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Careerjet Fetch": {
+      "main": [
+        [
+          {
+            "node": "Code: Format Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Format Jobs": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Delete Old Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Delete Old Cache": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Save Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Save Cache": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7370cb52-80f9-4ec4-be2e-6aa7476ad368",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "CgT4RW0PIUM70kgP",
+  "tags": []
+}

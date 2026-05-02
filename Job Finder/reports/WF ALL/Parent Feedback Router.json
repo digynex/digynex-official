@@ -1,0 +1,120 @@
+{
+  "name": "Parent Feedback Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "parent-feedback",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "40e03172-35be-40dc-bec2-8d1cdf17eefc",
+      "name": "Webhook",
+      "webhookId": "4c265041-848d-478d-870a-170dcfe68683"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "students",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "condition": "eq",
+              "keyValue": "= {{ $json.body.student_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "2660a384-17a0-42bd-afde-c9d47408aace",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=🚨 *New Parent Feedback Alert*\n\n*Student ID:* {{ $('Webhook').item.json.body.student_id }}\n\n*Feedback:* \n\"{{ $('Webhook').item.json.body.message }}\"\n\n*Received At:* {{ $('Webhook').item.json.body.timestamp }}\n",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "68da5da3-ea46-4022-8c65-af61ee4562a0",
+      "name": "Send a text message",
+      "webhookId": "ccd5c8da-a414-4412-80cc-98068462b4ea",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8b81f5a2-6f4b-49d7-80fd-cbf0d2a55d32",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "Oaw6dApDSv93DFlU",
+  "tags": []
+}

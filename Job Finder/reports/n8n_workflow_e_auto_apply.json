@@ -1,76 +1,388 @@
 {
-  "name": "Neural Auto-Apply Engine V16.9 (Apify Edition)",
+  "name": "DigyNex Workflow E: Headless Auto-Apply (Masterpiece V5.0)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "neural-bridge/auto-apply",
+        "path": "headless-executor",
         "options": {}
       },
-      "name": "Webhook: Quick Apply",
+      "id": "node-webhook",
+      "name": "Webhook: Apply Request",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [
-        250,
-        240
-      ]
+      "typeVersion": 1.1,
+      "position": [0, 300]
     },
     {
       "parameters": {
-        "operation": "getMany",
-        "table": "profiles",
-        "filters": {
-          "conditions": [
+        "operation": "get",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "tableId": "profiles",
+        "id": "={{ $node[\"Webhook: Apply Request\"].json.body.user_id }}",
+        "options": {}
+      },
+      "id": "node-hydrate",
+      "name": "Supabase: Get Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
             {
-              "key": "email",
-              "value": "={{ $node[\"Webhook: Quick Apply\"].json.query.email }}"
+              "value1": "={{ $json.cv_limit }}",
+              "operation": "larger",
+              "value2": 0
             }
           ]
         }
       },
-      "name": "Supabase: Fetch Identity",
-      "type": "n8n-nodes-base.supabase",
+      "id": "node-quota-check",
+      "name": "If: Quota Available?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [
-        450,
-        240
-      ]
+      "position": [400, 300]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.apify.com/v2/acts/apify~contact-form-submitter/runs",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
+        "conditions": {
+          "string": [
             {
-              "name": "token",
-              "value": "YOUR_APIFY_TOKEN"
+              "value1": "={{ $node[\"Supabase: Get Profile\"].json.doc_status }}",
+              "value2": "Verified"
             }
           ]
-        },
-        "options": {}
+        }
       },
-      "name": "Apify: Dispatch Form Submitter",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        650,
-        240
-      ]
+      "id": "node-cv-check",
+      "name": "If: CV Verified?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 200]
     },
     {
       "parameters": {
-        "operation": "execute",
-        "query": "=UPDATE profiles SET cv_limit = cv_limit - 1 WHERE email = '{{ $node[\"Webhook: Quick Apply\"].json.query.email }}' AND cv_limit > 0;"
+        "operation": "download",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "bucketId": "cv_specimens",
+        "fileName": "={{ $node[\"Supabase: Get Profile\"].json.id }}.pdf"
       },
-      "name": "Supabase: Atomic Quota Decrement",
+      "id": "node-download-cv",
+      "name": "Supabase: Download CV",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [
-        850,
-        240
+      "position": [800, 200]
+    },
+    {
+      "parameters": {
+        "fileContent": "={{ $node[\"Supabase: Download CV\"].binary.data }}",
+        "fileName": "/automation/cv_{{ $execution.id }}.pdf",
+        "options": {
+          "appendNewline": false
+        }
+      },
+      "id": "node-write-file",
+      "name": "Write Binary File: CV",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [1000, 100]
+    },
+    {
+      "parameters": {
+        "command": "=node \"/automation/backend-services/apply_script.js\" --url=\"{{ $node[\"Webhook: Apply Request\"].json.body.details.job_url }}\" --cv=\"/automation/cv_{{ $execution.id }}.pdf\" --name=\"{{ $node[\"Supabase: Get Profile\"].json.name }}\" --email=\"{{ $node[\"Supabase: Get Profile\"].json.email }}\" --cl=\"{{ $node[\"Supabase: Get Profile\"].json.cover_letter }}\" --phone=\"{{ $node[\"Supabase: Get Profile\"].json.phone || '' }}\" --location=\"{{ $node[\"Supabase: Get Profile\"].json.country_code || 'Sweden' }}\""
+      },
+      "id": "node-execute",
+      "name": "Execute Command: Puppeteer",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1200, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const stdout = items[0].json.stdout;\n  const jsonMatch = stdout.match(/\\{.*\\}/s);\n  if (jsonMatch) {\n    return JSON.parse(jsonMatch[0]);\n  }\n  return { status: 'error', message: 'No JSON found in stdout' };\n} catch (e) {\n  return { status: 'error', message: e.message };\n}"
+      },
+      "id": "node-parse",
+      "name": "Code: Parse Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1200, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "SUCCESS"
+            }
+          ]
+        }
+      },
+      "id": "node-switch",
+      "name": "If: Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1400, 100]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "tableId": "user_activity",
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "action",
+              "value": "JOB_APPLICATION_SUBMITTED"
+            },
+            {
+              "column": "user_id",
+              "value": "={{ $node[\"Webhook: Apply Request\"].json.body.user_id }}"
+            },
+            {
+              "column": "details",
+              "value": "={{ $node[\"Code: Parse Result\"].json }}"
+            }
+          ]
+        }
+      },
+      "id": "node-log",
+      "name": "Supabase: Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1600, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeSql",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "query": "=UPDATE profiles SET cv_limit = cv_limit - 1 WHERE id = '{{ $node[\"Webhook: Apply Request\"].json.body.user_id }}';"
+      },
+      "id": "node-decrement",
+      "name": "Supabase: Atomic Decrement",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1800, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=🚀 **Neural Apply: Success**\n\nUser: {{ $node[\"Webhook: Apply Request\"].json.body.user_id }}\nJob: {{ $node[\"Webhook: Apply Request\"].json.body.details.job_url }}\n\n*Strategic Pulse: Quota Decremented.*",,
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "node-tg-success",
+      "name": "Telegram: Admin Success Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [2000, -100]
+    },
+    {
+      "parameters": {
+        "operation": "template",
+        "phoneNumberId": "your_whatsapp_phone_id",
+        "recipientPhoneNumber": "={{ $node[\"Supabase: Get Profile\"].json.phone }}",
+        "templateName": "digynex_universal_alert_general_updates",
+        "templateLanguage": "en_US",
+        "components": {
+          "body": [
+            {
+              "type": "text",
+              "text": "={{ $node[\"Supabase: Get Profile\"].json.name }}"
+            },
+            {
+              "type": "text",
+              "text": "=Your application for {{ $node[\"Webhook: Apply Request\"].json.body.details.job_url }} is COMPLETE. 🚀"
+            }
+          ]
+        }
+      },
+      "id": "node-wa-success",
+      "name": "WhatsApp: User Success Alert",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [2000, 100]
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=⚠️ **Neural Apply: Execution Error**\n\nUser: {{ $node[\"Webhook: Apply Request\"].json.body.user_id }}\nError: {{ $node[\"Code: Parse Result\"].json.message || 'Unknown execution failure' }}",,
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "node-tg-error",
+      "name": "Telegram: Admin Error Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1600, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=❌ **Neural Apply: Quota/CV Denied**\n\nUser: {{ $node[\"Webhook: Apply Request\"].json.body.user_id }}\nCheck: Quota={{ $node[\"If: Quota Available?\"].json.cv_limit }}, Verified={{ $node[\"Supabase: Get Profile\"].json.doc_status }}",,
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "node-tg-gate",
+      "name": "Telegram: Admin Gate Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [600, 400]
+    }
+  ],
+  "connections": {
+    "Webhook: Apply Request": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Get Profile": {
+      "main": [
+        [
+          {
+            "node": "If: Quota Available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Quota Available?": {
+      "main": [
+        [
+          {
+            "node": "If: CV Verified?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Admin Gate Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: CV Verified?": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Download CV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Admin Gate Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Download CV": {
+      "main": [
+        [
+          {
+            "node": "Write Binary File: CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Binary File: CV": {
+      "main": [
+        [
+          {
+            "node": "Execute Command: Puppeteer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command: Puppeteer": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Result": {
+      "main": [
+        [
+          {
+            "node": "If: Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Success?": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Admin Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Atomic Decrement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Atomic Decrement": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Admin Success Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WhatsApp: User Success Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
-  ]
+  }
 }

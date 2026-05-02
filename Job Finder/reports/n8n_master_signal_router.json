@@ -52,14 +52,32 @@
       "position": [
         500,
         400
-      ],
-      "notesInFlow": true,
-      "notes": "Routes signals based on actionId"
+      ]
     },
     {
-      "parameters": {},
+      "parameters": {
+        "workflowId": "workflow-e-executor"
+      },
+      "id": "node-exec-e",
       "name": "Workflow E: Executor (Path 0)",
-      "type": "n8n-nodes-base.noOp",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "tableId": "profiles",
+        "id": "={{ $json.body.user_id }}",
+        "options": {}
+      },
+      "id": "node-quota-fetch",
+      "name": "Supabase: Fetch Quota Balance1",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
         800,
@@ -67,19 +85,56 @@
       ]
     },
     {
-      "parameters": {},
-      "name": "Workflow X: Logger (Path 1)",
-      "type": "n8n-nodes-base.noOp",
+      "parameters": {
+        "operation": "create",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "tableId": "user_activity",
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $node[\"Webhook: Neural Signal Receiver\"].json.body.user_id }}"
+            },
+            {
+              "column": "action",
+              "value": "SUCCESSFUL_APPLY"
+            },
+            {
+              "column": "details",
+              "value": "={{ $node[\"Workflow E: Executor (Path 0)\"].json }}"
+            }
+          ]
+        }
+      },
+      "id": "node-log-qa",
+      "name": "Create a row - QA",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        800,
-        340
+        1400,
+        180
       ]
     },
     {
-      "parameters": {},
-      "name": "Admin Broadcast Sync (Path 2)",
-      "type": "n8n-nodes-base.noOp",
+      "parameters": {
+        "operation": "upsert",
+        "projectId": "ticmdqeyeiycznfzxqrx",
+        "tableId": "system_config",
+        "id": "global_broadcast",
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "value",
+              "value": "={{ $node[\"Webhook: Neural Signal Receiver\"].json.body.details }}"
+            }
+          ]
+        }
+      },
+      "id": "node-sync-broadcast",
+      "name": "Supabase: Sync Global Broadcast",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
         800,
@@ -87,23 +142,15 @@
       ]
     },
     {
-      "parameters": {},
+      "parameters": {
+        "workflowId": "workflow-d-verification"
+      },
       "name": "Workflow D: Verification Handshake (Path 3)",
-      "type": "n8n-nodes-base.noOp",
+      "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
         800,
         640
-      ]
-    },
-    {
-      "parameters": {},
-      "name": "Workflow E: Quick Executor (Path 4)",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        800,
-        800
       ]
     }
   ],
@@ -123,21 +170,15 @@
       "main": [
         [
           {
-            "node": "Workflow E: Executor (Path 0)",
+            "node": "Supabase: Fetch Quota Balance1",
             "type": "main",
             "index": 0
           }
         ],
+        [],
         [
           {
-            "node": "Workflow X: Logger (Path 1)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Admin Broadcast Sync (Path 2)",
+            "node": "Supabase: Sync Global Broadcast",
             "type": "main",
             "index": 0
           }
@@ -151,7 +192,29 @@
         ],
         [
           {
-            "node": "Workflow E: Quick Executor (Path 4)",
+            "node": "Supabase: Fetch Quota Balance1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Fetch Quota Balance1": {
+      "main": [
+        [
+          {
+            "node": "Workflow E: Executor (Path 0)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow E: Executor (Path 0)": {
+      "main": [
+        [
+          {
+            "node": "Create a row - QA",
             "type": "main",
             "index": 0
           }

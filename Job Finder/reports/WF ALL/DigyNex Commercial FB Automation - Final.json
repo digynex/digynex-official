@@ -1,0 +1,365 @@
+{
+  "name": "DigyNex Commercial FB Automation - Final",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 8,13,19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "95a626cf-c51e-4090-b58c-d8e843e519f0",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "att",
+              "name": "attempt",
+              "value": 1,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2ae20be7-4879-47dc-9aa3-29e9ac3fed4a",
+      "name": "Set Attempt Counter",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "7467791306",
+        "binaryData": true,
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ APPROVE",
+                    "additionalFields": {
+                      "callback_data": "={{ $execution.resumeUrl }}"
+                    }
+                  },
+                  {
+                    "text": "❌ CANCEL",
+                    "additionalFields": {
+                      "callback_data": "cancel"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "caption": "=📋 *NEW POST READY*{{ $node[\"Message a model\"].json.content.parts[0].text.split('###')[0].trim() }}\n\n"
+        }
+      },
+      "id": "9ac8c7f0-40be-40fb-94af-bdfe01e3ac99",
+      "name": "Telegram Approval Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        864,
+        0
+      ],
+      "webhookId": "a7fd6294-c547-4eed-a8c3-93f808df1b82",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "limitWaitTime": true,
+        "resumeUnit": "minutes",
+        "options": {}
+      },
+      "id": "0af16881-d5ec-4393-b588-cc5ac7d0e412",
+      "name": "Wait for Approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        0
+      ],
+      "webhookId": "c02d43e6-f8f3-4655-a880-b1f5eab8c134"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "is-cancel",
+              "leftValue": "={{ $json.body.callback_query.data }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "cancel"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2dd81915-7f1e-4122-9a59-930290ca87a7",
+      "name": "Approve or Cancel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Role: Strategic Social Media Manager for DigyNex in Gothenburg.\nGoal: Build long-term trust, technical authority, and strong local presence for a real IT repair business.\nConstraint: Strictly DO NOT mention RUT-avdrag.\n\n1. THEME SELECTION (Logic):\nChoose ONE theme randomly for each generation to ensure variety:\n\nTheme 1: Problem Awareness (slow WiFi, printer issues, unstable internet).\n\nTheme 2: Home Visit Trust (calm expert solving issue at client home).\n\nTheme 3: Smart Living Setup (smart TV, smart home, modern setup).\n\nTheme 4: Network Installation (router mounting, cabling, tools visible).\n\nTheme 5: Small Business Support (office, startup, café tech fix).\n\nTheme 6: Cable Cleanup / Before-After transformation.\n\n2. CAPTION RULES (Output first):\n\nSwedish Section: 5–7 short lines, natural tone, mention Gothenburg and rotate areas (Majorna, Hisingen, Linné). Use 2–4 emojis.\n\nEnglish Section: 4–5 lines summary, clear and simple.\n\nCTA: 👉 Boka tid: digynex.se\n\nHashtags: #Gothenburg #DigyNex #ITsupport #TeknikHjälp #SmartHem\n\nSeparator: After hashtags add exactly: ###\n\n3. IMAGE PROMPT RULES (Output after ###):\n\nAnti-Repetition: Do NOT show \"Technician + elderly on sofa\" repeatedly. This scene is limited to 1 out of 6 posts.\n\nRotate Client Types: Senior, Young professional, Parent with child, Couple, Small business owner, Student, or Technician alone.\n\nRotate Environments: Kitchen table, Work desk, Wall-mounted router area, Modern office, Café, Apartment hallway.\n\nActivity: Router install, Cable management (must look extremely clean using channels), Smart TV mounting, Troubleshooting.\n\nLogo Placement: Rotate \"DigyNex\" logo on Shirt, Laptop sticker, Notebook, or Tool bag.\n\nStyle: High-quality professional photography, realistic, natural Swedish daylight, modern Scandinavian interior. Competent and clean look.\n\nOUTPUT FORMAT: Return ONLY the caption and image prompt separated by ###."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        16
+      ],
+      "id": "c41e8d1f-fa4a-4190-aa33-0efa1d54db4b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iGmBVG0Pa93PNfat",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/imagen-4.0-generate-001",
+          "mode": "list",
+          "cachedResultName": "models/imagen-4.0-generate-001"
+        },
+        "prompt": "={{ $node[\"Message a model\"].json.content.parts[0].text.split('###')[1].trim() }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        16
+      ],
+      "id": "14f15f43-1c27-4e06-872e-b2f9a666ac94",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iGmBVG0Pa93PNfat",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "1052617987924165",
+        "edge": "photos",
+        "sendBinaryData": true,
+        "binaryPropertyName": "data",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "={{ $node[\"Message a model\"].json.content.parts[0].text.split('###')[0].trim() }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "e69dd8d0-f6af-4f75-9e2a-359647ea2fd3",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "ppEVMwSdi4IN2goW",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "4d77baca-4644-4a4d-bc0b-8fcf841fb20e",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Attempt Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Approval Message": {
+      "main": [
+        [
+          {
+            "node": "Wait for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Approval": {
+      "main": [
+        [
+          {
+            "node": "Approve or Cancel?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Attempt Counter": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Telegram Approval Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve or Cancel?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9902b878-6910-4c74-9833-52f865a8ee35",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "ZsJkXplrvq5YvEId",
+  "tags": []
+}

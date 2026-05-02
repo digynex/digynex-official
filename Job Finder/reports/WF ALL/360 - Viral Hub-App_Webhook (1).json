@@ -1,0 +1,232 @@
+{
+  "name": "360 - Viral Hub-App_Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "=apr",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "88c8d984-2439-471e-b7e4-79bbe4b100ac"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74e02e89-c51f-4223-b41b-ba5bcc2bf643",
+                    "leftValue": "={{ $json.action }}\n",
+                    "rightValue": "=reg",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7f3687b9-096c-4be3-9658-36562c055bdc",
+                    "leftValue": "={{ $json.action }}\n",
+                    "rightValue": "rej",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1792,
+        -352
+      ],
+      "id": "32b15aef-b0f5-4d4d-b86f-e50d30e14ab1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "viral-hub-approval",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2144,
+        -336
+      ],
+      "id": "2026f7e5-e40d-4f32-88c5-d8a48c3b2794",
+      "name": "Webhook",
+      "webhookId": "96abb326-e548-4c68-9a1b-5a04d09179bd"
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookBody = $input.first().json.body;\n\n// 1. බොත්තමක් click කරලා නැතුව වෙන විදිහකින් Webhook එක trigger වුනොත් error ගහන්නේ නැතුව ඉන්න\nif (!webhookBody.callback_query || !webhookBody.callback_query.data) {\n  return { \n    action: \"no_data\",\n    lead_id: null,\n    error: \"No callback data found\", \n    raw_input: webhookBody \n  };\n}\n\nconst rawData = webhookBody.callback_query.data;\nlet action, lead_id;\n\ntry {\n  // 2. හරියටම JSON ඇවිත් තිබ්බොත් ඒක අරන් action සහ id කඩනවා\n  const parsed = JSON.parse(rawData);\n  action = parsed.a || parsed.action;\n  lead_id = parsed.i || parsed.lead_id;\n} catch (e) {\n  // 3. JSON නෙවෙයි නම් (උදා: ඒක ඇතුලේ \"approve\" කියලා විතරක් තිබ්බොත්), ඒකම අපි action එක විදිහට දෙනවා\n  action = rawData; \n  lead_id = null; \n}\n\nreturn {\n  action: action,\n  lead_id: lead_id,\n  original_raw_data: rawData\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1968,
+        -336
+      ],
+      "id": "c927bbc1-a295-402c-aea9-fdc636dc2ef4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "leads",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "condition": "eq",
+              "keyValue": "={{ $('Code in JavaScript').item.json.lead_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        -368
+      ],
+      "id": "d6e1c53e-d948-4215-bc26-1735875b8f07",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $node[\"Get many rows\"].json.email || \"amila.wijayantha.perera@gmail.com\" }} ",
+        "subject": "=Accelerating growth for {{ $node[\"Get many rows\"].json.company || \"your team\" }} 🚀",
+        "message": "=<p>Dear <strong>{{ $node[\"Get many rows\"].json.name ? $node[\"Get many rows\"].json.name.split(' ')[0] : 'Partner' }}</strong>,</p>\n\n<p>I’ve been following your team's impact on sales performance and noticed how quickly you’re scaling. It’s impressive!</p>\n\n<p>{{ $node[\"Get many rows\"].json.ai_draft }}</p>\n\n<p>At <strong>DigyNex</strong>, we help high-performing teams like yours eliminate manual data drudgery so you can spend more time closing and less time clicking.</p>\n\n<p>Would you be open to a 5-minute chat next Thursday to see if we can save your team a few hours a week?</p>\n\n<p>Best Regards,<br>\n<strong>The DigyNex Team</strong><br>\nYour Future Partner In Progress</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1344,
+        -368
+      ],
+      "id": "60be263d-962f-4989-97c2-bf39ffb2fe20",
+      "name": "Send a message",
+      "webhookId": "dd0711d8-dba8-4ea8-b9d5-1bed7cd3bc89",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BUCQewe4BE24xpbj",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8b8cbb5c-717a-4f76-8365-45806131944a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "J2543AqD69WYvfHE",
+  "tags": []
+}

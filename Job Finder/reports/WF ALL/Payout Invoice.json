@@ -1,0 +1,72 @@
+{
+  "name": "Payout Invoice",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "payout-invoice",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        -48
+      ],
+      "id": "abea178c-535c-4326-bccf-115db918c96a",
+      "name": "Webhook",
+      "webhookId": "b0625737-66cf-45a6-b53b-40c5b7134311"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.tutor_email }}",
+        "subject": "=Payout Invoice - {{ $json.body.period }} DigyNex",
+        "message": "=<div style=\"font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);\">\n  \n  <div style=\"text-align: center; margin-bottom: 20px;\">\n    <h2 style=\"color: #2F3C7E; margin: 0; font-size: 24px;\">DigyNex Payout Confirmation</h2>\n  </div>\n\n  <p style=\"font-size: 16px;\">Dear <strong>{{ $json.body.tutor_name }}</strong>,</p>\n  \n  <p style=\"font-size: 15px; line-height: 1.6; color: #555;\">\n    This email is to confirm that your payout for the period of <strong>{{ $json.body.period }}</strong> has been successfully processed and transferred to your designated account.\n  </p>\n\n  <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #FBEAEB;\">\n    <h3 style=\"margin-top: 0; margin-bottom: 15px; color: #2F3C7E; text-align: center; font-size: 18px;\">Payment Details</h3>\n    <table style=\"width: 100%; font-size: 15px; border-collapse: collapse;\">\n      <tr>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;\"><strong>Amount Paid:</strong></td>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #2F3C7E; font-size: 19px;\"><strong>LKR {{ $json.body.amount }}</strong></td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;\"><strong>Tutor Name:</strong></td>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #333;\">{{ $json.body.tutor_name }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; color: #666;\"><strong>Payment Period:</strong></td>\n        <td style=\"padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #333;\">{{ $json.body.period }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px 0; color: #666;\"><strong>Organization ID:</strong></td>\n        <td style=\"padding: 10px 0; text-align: right; color: #333;\">{{ $json.body.org_id }}</td>\n      </tr>\n    </table>\n  </div>\n\n  <p style=\"font-size: 14px; line-height: 1.5; margin-top: 25px; color: #666;\">\n    If you have any questions or concerns regarding this payment, please do not hesitate to contact our administrative team. We appreciate your continued dedication!\n  </p>\n\n  <div style=\"margin-top: 35px; font-size: 13px; color: #888; border-top: 1px solid #eee; padding-top: 15px; text-align: center;\">\n    <p style=\"margin: 0;\">Thank You,</p>\n    <p style=\"margin: 5px 0 0 0; color: #555;\"><strong>DigyNex Management Team</strong></p>\n  </div>\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "b28429bf-6c12-421c-a8e0-6fd9763352b1",
+      "name": "Send a message",
+      "webhookId": "9d8728c5-5394-464b-8dfb-dc123ee03b8c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BUCQewe4BE24xpbj",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2b7000c6-3621-4365-bee7-d0b457eadb4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "cbu6DC2NEFfNXFfV",
+  "tags": []
+}

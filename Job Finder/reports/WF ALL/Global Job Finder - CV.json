@@ -1,0 +1,284 @@
+{
+  "name": "Global Job Finder - CV",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "job-scraper",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1200,
+        -80
+      ],
+      "id": "b232d9ea-4438-435b-b309-961a39c529c7",
+      "name": "Webhook",
+      "webhookId": "395876e4-01b8-4b51-bfaf-e6f591fa8fc3"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.adzuna.com/v1/api/jobs/{{ $('Webhook').item.json.query.country }}/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "3eb84619"
+            },
+            {
+              "name": "app_key",
+              "value": "f547d75879d0d2f2c75b915339692e6d"
+            },
+            {
+              "name": "what",
+              "value": "={{ $('Webhook').item.json.query.keyword }}"
+            },
+            {
+              "name": "results_per_page",
+              "value": "20"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -544,
+        -80
+      ],
+      "id": "61a2eef1-18af-4acf-9771-3016c6ba0f8e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.item.json.results || [];\nconst keyword = $(\"Webhook\").item.json.query.keyword.toLowerCase();\nconst country = $(\"Webhook\").item.json.query.country.toLowerCase();\n\nconst formattedJobs = results.map(job => ({\n  id: String(job.id),\n  title: job.title,\n  company: job.company.display_name,\n  description: job.description,\n  url: job.redirect_url,\n  location: job.location.display_name,\n  salary_min: job.salary_min || 0,\n  salary_max: job.salary_max || 0,\n  created: job.created\n}));\n\nreturn {\n  search_key: `${keyword}_${country}`,\n  jobs: formattedJobs\n};\n"
+      },
+      "id": "e59619b0-1968-4c6a-aea5-21e130607341",
+      "name": "Code Node",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "job_scrapes",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "10d112b3-6d4b-400f-a886-cca6b81e0f48",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "=={{ $node[\"Code Node\"].json.jobs }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        240,
+        -224
+      ],
+      "id": "18e058bb-589d-482d-90ba-2a40b3be013d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "job_scrapes",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "search_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.query.keyword + '_' + $('Webhook').item.json.query.country  }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -80
+      ],
+      "id": "85e94cec-107c-49e4-b641-ce1d87f619b0",
+      "name": "Get many rows",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5f7d8dd4-a63a-4238-a801-649f94014c72",
+              "leftValue": "=={{ $json.search_key || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a43ceead-6649-4576-a722-da9a5074d646",
+              "leftValue": "={{ $json.created_at ? new Date($json.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) : false }}\n",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -784,
+        -80
+      ],
+      "id": "8439b1d8-1164-47cb-b9d8-66b51bbe6010",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "=={{ $json.jobs }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -528,
+        -272
+      ],
+      "id": "5ffba890-6b57-46c2-9995-0c0c20202658",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8703ff0e-9b0b-496f-b8ba-ea7e946b5842",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "ajvUQPQnRBqfaqC0",
+  "tags": []
+}

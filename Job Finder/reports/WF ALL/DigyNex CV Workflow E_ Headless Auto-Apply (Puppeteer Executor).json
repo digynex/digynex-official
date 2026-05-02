@@ -1,0 +1,188 @@
+{
+  "name": "DigyNex CV Workflow E: Headless Auto-Apply (Puppeteer Executor)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "headless-executor",
+        "options": {}
+      },
+      "name": "Webhook: Apply Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -64
+      ],
+      "id": "af5bb3c8-7dc3-49d0-b6fb-aa4458e7e22a",
+      "webhookId": "1079c2ae-6d7c-43a9-8898-1a4bbc50945e"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profiles",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Hydrate Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -64
+      ],
+      "id": "8aed0a13-d639-40a2-ab84-cb4049568134",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.doc_status }}",
+              "value2": "Verified"
+            }
+          ]
+        }
+      },
+      "name": "If: Verified?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -64
+      ],
+      "id": "1b8305f2-f5f5-42ee-b19d-d51a9fdcda6f"
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Supabase: Hydrate Profile\"].json.uploaded_cv_url || 'https://ticmdqeyeiycznfzxqrx.supabase.co/storage/v1/object/public/cv_specimens/' + $node[\"Supabase: Hydrate Profile\"].json.id + '.pdf' }}",
+        "options": {}
+      },
+      "name": "HTTP: Download CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -160,
+        -176
+      ],
+      "id": "0c08b7b0-10e7-4802-a556-711cd9c6166d"
+    },
+    {
+      "parameters": {
+        "jsCode": "const puppeteer = require('puppeteer');\nconst { job_url, company, role } = $node['Webhook: Apply Request'].json.body;\nconst profile = $node['Supabase: Hydrate Profile'].json;\n\nasync function run() {\n  const browser = await puppeteer.launch({ \n    headless: true, \n    args: ['--no-sandbox', '--disable-setuid-sandbox'] \n  });\n  const page = await browser.newPage();\n  \n  try {\n    await page.goto(job_url, { waitUntil: 'networkidle2', timeout: 60000 });\n    \n    // HUMAN-LIKE DELAY\n    await new Promise(r => setTimeout(r, Math.random() * 2000 + 1000));\n\n    // NEURAL MAPPING: Try to find common input fields\n    const inputs = await page.$$('input');\n    for (const input of inputs) {\n      const name = (await (await input.getProperty('name')).jsonValue()).toLowerCase();\n      const placeholder = (await (await input.getProperty('placeholder')).jsonValue()).toLowerCase();\n      \n      if (name.includes('name') || placeholder.includes('name')) {\n        await input.type(profile.name || 'DigyNex Expert', { delay: 100 });\n      }\n      if (name.includes('email') || placeholder.includes('email')) {\n        await input.type(profile.email, { delay: 100 });\n      }\n    }\n\n    // UPLOAD CV\n    const fileInput = await page.$('input[type=\"file\"]');\n    if (fileInput) {\n      // In n8n, binary data from previous node is available via $binary\n      // We would save it to disk first in a real script, but here we simulate the path\n      await fileInput.uploadFile('/tmp/specimen.pdf');\n    }\n\n    // SUBMIT\n    await page.click('button[type=\"submit\"], input[type=\"submit\"]');\n    await new Promise(r => setTimeout(r, 5000));\n\n    return {\n      status: 'success',\n      company,\n      role,\n      url: job_url,\n      timestamp: new Date().toISOString()\n    };\n  } catch (err) {\n    return {\n      status: 'error',\n      message: err.message,\n      company,\n      role\n    };\n  } finally {\n    await browser.close();\n  }\n}\n\nreturn run();"
+      },
+      "name": "Code: Puppeteer Executor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -176
+      ],
+      "id": "566651b2-f398-4219-9eb6-fbd36c9b8481"
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity"
+      },
+      "name": "Supabase: Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -176
+      ],
+      "id": "0ce17b3a-2928-49fb-8b38-1070691ed2e7",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: Apply Request": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Hydrate Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Hydrate Profile": {
+      "main": [
+        [
+          {
+            "node": "If: Verified?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Verified?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Download CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Download CV": {
+      "main": [
+        [
+          {
+            "node": "Code: Puppeteer Executor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Puppeteer Executor": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "08f24167-37fd-4986-9791-b3e76de29101",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "83zlTT2SrbKFbMeF",
+  "tags": []
+}

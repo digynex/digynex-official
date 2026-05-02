@@ -1,0 +1,116 @@
+{
+  "name": "Gemini AI Expense Scanner",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scan-expense",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        48
+      ],
+      "id": "0d9808ba-ada5-47da-ae20-e35add8bb84b",
+      "name": "Webhook",
+      "webhookId": "0b09f964-dc66-42d1-a98f-26abec8773f1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "You are an expert expense scanner for DigyNex. Analyze the attached receipt/bill image. \n\nExtract the information and return ONLY a valid JSON object with the following exact keys:\n- \"date\": Date of the receipt in YYYY-MM-DD format.\n- \"category\": Choose one from (Food, Transport, Utilities, Office Supplies, Maintenance, Salary, Other).\n- \"amount\": Only the numerical value (e.g., 2500).\n- \"description\": A short, 3-4 word summary.\n\nIMPORTANT: Return ONLY the raw JSON string. Do NOT use markdown code blocks (like ```json), no backticks, and no extra text.\n",
+        "inputType": "binary",
+        "binaryPropertyName": "file0",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        48
+      ],
+      "id": "a32cb164-5656-4194-ab14-d55398503147",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iGmBVG0Pa93PNfat",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.content.parts[0].text) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type:",
+                "value": " application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        64,
+        48
+      ],
+      "id": "da013ff6-54b5-486a-8968-cae87288fe53",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a9cb28d2-693e-4804-84a7-84303bdda260",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "HYGbcKuw8PjePfau",
+  "tags": []
+}

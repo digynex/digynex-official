@@ -1,0 +1,243 @@
+{
+  "name": "DigyNex Workflow E: Headless Auto-Apply (Puppeteer Executor)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "headless-executor",
+        "options": {}
+      },
+      "name": "Webhook: Apply Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        96
+      ],
+      "id": "d7e422fb-6189-46b3-8c22-566db44da0ac",
+      "webhookId": "efffd552-30ae-4873-bf9c-e9b764a5615f"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "profiles",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "amilawijayantha858@gmail.com"
+            }
+          ]
+        }
+      },
+      "name": "Supabase: Hydrate Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        96
+      ],
+      "id": "dd9839ae-f743-4241-aeea-3588a24feb2d",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.doc_status }}",
+              "value2": "Verified"
+            }
+          ]
+        }
+      },
+      "name": "If: Verified?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        96
+      ],
+      "id": "7f798364-315e-41e8-bdbd-880e4fe473cb"
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Supabase: Hydrate Profile\"].json.uploaded_cv_url || 'https://ticmdqeyeiycznfzxqrx.supabase.co/storage/v1/object/public/cv_specimens/' + $node[\"Supabase: Hydrate Profile\"].json.id + '.pdf' }}",
+        "options": {}
+      },
+      "name": "HTTP: Download CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1152,
+        0
+      ],
+      "id": "88f9d97f-87dc-4010-bc30-28c07539ec1b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { execSync } = require('child_process');\n\n// Get data from previous nodes\nconst job_url = $node[\"Webhook: Apply Request\"].json.body.job_url;\nconst profile = $node[\"Supabase: Hydrate Profile\"].json;\nconst cvPath = $node[\"HTTP: Download CV\"].json.binary.data.path;\n\n// Build the command to run on the server\nconst cmd = `node /automation/apply_script.js --url=\"${job_url}\" --cv=\"${cvPath}\" --name=\"${profile.name}\" --email=\"${profile.email}\" --cl=\"${profile.cover_letter}\"`;\n\ntry {\n    const output = execSync(cmd).toString();\n    return { status: \"SUCCESS\", details: JSON.parse(output) };\n} catch (error) {\n    return { status: \"ERROR\", message: error.message };\n}\n"
+      },
+      "name": "Code: Puppeteer Executor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        0
+      ],
+      "id": "b021a36a-9167-4a27-8994-bd18d98ca919"
+    },
+    {
+      "parameters": {
+        "tableId": "user_activity"
+      },
+      "name": "Supabase: Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        0
+      ],
+      "id": "4d83218c-c891-4dd7-892a-f37f8533598a",
+      "credentials": {
+        "supabaseApi": {
+          "id": "XjdPS3IvOu6502Pz",
+          "name": "Supabase Backend Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7467791306",
+        "text": "=🤖 *Admin Alert: Neural Apply Success*\n\n👤 User: {{ $node[\"Supabase: Hydrate Profile\"].json.name }}\n🏢 Company: {{ $node[\"Code: Puppeteer Executor\"].json.company }}\n💼 Role: {{ $node[\"Code: Puppeteer Executor\"].json.role }}\n✅ Status: {{ $node[\"Code: Puppeteer Executor\"].json.status }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Telegram: Admin Log",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -96
+      ],
+      "id": "6fa32870-7efa-4a1f-84da-0eda0e575645",
+      "webhookId": "ae75fc02-e006-4bb1-a4cd-98b946367312",
+      "credentials": {
+        "telegramApi": {
+          "id": "RWOPvZjfv2lwu0Iw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "951498318055847",
+        "recipientPhoneNumber": "={{ $node[\"Supabase: Hydrate Profile\"].json.resume_data.basic.phone }} "
+      },
+      "name": "WhatsApp: User Alert (Pending)",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        96
+      ],
+      "id": "f3562d16-2abb-406b-bdc6-8a889bdc7a58",
+      "webhookId": "07d5afee-6f28-4c52-b9dc-9759b25e5586",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "Pm6t3OTMnCAzgxe6",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: Apply Request": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Hydrate Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Hydrate Profile": {
+      "main": [
+        [
+          {
+            "node": "If: Verified?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Verified?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Download CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Download CV": {
+      "main": [
+        [
+          {
+            "node": "Code: Puppeteer Executor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Puppeteer Executor": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Admin Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3470c429-85a7-4022-9fae-3aaa5a62d37f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "vqRMduaCw1xIVYtr",
+  "tags": []
+}
