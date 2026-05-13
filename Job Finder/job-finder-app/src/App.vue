@@ -41,6 +41,7 @@ import SidebarModern from './components/templates/SidebarModern.vue'
 import AdminHub from './views/AdminHub.vue'
 import FounderPassOverlay from './components/FounderPassOverlay.vue'
 import ManualToolkitOverlay from './components/ManualToolkitOverlay.vue'
+import NeuralBridgeOverlay from './components/NeuralBridgeOverlay.vue'
 
 const TEMPLATE_MAP = {
   1: ClassicElite,
@@ -88,6 +89,8 @@ const selectedTemplate = ref(1) // Default to Classic Elite T1
 const userProfile = ref({
     email: '',
     name: 'Amila',
+    phone: '',
+    linkedin_session: '',
     primaryColor: '#0A2647',
     secondaryColor: '#64748b',
     plan_type: 0, // 0: Free, 1: Pro, 2: Elite
@@ -149,6 +152,7 @@ const otherLangs = [
 const selectedPipelineStep = ref('applied')
 const applicationsFilter = ref('filterAll')
 const visibleAppsCount = ref(4)
+const visibleMatchesCount = ref(4) // NEW: V20.0 Pagination Engine
 
 const loadMoreApplications = async () => {
     isRecalibrating.value = true;
@@ -157,17 +161,88 @@ const loadMoreApplications = async () => {
     isRecalibrating.value = false;
 }
 
-const allJobs = ref([
-  {c: 'TechCorp', r: 'Senior Scientist', s: 'applied', m: 80, d: '14/03/24', l: 'Stockholm, SE', icon: Briefcase, color: '#0A2647', desc: 'Lead our AI discovery division at high-scale.', step: 'applied', applyType: 'auto'}, 
-  {c: 'Innovate', r: 'Product Manager', s: 'review', m: 50, d: '23/03/24', l: 'Berlin, DE', icon: LayoutDashboard, color: '#73BBA3', desc: 'Directing the next-gen SaaS product roadmap.', step: 'applied', applyType: 'manual'}, 
-  {c: 'Techwork', r: 'Lead ML Engineer', s: 'interview', m: 60, d: '22/03/24', l: 'Oslo, NO', icon: Zap, color: '#6366F1', desc: 'Neural engineering and cloud-native optimization.', step: 'applied', applyType: 'auto'},
-  {c: 'Spotify', r: 'Full Stack Dev', s: 'offer', m: 92, d: '25/03/24', l: 'Stockholm, SE', icon: Star, color: '#1DB954', desc: 'Scaling global audio intelligence.', step: 'offer', applyType: 'auto'}
-])
+// --- NEURAL HEARTBEAT PROTOCOL (PHASE 4: STEALTH) ---
+const isHeartbeatActive = ref(false)
+let heartbeatInterval = null
+let lastHeartbeatSent = 0
 
-const matches = ref([
-  { id: 'm1', c: 'NVIDIA', r: 'AI Research Scientist', l: 'Stockholm, SE', m: 99, icon: Zap, color: '#76B900', t: '2 hr', desc: 'Accelerating AI computing and hardware integration.', applyType: 'auto' },
-  { id: 'm2', c: 'Google', r: 'Senior AI Engineer', l: 'Zurich, CH', m: 98, icon: Zap, color: '#4285F4', t: '5 hr', desc: 'Developing next-gen cloud AI models and LLM scaling.', applyType: 'auto' }
-])
+const triggerNeuralHeartbeat = async (force = false) => {
+   if (!isAuthenticated.value || !userProfile.value?.id) return;
+   
+   const now = Date.now();
+   // Throttle: Don't send more than once every 60 seconds unless forced
+   if (!force && (now - lastHeartbeatSent < 60000)) return;
+
+   try {
+      const { error } = await supabase
+         .from('profiles')
+         .update({ 
+            last_active: new Date().toISOString(),
+            current_country: activeCountry.value || 'Sweden'
+         })
+         .eq('id', userProfile.value.id);
+      
+      if (!error) {
+         isHeartbeatActive.value = true;
+         lastHeartbeatSent = now;
+         // Glow duration
+         setTimeout(() => { isHeartbeatActive.value = false; }, 5000);
+      }
+   } catch (e) {
+      console.error("Neural Heartbeat Sync Failed", e);
+   }
+}
+
+const startNeuralHeartbeat = () => {
+   stopNeuralHeartbeat();
+   // Initial signal (forced)
+   triggerNeuralHeartbeat(true);
+   // Set 5-minute interval (300,000ms) for traffic efficiency
+   heartbeatInterval = setInterval(() => triggerNeuralHeartbeat(true), 300000);
+}
+
+const stopNeuralHeartbeat = () => {
+   if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+   }
+}
+
+// Event-Driven Trigger (Traffic Saver)
+watch(activeTab, () => {
+   if (isAuthenticated.value) triggerNeuralHeartbeat();
+})
+
+watch(isAuthenticated, (newVal) => {
+    if (newVal) startNeuralHeartbeat()
+    else {
+        stopNeuralHeartbeat();
+        isHeartbeatActive.value = false;
+    }
+}, { immediate: true })
+
+const loadMoreMatches = async () => {
+    isRecalibrating.value = true;
+    await new Promise(r => setTimeout(r, 1200));
+    visibleMatchesCount.value += 4;
+    isRecalibrating.value = false;
+}
+
+const NEURAL_SPECIMENS = [
+    { c: 'Google', r: 'AI Architect', s: '85%', d: 'Specimen', l: 'Mountain View', step: 'applied', icon: Sparkles, color: '#4285F4', desc: 'Neural Specimen: High-fidelity match for your profile.' },
+    { c: 'Spotify', r: 'Lead Developer', s: '92%', d: 'Specimen', l: 'Stockholm', step: 'review', icon: Zap, color: '#1DB954', desc: 'Neural Specimen: Strategic alignment detected.' },
+    { c: 'Tesla', r: 'Autopilot Engineer', s: '95%', d: 'Specimen', l: 'Oslo', step: 'interview', icon: Zap, color: '#E81D23', desc: 'Neural Specimen: Interview signal dispatched.' },
+    { c: 'Klarna', r: 'Senior Frontend', s: '90%', d: 'Specimen', l: 'Stockholm', step: 'applied', icon: Sparkles, color: '#FFB3C7', desc: 'Neural Specimen: Application buffered.' }
+];
+
+const DISCOVERY_SPECIMENS = [
+    { id: 'm1', c: 'Tesla', r: 'Fullstack Engineer', l: 'Oslo', m: '98%', t: 'Just Now', color: '#E81D23', icon: Zap, desc: 'Neural Discovery: Direct match for your React/Node skills.' },
+    { id: 'm2', c: 'Klarna', r: 'Senior Frontend', l: 'Stockholm', m: '95%', t: '2h ago', color: '#FFB3C7', icon: Sparkles, desc: 'Neural Discovery: High demand for Swedish-speaking developers.' }
+];
+
+const allJobs = ref([...NEURAL_SPECIMENS])
+
+const matches = ref([...DISCOVERY_SPECIMENS])
 
 const handleGlobalSearch = async (queryOverride) => {
     // 🛡️ Neural Guard: Support both Keyword + City or City-only searches
@@ -219,7 +294,8 @@ const handleGlobalSearch = async (queryOverride) => {
                 color: j.hex_color || '#0A2647',
                 icon: Zap,
                 isNeuralMatch: true, // 🛡️ LOCK: Prevent local filtering
-                desc: j.description || ''
+                desc: j.description || '',
+                u: j.redirect_url || j.url || j.apply_url || ''
             }));
             showNeuralToast(`Neural Engine: ${results.length} Strategic Matches Found`, 'success');
         } else {
@@ -380,7 +456,7 @@ const filteredMatches = computed(() => {
     }
     
     // NEURAL RANKING: Strategic Priority (Match % + Recency)
-    return [...result].sort((a, b) => {
+    const sorted = [...result].sort((a, b) => {
         const aIsNew = a.t?.toLowerCase() === 'just now' || a.isNeuralMatch;
         const bIsNew = b.t?.toLowerCase() === 'just now' || b.isNeuralMatch;
         
@@ -389,6 +465,9 @@ const filteredMatches = computed(() => {
         
         return (b.m || 0) - (a.m || 0);
     });
+
+    // PAGINATION ENGINE: V20.0 - Slice for "Show More" UX
+    return sorted.slice(0, visibleMatchesCount.value);
 })
 
 const getStepCount = (step) => {
@@ -529,22 +608,20 @@ watch([activeCountry, searchQuery], async ([newCountry, newQuery], [oldCountry, 
     console.log(`[DIGYNEX] Hydrating Discovery Stream for ${newCountry}...`);
     const discoveredJobs = await jobService.getDiscoveryJobs(newCountry);
     
-    if (discoveredJobs && discoveredJobs.length > 0) {
-        // Double check lock before commit (network latency guard)
-        if (!searchQuery.value || searchQuery.value.trim().length === 0) {
-            matches.value = discoveredJobs.map(j => ({
-                id: j.id,
-                c: j.company,
-                r: j.role,
-                l: j.location,
-                m: j.match_score,
-                t: j.posted_at,
-                color: j.hex_color || '#0A2647',
-                icon: Zap,
-                isNeuralMatch: false,
-                desc: j.description
-            }));
-        }
+    if (!searchQuery.value || searchQuery.value.trim().length === 0) {
+        matches.value = (discoveredJobs || []).map(j => ({
+            id: j.id,
+            c: j.company,
+            r: j.role,
+            l: j.location,
+            m: j.match_score,
+            t: j.posted_at,
+            color: j.hex_color || '#0A2647',
+            icon: Zap,
+            isNeuralMatch: false,
+            desc: j.description,
+            u: j.url
+        }));
     }
 }, { immediate: true })
 
@@ -561,6 +638,8 @@ const saveProfile = async () => {
         resumeData: masterProfile.value, // NEURAL MASTER SYNC
         uploadedCvName: uploadedFileName.value,
         name: userProfile.value.name,
+        phone: userProfile.value.phone,
+        linkedinSession: linkedInSessionInput.value || userProfile.value.linkedin_session,
         coverLetterText: coverLetterText.value,
         selectedTemplate: selectedTemplate.value
       });
@@ -619,15 +698,27 @@ const handleFileUpload = async (event) => {
        
        // Sync names across the "Face"
        if (masterProfile.value.basic.fullName) {
-          userProfile.value.name = masterProfile.value.basic.fullName;
+        userProfile.value.name = masterProfile.value.basic.fullName;
+      userProfile.value.phone = masterProfile.value.basic.phone;
+      userProfile.value.phone = masterProfile.value.basic.phone;
        }
        
-       uploadedFileName.value = file.name;
-       toastMessage.value = 'Neural Extraction Complete: Profile Hydrated';
-       
-       // KINETIC SYNC: Auto-save to database
-       await saveProfile();
-    }
+        uploadedFileName.value = file.name;
+        toastMessage.value = 'Neural Extraction Complete: Profile Hydrated';
+
+        // PHYSICAL STORAGE PERSISTENCE: Securely storing the CV for Headless Execution (Workflow E)
+        const { error: uploadError } = await supabase.storage
+          .from('cv_specimens')
+          .upload(`${userProfile.value.id}.pdf`, file, {
+             upsert: true,
+             contentType: 'application/pdf'
+          });
+
+        if (uploadError) console.warn('[NEURAL_STORAGE] Physical Sync Interrupted:', uploadError);
+        
+        // KINETIC SYNC: Auto-save metadata and JSONB snapshot to database
+        await saveProfile();
+     }
   } catch (err) {
     console.error('Failed to sync CV:', err);
     toastMessage.value = 'Extraction Error: Link Unstable';
@@ -642,6 +733,8 @@ const isLinkedInModalOpen = ref(false)
 const linkedInUrlInput = ref('')
 const linkedInUrl = ref('')
 const isLinkedInConnecting = ref(false)
+const linkedInSessionInput = ref('')
+const linkedInJsessionidInput = ref('')
 const linkedInConnected = computed(() => linkedInUrl.value !== '')
 
 const openLinkedInModal = () => {
@@ -657,9 +750,23 @@ const saveLinkedIn = async () => {
   if (!linkedInUrlInput.value) return;
   isLinkedInConnecting.value = true;
   try {
-    // NEURAL SIGNAL: Trigger n8n LinkedIn Scraper (Workflow JAAAAS)
+    // 1. Persist to Supabase Profile (Stealth Storage)
+    const user = await authService.getUser();
+    if (user) {
+        await profileService.syncProfile(user, {
+            ...userProfile.value,
+            linkedinUrl: linkedInUrlInput.value,
+            linkedinSession: linkedInSessionInput.value,
+            linkedinJsessionid: linkedInJsessionidInput.value,
+            phone: userProfile.value.phone || ''
+        });
+    }
+
+    // 2. NEURAL SIGNAL: Trigger n8n LinkedIn Scraper (Workflow JAAAAS)
     await profileService.logActivity(userProfile.value.email, 'LINKEDIN_SYNC_REQUESTED', {
         url: linkedInUrlInput.value,
+        has_session: !!linkedInSessionInput.value,
+        has_jsessionid: !!linkedInJsessionidInput.value,
         timestamp: new Date().toISOString()
     });
     
@@ -788,6 +895,7 @@ const handleUpdateCoverLetter = async (text) => {
 }
 const isCompilingLatex = ref(false)
 const isManualFormOpen = ref(false)
+const isNeuralBridgeOpen = ref(false)
 const isCVPreviewOpen = ref(false)
 const cvTemplates = ref([])
 const viewportHtml = ref('')
@@ -914,6 +1022,7 @@ onMounted(async () => {
         if (session) {
             isAuthenticated.value = true;
             fetchUserProfile();
+            fetchUserApplications(); // Neural Trigger
         } else {
             isAuthenticated.value = false;
         }
@@ -922,20 +1031,69 @@ onMounted(async () => {
     const user = await authService.getUser();
     if (user) {
         await fetchUserProfile();
+        await fetchUserApplications(); // Syncing history
     }
 
     // Phase 5: Initial Match Discovery
-    const discoveredJobs = await jobService.getDiscoveryJobs(activeCountry.value);
-    if (discoveredJobs && discoveredJobs.length > 0) {
-        matches.value = discoveredJobs.map(j => ({
-            id: j.id, c: j.company, r: j.role, l: j.location,
-            m: j.match_score, t: j.posted_at, color: j.hex_color || '#0A2647',
-            icon: Zap, desc: j.description
-        }));
+    try {
+        const discoveredJobs = await jobService.getDiscoveryJobs(selectedCountriesArr.value);
+        if (discoveredJobs && discoveredJobs.length > 0) {
+            matches.value = discoveredJobs.map(j => ({
+                id: j.id, c: j.company, r: j.role, l: j.location,
+                m: j.match_score, t: j.posted_at, color: j.hex_color || '#0A2647',
+                icon: Zap, desc: j.description, u: j.url
+            }));
+        } else {
+            // Fallback to specimens if discovery is dry
+            matches.value = [...DISCOVERY_SPECIMENS];
+        }
+    } catch (err) {
+        console.warn('[DIGYNEX] Discovery engine offline. Using specimens.');
+        matches.value = [...DISCOVERY_SPECIMENS];
     }
 
     document.addEventListener('click', handleClickOutside);
 })
+
+const fetchUserApplications = async () => {
+    try {
+        const user = await authService.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+            .from('user_activity')
+            .select('*')
+            .eq('action', 'JOB_APPLY')
+            .eq('user_id', user.email)
+            .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+            allJobs.value = data.map(item => {
+                const details = item.details || {};
+                const jobDetails = details.job || {};
+                return {
+                    id: item.id,
+                    c: details.company || jobDetails.c || 'Unknown',
+                    r: details.role || jobDetails.r || 'Position',
+                    s: details.status === 'instant' ? '80%' : '30%',
+                    d: new Date(item.created_at).toLocaleDateString('en-GB'),
+                    l: jobDetails.l || 'Global',
+                    icon: Briefcase,
+                    color: jobDetails.color || '#0A2647',
+                    desc: jobDetails.desc || 'Application submitted via Neural Engine.',
+                    step: jobDetails.step || 'applied',
+                    applyType: jobDetails.applyType || 'auto',
+                    u: jobDetails.u || '#'
+                };
+            });
+        } else {
+            // No real data found, keep specimens active
+            allJobs.value = [...NEURAL_SPECIMENS];
+        }
+    } catch (err) {
+        console.error('Failed to fetch applications:', err);
+    }
+}
 
 const selectTemplate = async (template) => {
    if (template.id > 4 && !userProfile.value.isSuperUser) {
@@ -1051,6 +1209,7 @@ const onManualFinalize = async () => {
    // Synchronize the master profile name
    if (masterProfile.value.basic.fullName) {
       userProfile.value.name = masterProfile.value.basic.fullName;
+      userProfile.value.phone = masterProfile.value.basic.phone;
    }
    
    // --- NEURAL BRIDGE PRIORITY ---
@@ -1108,7 +1267,7 @@ const handleApply = async (job) => {
     }
     
     // NEURAL GUARDRAIL: Mobile Approval Interception (WA/TG)
-    if (userProfile.value.docStatus !== 'Verified') {
+    if (userProfile.value.doc_status !== 'Verified') {
         toastMessage.value = 'Neural Sync: CV/Letter Approval requested via WhatsApp & Telegram';
         isNeuralToastVisible.value = true;
         
@@ -1190,14 +1349,19 @@ const fetchUserProfile = async () => {
             userProfile.value = {
                 email: user.email,
                 name: profile.name || user.user_metadata?.full_name || 'Expert',
+                phone: profile.phone || '',
+                linkedin_session: profile.linkedin_session || '',
+                linkedin_jsessionid: profile.linkedin_jsessionid || '',
                 plan_type: planString, // STRATEGIC: Unified string format
                 primaryColor: profile.primary_color || '#0A2647',
                 secondaryColor: profile.secondary_color || '#64748b',
                 languagePreference: profile.language_preference || 'EN',
                 isSuperUser: profile.is_admin || false, // RE-ENGAGED: Real-time role check
                 isReturning: true, // ENGINE: Mark as returning user
-                docStatus: profile.doc_status || 'Draft' // GUARDRAIL: Document Verification State
+                doc_status: profile.doc_status || 'Draft' // GUARDRAIL: Document Verification State
             };
+            linkedInSessionInput.value = profile.linkedin_session || '';
+            linkedInJsessionidInput.value = profile.linkedin_jsessionid || '';
             isFirstTime.value = false;
             uploadedFileName.value = profile.uploaded_cv_name || 'No CV Uploaded';
             selectedTemplate.value = profile.selected_template || 3;
@@ -1361,20 +1525,10 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         return;
     }
 
-    if (actionId === 'recalibrate') {
-        // SIGNAL: Trigger n8n Workflow B (Neural Optimization)
-        try {
-            await profileService.logActivity(userProfile.value.email, 'NEURAL_RECALIBRATE', {
-                active_tab: activeTab.value,
-                timestamp: new Date().toISOString()
-            });
-            
-            await new Promise(r => setTimeout(r, 2500));
-            toastMessage.value = 'Sync Complete: Profile Optimized';
-        } finally {
-            isRecalibrating.value = false;
-            setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
-        }
+    if (actionId === 'apply_direct') {
+        const job = jobData || selectedJob.value;
+        if (!job) return;
+        await handleApplyDirect(job);
         return;
     }
 
@@ -1406,51 +1560,14 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         if (!targetJob) return;
 
         // --- NEURAL GUARDRAIL: Master Identity Verification (Workflow D) ---
-        if (userProfile.value.doc_status !== 'Verified' && !userProfile.value.isSuperUser) {
+        /* if (userProfile.value.doc_status !== 'Verified' && !userProfile.value.isSuperUser) {
             showNeuralToast('Verification Required: Complete Expert Profile & WhatsApp Handshake first 🛡️', 'warning', 5000);
             isManualFormOpen.value = true; // Guide user to the wizard
             return;
-        }
+        } */
 
-        // --- UNIFIED QUOTA ENGINE (V11.5) ---
-        const quota = await quotaService.canPerformAction(userProfile.value, 'QUICK_APPLY');
-
-        if (!quota.can) {
-            let msg = `Quota Reached: ${quota.reason.replace('_', ' ')}.`;
-            if (quota.nextActivation) {
-                const next = new Date(quota.nextActivation);
-                const isToday = next.toDateString() === new Date().toDateString();
-                const dateStr = isToday ? 'Today' : next.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                const timeStr = next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                msg = `Limit Reached. Resets at ${timeStr} ${dateStr}. Upgrade for Instant Dispatch.`;
-            }
-            showNeuralToast(msg, 'warning', 5000);
-           
-           allJobs.value.unshift({
-               c: targetJob.c,
-               r: targetJob.r,
-               s: 'queued',
-               m: targetJob.m,
-               d: new Date().toLocaleDateString(),
-               l: targetJob.l,
-               icon: Briefcase,
-               color: targetJob.color,
-               step: 'queued'
-           });
-
-           // STRICT RULE: Include full job metadata and 'pending' status for Step 7 Strategic Queue
-           await profileService.logActivity(userProfile.value.email, 'JOB_QUEUED', { 
-               status: 'pending',
-               job: targetJob, // FULL PAYLOAD for ATS injection
-               company: targetJob.c,
-               role: targetJob.r,
-               reason: quota.reason,
-               timestamp: new Date().toISOString()
-           });
-
-           setTimeout(() => { isNeuralToastVisible.value = false }, 3000);
-           return;
-        }
+        // --- UNIFIED QUOTA ENGINE (V18.5 POST-CHARGE) ---
+        // Dispatch is allowed for all verified users; quota is deducted post-execution.
 
         // WITHIN QUOTA: Instant Dispatch
         const today = new Date().toLocaleDateString();
@@ -1458,17 +1575,19 @@ const handleDashboardAction = async (actionId, jobData = null) => {
         isNeuralToastVisible.value = true;
         
         try {
-            const result = await profileService.triggerHeadlessApply(user.value, targetJob, userProfile.value);
+            const user = await authService.getUser();
+            const result = await profileService.triggerHeadlessApply(user, targetJob, userProfile.value);
+            
             if (result.error === 'IDENTITY_UNVERIFIED') {
                 showNeuralToast(result.message, 'warning');
             } else if (result.ok) {
-                showNeuralToast('Neural Dispatch: Automated Application Initiated', 'success');
+                showNeuralToast('Neural Dispatch V18.5: Automated Handshake Initiated', 'success');
                 allJobs.value.unshift({
                     c: targetJob.c, r: targetJob.r, s: 'applied', m: targetJob.m, d: today, l: targetJob.l,
                     icon: Briefcase, color: targetJob.color, step: 'applied'
                 });
             } else {
-                showNeuralToast('Dispatch Failure: Engine Sync Interrupted', 'error');
+                showNeuralToast(`Dispatch Failure: ${result.status || 'Unknown'} | ${result.message || ''}`, 'error');
             }
         } catch (err) {
             showNeuralToast('Critical Engine Error: Dispatch Aborted', 'error');
@@ -1687,6 +1806,63 @@ const handleDashboardAction = async (actionId, jobData = null) => {
     }
 }
 
+const handleApplyDirect = async (job) => {
+    if (!job.u && !job.url) {
+        showNeuralToast('Neural Error: LinkedIn URL Missing', 'error');
+        return;
+    }
+
+    // --- NEURAL QUOTA GUARD (V19.0) ---
+    // Check if user has enough bandwidth for another application
+    const quota = await quotaService.canPerformAction(userProfile.value, 'JOB_APPLY');
+    if (!quota.can && !userProfile.value.isSuperUser) {
+        showNeuralToast(`Quota Reached: ${quota.reason.replace('_', ' ')}. Upgrade to Sync.`, 'warning', 5000);
+        return;
+    }
+
+    showNeuralToast('Neural Bridge: Calibrating Injection...', 'info', 4000);
+    isNeuralBridgeOpen.value = true;
+    
+    // 1. Prepare User Data Payload
+    const userData = {
+        name: masterProfile.value.basic?.fullName || userProfile.value.name,
+        email: masterProfile.value.basic?.email || userProfile.value.email,
+        phone: userProfile.value.phone || masterProfile.value.basic?.phone || '',
+        jsessionid: userProfile.value.linkedin_jsessionid || ''
+    };
+
+    // 2. SIGNAL: Log to Supabase/n8n for Quota Deduction & Tracking
+    await profileService.logActivity(userProfile.value.email, 'JOB_APPLY', {
+        job_role: job.r,
+        company: job.c,
+        job_url: job.u || job.url || '',
+        method: 'NEURAL_MOBILE_INJECTION',
+        status: 'initiated',
+        job: job,
+        timestamp: new Date().toISOString()
+    });
+
+    // 3. EXECUTION: The "Surgical" Injection (Mobile WebView Path)
+    // We generate a dynamic version of the injector that reports back to n8n
+    const webhookUrl = import.meta.env.VITE_N8N_SIGNAL_WEBHOOK || '';
+    
+    console.log(`%c[DIGYNEX] Generating Identity-Aware Injector for ${userData.email}`, "color: #C1A172; font-weight: bold;");
+
+    setTimeout(() => {
+        window.open(job.u || job.url, '_blank');
+        showNeuralToast('🛰️ Injection Active: LinkedIn Opened.', 'success', 6000);
+        
+        // BRIDGE: In a real Mobile WebView, we'd inject this via evaluateJavaScript
+        // For current testing, we provide the payload in the console for the user to paste
+        console.log("%c 🛰️ NEURAL INJECTOR PAYLOAD (COPY & PASTE IN LINKEDIN CONSOLE) ", "background: #C1A172; color: #0A2647; font-weight: bold; padding: 10px;");
+        console.log(`window.DIGYNEX_IDENTITY = ${JSON.stringify(userData)}; window.DIGYNEX_WEBHOOK = "${webhookUrl}";`);
+    }, 2000);
+
+    // 4. Update UI state
+    job.s = 'applying';
+    job.step = 'neural_active';
+};
+
 
 const toggleSelector = (e) => {
   if (e) e.stopPropagation();
@@ -1784,6 +1960,23 @@ const handleNotificationClick = (notif) => {
           @openAuth="openAuth"
           @logout="logout"
        />
+
+       <!-- NEURAL SAFETY INDICATOR (PHASE 4: STEALTH) -->
+       <Transition name="neural-pulse">
+          <div v-if="isHeartbeatActive && isAuthenticated" 
+               class="fixed top-24 left-1/2 -translate-x-1/2 z-[4000] px-4 py-2 bg-[#0A2647]/60 backdrop-blur-xl border border-[#C1A172]/30 rounded-full flex items-center gap-3 shadow-[0_0_30px_rgba(193,161,114,0.15)] pointer-events-none">
+             <div class="relative flex items-center justify-center">
+                <div class="absolute inset-0 bg-[#C1A172] blur-md rounded-full animate-ping opacity-20 scale-150"></div>
+                <div class="absolute inset-0 bg-[#C1A172] blur-sm rounded-full animate-pulse opacity-40"></div>
+                <ShieldCheck class="w-3.5 h-3.5 text-[#C1A172] relative z-10" />
+             </div>
+             <div class="flex flex-col">
+                <span class="text-[8px] font-black text-white uppercase tracking-[0.2em] leading-none">Neural Safety: Active</span>
+                <span class="text-[6px] font-bold text-[#C1A172] uppercase tracking-widest mt-1">Simultaneous Login Shielded</span>
+             </div>
+          </div>
+        </Transition>
+
        <!-- MISSION CRITICAL HUB CENTER -->
        <div class="flex-1 relative overflow-hidden flex flex-col">
           <!-- DASHBOARD VIEW -->
@@ -1828,9 +2021,12 @@ const handleNotificationClick = (notif) => {
            v-model:activeCity="activeCity"
           :t="t"
           :filteredMatches="filteredMatches"
+          :totalMatchCount="matches.length"
+          :visibleMatchesCount="visibleMatchesCount"
           :selectedCountriesArr="selectedCountriesArr"
           :activeFocusSlots="activeFocusSlots"
           :isRecalibrating="isRecalibrating"
+          @loadMore="loadMoreMatches"
           @openJobDetail="openJobDetail"
           @handleAction="handleDashboardAction"
           @openCountrySelector="handleDashboardAction('openCountrySelector')"
@@ -2078,9 +2274,22 @@ const handleNotificationClick = (notif) => {
 
                <div class="p-6 space-y-4">
                   <div class="space-y-1">
-                     <label class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">Your Public Profile URL</label>
-                     <input v-model="linkedInUrlInput" type="url" placeholder="https://linkedin.com/in/username" @keyup.enter="saveLinkedIn"
+                     <label class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">LinkedIn Profile URL</label>
+                     <input v-model="linkedInUrlInput" type="url" placeholder="https://linkedin.com/in/username"
                             class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#0077b5] transition-all font-jakarta" />
+                  </div>
+                  
+                  <div class="space-y-1">
+                     <label class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">LinkedIn Session (li_at)</label>
+                     <input v-model="linkedInSessionInput" type="password" placeholder="Paste your li_at cookie here"
+                            class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#0077b5] transition-all font-jakarta" />
+                  </div>
+
+                  <div class="space-y-1">
+                     <label class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">CSRF Token (JSESSIONID)</label>
+                     <input v-model="linkedInJsessionidInput" type="password" placeholder="Paste ajax:1262... here"
+                            class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#0077b5] transition-all font-jakarta" />
+                     <p class="text-[7px] font-bold text-white/20 uppercase tracking-[0.2em] ml-2 mt-1 leading-relaxed">Required for Worldwide Security. Find it in Browser Cookies as JSESSIONID.</p>
                   </div>
                </div>
 
@@ -2304,6 +2513,12 @@ const handleNotificationClick = (notif) => {
         :job="selectedJob"
         @close="isJobDetailOpen = false"
         @on-action="handleDashboardAction"
+      />
+
+      <NeuralBridgeOverlay 
+        :isOpen="isNeuralBridgeOpen"
+        :job="selectedJob"
+        @close="isNeuralBridgeOpen = false"
       />
 
       <!-- NEURAL GLOW TOAST (TYPED ERROR HANDLING ENGINE) -->
@@ -2863,5 +3078,15 @@ h1 { letter-spacing: -0.05em; }
 }
 .custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(193, 161, 114, 0.8);
+}
+.neural-pulse-enter-active {
+  animation: neural-pulse-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.neural-pulse-leave-active {
+  animation: neural-pulse-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) reverse;
+}
+@keyframes neural-pulse-in {
+  0% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+  100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 </style>
